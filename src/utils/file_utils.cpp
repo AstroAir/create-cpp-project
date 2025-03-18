@@ -121,4 +121,24 @@ std::string FileUtils::combinePath(const std::string &path1,
                                    const std::string &path2) {
   return (fs::path(path1) / fs::path(path2)).string();
 }
+
+bool FileUtils::setExecutable(const std::string& filePath) {
+  #ifdef _WIN32
+    // Windows不需要设置执行权限
+    return true;
+  #else
+    // Unix系统使用chmod
+    std::string command = "chmod +x \"" + filePath + "\"";
+    return system(command.c_str()) == 0;
+  #endif
+}
+
+bool FileUtils::commandExists(const std::string& command) {
+  #ifdef _WIN32
+    std::string cmd = "where " + command + " >nul 2>&1";
+  #else
+    std::string cmd = "command -v " + command + " >/dev/null 2>&1";
+  #endif
+  return system(cmd.c_str()) == 0;
+}
 } // namespace utils

@@ -27,67 +27,36 @@ protected:
   // 设置测试框架
   virtual bool setupTestFramework() = 0;
 
+  // 设置CI/CD配置
+  bool setupCICD(const std::string &projectPath);
+  
+  // 设置编辑器配置
+  bool setupEditorConfig(const std::string &projectPath);
+  
+  // 设置代码风格配置
+  bool setupCodeStyleConfig(const std::string &projectPath);
+  
+  // 设置文档配置
+  bool setupDocConfig(const std::string &projectPath);
+
   // 初始化git
-  bool initializeGit(const std::string &projectPath) {
-    if (!options_.initGit) {
-      return true;
-    }
-
-    std::string gitignoreContent = getGitignoreContent();
-    utils::FileUtils::writeToFile(
-        utils::FileUtils::combinePath(projectPath, ".gitignore"),
-        gitignoreContent);
-
-    std::string command =
-        "cd " + projectPath +
-        " && git init && git add . && git commit -m \"Initial commit\"";
-    return system(command.c_str()) == 0;
-  }
+  bool initializeGit(const std::string &projectPath);
 
   // 获取.gitignore内容
-  std::string getGitignoreContent() {
-    return R"(# Build directories
-build/
-bin/
-lib/
-out/
-cmake-build-*/
-
-# Dependency directories
-vcpkg_installed/
-conan/
-
-# IDE files
-.vs/
-.vscode/
-.idea/
-*.swp
-*~
-
-# Compiled files
-*.o
-*.obj
-*.exe
-*.dll
-*.so
-*.dylib
-*.a
-*.lib
-
-# CMake files
-CMakeCache.txt
-CMakeFiles/
-cmake_install.cmake
-install_manifest.txt
-
-# Bazel files
-bazel-*
-
-# Generated files
-compile_commands.json
-
-#Clangd
-.cache/
-)";
-  }
+  std::string getGitignoreContent();
+  
+  // 获取许可证内容
+  std::string getLicenseContent(const std::string &projectName);
+  
+  // 创建许可证文件
+  bool createLicense(const std::string &projectPath);
+  
+  // 创建空的.clang-format文件
+  bool createClangFormat(const std::string &projectPath);
+  
+  // 创建.gitattributes文件
+  bool createGitAttributes(const std::string &projectPath);
+  
+  // 打印项目创建后的使用指南
+  void printUsageGuide();
 };

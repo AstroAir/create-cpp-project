@@ -44,5 +44,11 @@ public:
   // 组合路径
   static std::string combinePath(const std::string &path1,
                                  const std::string &path2);
+
+  // 设置文件为可执行文件
+  static bool setExecutable(const std::string &filePath);
+
+  // 检查命令是否存在
+  static bool commandExists(const std::string &command);
 };
 } // namespace utils

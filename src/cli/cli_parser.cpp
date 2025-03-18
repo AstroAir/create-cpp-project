@@ -117,6 +117,18 @@ CliOptions CliParser::parse(int argc, char *argv[]) {
       } else {
         options.testFramework = "gtest"; // Default testing framework
       }
+    } else if (arg == "--docs" || arg == "--documentation") {
+      options.includeDocumentation = true;
+    } else if (arg == "--code-style") {
+      options.includeCodeStyleTools = true;
+    } else if (arg == "--editor") {
+      if (i + 1 < argc) {
+        options.editorOptions.push_back(argv[++i]);
+      }
+    } else if (arg == "--ci" || arg == "--cicd") {
+      if (i + 1 < argc) {
+        options.ciOptions.push_back(argv[++i]);
+      }
     } else if (arg == "--no-git") {
       options.initGit = false;
     } else if (arg == "--language" || arg == "-l") {
@@ -143,21 +155,40 @@ void CliParser::showHelp(const std::string &language) {
   std::cout << "  cpp-scaffold new <project name> [options]\n\n";
   std::cout << "Options:\n";
   std::cout << "  -t, --template <type>      Project template type: console, "
-               "lib, gui\n";
-  std::cout
-      << "  -b, --build <build system>     Build system: cmake, meson, bazel\n";
+               "lib, gui, network, embedded\n";
+  std::cout << "  -b, --build <build system>     Build system: cmake, meson, "
+               "bazel, xmake, premake\n";
   std::cout << "  -p, --package <package manager>   Package manager: vcpkg, "
                "conan, none\n";
   std::cout << "  --tests [test framework]         Include test framework: "
                "gtest, catch2, doctest\n";
-  std::cout << "  --no-git                  Do not initialize Git repository\n";
-  std::cout << "  -l, --language <lang>     Interface language: en, zh\n";
-  std::cout << "  -h, --help                Show this help information\n";
-  std::cout << "  -v, --version             Show version information\n\n";
+  std::cout << "  --docs, --documentation          Include documentation "
+               "configuration\n";
+  std::cout << "  --code-style                     Include code style and "
+               "static analysis tools\n";
+  std::cout << "  --editor <editor>                Configure editor support: "
+               "vscode, clion, vs\n";
+  std::cout
+      << "                                  (can be used multiple times)\n";
+  std::cout << "  --ci, --cicd <ci system>         Configure CI/CD: github, "
+               "gitlab, travis, appveyor\n";
+  std::cout
+      << "                                  (can be used multiple times)\n";
+  std::cout << "  --no-git                         Do not initialize Git "
+               "repository\n";
+  std::cout
+      << "  -l, --language <lang>            Interface language: en, zh\n";
+  std::cout
+      << "  -h, --help                       Show this help information\n";
+  std::cout
+      << "  -v, --version                    Show version information\n\n";
   std::cout << "Examples:\n";
   std::cout << "  cpp-scaffold create my-app --template console --build cmake "
                "--package vcpkg --tests\n";
-  std::cout << "  cpp-scaffold new my-lib -t lib -b cmake -p none\n";
+  std::cout << "  cpp-scaffold new my-lib -t lib -b cmake -p none --docs "
+               "--code-style\n";
+  std::cout << "  cpp-scaffold create my-app --ci github --ci gitlab --editor "
+               "vscode\n";
 }
 
 // Show version information
@@ -169,6 +200,9 @@ CliOptions CliParser::promptUserForOptions(const CliOptions &defaultOptions) {
   std::string lang = options.language;
 
   std::cout << getLocalizedString("welcomeMessage", lang) << "\n\n";
+
+  // 加载默认配置
+  CliOptions defaults = loadDefaultOptions();
 
   // If there is no project name, ask
   if (options.projectName.empty()) {
@@ -183,40 +217,68 @@ CliOptions CliParser::promptUserForOptions(const CliOptions &defaultOptions) {
 
   // If there is no template type, ask
   if (options.templateType.empty()) {
-    std::vector<std::string> templateChoices = {"console", "lib", "gui"};
-    options.templateType =
-        readUserChoice(getLocalizedString("selectProjectType", lang),
-                       templateChoices, "console");
+    std::vector<std::string> templateChoices = {"console", "lib", "gui",
+                                                "network", "embedded"};
+    options.templateType = readUserChoice(
+        getLocalizedString("selectProjectType", lang), templateChoices,
+        defaults.templateType.empty() ? "console" : defaults.templateType);
   }
 
   // If there is no build system, ask
   if (options.buildSystem.empty()) {
-    std::vector<std::string> buildChoices = {"cmake", "meson", "bazel"};
+    std::vector<std::string> buildChoices = {"cmake", "meson", "bazel", "xmake",
+                                             "premake"};
     options.buildSystem = readUserChoice(
-        getLocalizedString("selectBuildSystem", lang), buildChoices, "cmake");
+        getLocalizedString("selectBuildSystem", lang), buildChoices,
+        defaults.buildSystem.empty() ? "cmake" : defaults.buildSystem);
   }
 
   // If there is no package manager, ask
   if (options.packageManager.empty()) {
     std::vector<std::string> packageChoices = {"vcpkg", "conan", "none"};
-    options.packageManager =
-        readUserChoice(getLocalizedString("selectPackageManager", lang),
-                       packageChoices, "vcpkg");
+    options.packageManager = readUserChoice(
+        getLocalizedString("selectPackageManager", lang), packageChoices,
+        defaults.packageManager.empty() ? "vcpkg" : defaults.packageManager);
   }
 
   // Ask whether to include the test framework
-  options.includeTests =
-      readUserConfirmation(getLocalizedString("includeTests", lang), true);
+  options.includeTests = readUserConfirmation(
+      getLocalizedString("includeTests", lang), defaults.includeTests);
 
   if (options.includeTests) {
     std::vector<std::string> testChoices = {"gtest", "catch2", "doctest"};
     options.testFramework = readUserChoice(
-        getLocalizedString("selectTestFramework", lang), testChoices, "gtest");
+        getLocalizedString("selectTestFramework", lang), testChoices,
+        defaults.testFramework.empty() ? "gtest" : defaults.testFramework);
   }
 
+  // 询问是否包含文档配置
+  options.includeDocumentation = readUserConfirmation(
+      "是否包含项目文档配置?", defaults.includeDocumentation);
+
+  // 询问是否包含代码风格工具
+  options.includeCodeStyleTools = readUserConfirmation(
+      "是否包含代码风格和静态分析工具?", defaults.includeCodeStyleTools);
+
+  // 询问编辑器配置
+  std::vector<std::string> editorChoices = {"vscode", "clion", "vs"};
+  options.editorOptions = readUserMultiChoice(
+      "选择要配置的编辑器支持", editorChoices, defaults.editorOptions);
+
+  // 询问CI/CD配置
+  std::vector<std::string> ciChoices = {"github", "gitlab", "travis",
+                                        "appveyor"};
+  options.ciOptions = readUserMultiChoice("选择要配置的CI/CD系统", ciChoices,
+                                          defaults.ciOptions);
+
   // Ask whether to initialize git
-  options.initGit =
-      readUserConfirmation(getLocalizedString("initGit", lang), true);
+  options.initGit = readUserConfirmation(getLocalizedString("initGit", lang),
+                                         defaults.initGit);
+
+  // 询问是否保存这些选项作为默认配置
+  if (readUserConfirmation("是否保存这些选项作为默认配置?", false)) {
+    saveOptionsAsDefaults(options);
+  }
 
   return options;
 }
@@ -232,14 +294,14 @@ bool CliParser::saveOptionsAsDefaults(const CliOptions &options) {
     config["packageManager"] = options.packageManager;
     config["includeTests"] = options.includeTests;
     config["testFramework"] = options.testFramework;
-    config["includeDocs"] = options.includeDocs;
-    config["includeCodeStyle"] = options.includeCodeStyle;
+    config["includeDocumentation"] = options.includeDocumentation;
+    config["includeCodeStyleTools"] = options.includeCodeStyleTools;
     config["initGit"] = options.initGit;
     config["language"] = options.language;
 
     // 保存数组选项
-    config["editorIntegrations"] = options.editorIntegrations;
-    config["cicdIntegrations"] = options.cicdIntegrations;
+    config["editorOptions"] = options.editorOptions;
+    config["ciOptions"] = options.ciOptions;
 
     // 将配置写入文件
     std::ofstream configFile(getConfigFilePath());
@@ -280,24 +342,23 @@ CliOptions CliParser::loadDefaultOptions() {
       options.includeTests = config["includeTests"];
     if (config.contains("testFramework"))
       options.testFramework = config["testFramework"];
-    if (config.contains("includeDocs"))
-      options.includeDocs = config["includeDocs"];
-    if (config.contains("includeCodeStyle"))
-      options.includeCodeStyle = config["includeCodeStyle"];
+    if (config.contains("includeDocumentation"))
+      options.includeDocumentation = config["includeDocumentation"];
+    if (config.contains("includeCodeStyleTools"))
+      options.includeCodeStyleTools = config["includeCodeStyleTools"];
     if (config.contains("initGit"))
       options.initGit = config["initGit"];
     if (config.contains("language"))
       options.language = config["language"];
 
     // 读取数组选项
-    if (config.contains("editorIntegrations")) {
-      options.editorIntegrations =
-          config["editorIntegrations"].get<std::vector<std::string>>();
+    if (config.contains("editorOptions")) {
+      options.editorOptions =
+          config["editorOptions"].get<std::vector<std::string>>();
     }
 
-    if (config.contains("cicdIntegrations")) {
-      options.cicdIntegrations =
-          config["cicdIntegrations"].get<std::vector<std::string>>();
+    if (config.contains("ciOptions")) {
+      options.ciOptions = config["ciOptions"].get<std::vector<std::string>>();
     }
 
     return options;
@@ -310,7 +371,8 @@ CliOptions CliParser::loadDefaultOptions() {
 // Verify that the options are valid
 bool CliParser::validateOptions(CliOptions &options) {
   // Verify template type
-  std::vector<std::string> validTemplates = {"console", "lib", "gui"};
+  std::vector<std::string> validTemplates = {"console", "lib", "gui", "network",
+                                             "embedded"};
   if (!options.templateType.empty() &&
       std::find(validTemplates.begin(), validTemplates.end(),
                 StringUtils::toLower(options.templateType)) ==
@@ -320,7 +382,8 @@ bool CliParser::validateOptions(CliOptions &options) {
   }
 
   // Verify build system
-  std::vector<std::string> validBuildSystems = {"cmake", "meson", "bazel"};
+  std::vector<std::string> validBuildSystems = {"cmake", "meson", "bazel",
+                                                "xmake", "premake"};
   if (!options.buildSystem.empty() &&
       std::find(validBuildSystems.begin(), validBuildSystems.end(),
                 StringUtils::toLower(options.buildSystem)) ==
@@ -347,6 +410,27 @@ bool CliParser::validateOptions(CliOptions &options) {
           validTestFrameworks.end()) {
     spdlog::error("Invalid test framework: {}", options.testFramework);
     return false;
+  }
+
+  // 验证编辑器选择
+  std::vector<std::string> validEditors = {"vscode", "clion", "vs"};
+  for (const auto &editor : options.editorOptions) {
+    if (std::find(validEditors.begin(), validEditors.end(),
+                  StringUtils::toLower(editor)) == validEditors.end()) {
+      spdlog::error("Invalid editor: {}", editor);
+      return false;
+    }
+  }
+
+  // 验证CI/CD选择
+  std::vector<std::string> validCiSystems = {"github", "gitlab", "travis",
+                                             "appveyor"};
+  for (const auto &ci : options.ciOptions) {
+    if (std::find(validCiSystems.begin(), validCiSystems.end(),
+                  StringUtils::toLower(ci)) == validCiSystems.end()) {
+      spdlog::error("Invalid CI/CD system: {}", ci);
+      return false;
+    }
   }
 
   return true;

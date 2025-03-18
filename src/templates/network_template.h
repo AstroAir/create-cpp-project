@@ -12,6 +12,9 @@ protected:
   bool createBuildSystem() override;
   bool setupPackageManager() override;
   bool setupTestFramework() override;
+  bool setupCodeStyleTools();
+  bool setupEditorIntegrations();
+  bool setupCICDIntegrations();
 
 private:
   bool setupNetworkLibrary();

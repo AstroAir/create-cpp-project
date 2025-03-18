@@ -4,7 +4,6 @@
 #include "../utils/terminal_utils.h"
 
 #include <fmt/core.h>
-#include <iostream>
 #include <spdlog/spdlog.h>
 
 using namespace utils;
@@ -66,7 +65,7 @@ bool NetworkTemplate::create() {
   }
 
   // Setup code style tools
-  if (options_.includeCodeStyle) {
+  if (options_.includeCodeStyleTools) {
     spdlog::info("Configuring code style tools...");
     if (!setupCodeStyleTools()) {
       spdlog::error("Failed to configure code style tools");
@@ -76,7 +75,7 @@ bool NetworkTemplate::create() {
   }
 
   // Setup editor integrations
-  if (!options_.editorIntegrations.empty()) {
+  if (!options_.editorOptions.empty()) {
     spdlog::info("Configuring editor integrations...");
     if (!setupEditorIntegrations()) {
       spdlog::error("Failed to configure editor integrations");
@@ -86,7 +85,7 @@ bool NetworkTemplate::create() {
   }
 
   // Setup CI/CD integrations
-  if (!options_.cicdIntegrations.empty()) {
+  if (!options_.ciOptions.empty()) {
     spdlog::info("Configuring CI/CD integrations...");
     if (!setupCICDIntegrations()) {
       spdlog::error("Failed to configure CI/CD integrations");
@@ -559,6 +558,39 @@ add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
   return true;
 }
 
+bool NetworkTemplate::setupCodeStyleTools() {
+  std::string projectPath = options_.projectName;
+
+  // 使用基类提供的方法设置代码风格
+  bool result = TemplateBase::setupCodeStyleConfig(projectPath);
+  
+  // 如果基类实现不满足特定需求，可以在这里添加网络模板特有的代码风格配置
+
+  return result;
+}
+
+bool NetworkTemplate::setupEditorIntegrations() {
+  std::string projectPath = options_.projectName;
+  
+  // 使用基类提供的方法设置编辑器配置
+  bool result = TemplateBase::setupEditorConfig(projectPath);
+  
+  // 如果基类实现不满足特定需求，可以在这里添加网络模板特有的编辑器配置
+
+  return result;
+}
+
+bool NetworkTemplate::setupCICDIntegrations() {
+  std::string projectPath = options_.projectName;
+  
+  // 使用基类提供的方法设置CI/CD配置
+  bool result = TemplateBase::setupCICD(projectPath);
+  
+  // 如果基类实现不满足特定需求，可以在这里添加网络模板特有的CI/CD配置
+
+  return result;
+}
+
 std::string NetworkTemplate::getMainCppContent() {
   std::string networkInclude;
 
@@ -805,7 +837,7 @@ void Server::handle_client(std::shared_ptr<asio::ip::tcp::socket> client_socket)
             }} else {{
                 // Error or client disconnected
                 auto it = std::find(clients_.begin(), clients_.end(), client_socket);
-                if (it != clients_.end()) {{
+                if (it != std::string::npos) {{
                     clients_.erase(it);
                     spdlog::info("Client disconnected");
                 }}
@@ -918,7 +950,7 @@ void Server::handle_client(std::shared_ptr<asio::ip::tcp::socket> client_socket)
             }} else {{
                 // Error or client disconnected
                 auto it = std::find(clients_.begin(), clients_.end(), client_socket);
-                if (it != clients_.end()) {{
+                if (it != std::string::npos) {{
                     clients_.erase(it);
                     spdlog::info("Client disconnected");
                 }}

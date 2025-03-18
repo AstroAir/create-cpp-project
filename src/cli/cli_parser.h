@@ -14,12 +14,12 @@ struct CliOptions {
   bool includeTests = false;
   std::string testFramework; // gtest, catch2, doctest
 
-  bool includeDocs = false; // 是否包含文档配置
+  bool includeDocumentation = false; // 是否包含文档配置
+  
+  bool includeCodeStyleTools = false; // 是否包含代码风格工具配置
 
-  bool includeCodeStyle = false; // 是否包含代码风格工具配置
-
-  std::vector<std::string> editorIntegrations; // vscode, clion, vs
-  std::vector<std::string> cicdIntegrations; // github, gitlab, travis, appveyor
+  std::vector<std::string> editorOptions; // vscode, clion, vs
+  std::vector<std::string> ciOptions; // github, gitlab, travis, appveyor
 
   bool initGit = true;
   bool showHelp = false;
