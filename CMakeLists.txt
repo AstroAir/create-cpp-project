@@ -20,10 +20,73 @@ if(WIN32)
     add_definitions(-DUNICODE -D_UNICODE)
 endif()
 
+# 第三方库设置
+include(FetchContent)
+
+# 设置全局缓存目录
+set(DEPS_CACHE_DIR "${CMAKE_SOURCE_DIR}/deps_cache" CACHE PATH "依赖项缓存目录")
+file(MAKE_DIRECTORY ${DEPS_CACHE_DIR})
+
+# 自定义函数用于缓存下载的依赖项
+function(fetch_and_cache NAME GIT_REPO GIT_TAG)
+    # 创建缓存目录路径
+    string(REPLACE "/" "_" SAFE_REPO_NAME ${GIT_REPO})
+    set(CACHE_DIR "${DEPS_CACHE_DIR}/${NAME}_${SAFE_REPO_NAME}_${GIT_TAG}")
+    
+    # 检查缓存目录是否存在
+    if(EXISTS ${CACHE_DIR})
+        message(STATUS "使用缓存的依赖项: ${NAME} (${GIT_TAG})")
+        FetchContent_Declare(
+            ${NAME}
+            SOURCE_DIR ${CACHE_DIR}
+        )
+    else()
+        message(STATUS "下载依赖项: ${NAME} (${GIT_TAG})")
+        FetchContent_Declare(
+            ${NAME}
+            GIT_REPOSITORY ${GIT_REPO}
+            GIT_TAG ${GIT_TAG}
+            SOURCE_DIR ${CACHE_DIR}
+        )
+    endif()
+    
+    # 使依赖项可用
+    FetchContent_MakeAvailable(${NAME})
+endfunction()
+
+# 检查系统是否已安装spdlog
+find_package(spdlog QUIET)
+if(NOT spdlog_FOUND)
+    message(STATUS "System spdlog not found, will use fetched version")
+    # 使用缓存功能添加spdlog
+    fetch_and_cache(
+        spdlog
+        https://github.com/gabime/spdlog.git
+        v1.12.0
+    )
+else()
+    message(STATUS "Using system spdlog: ${spdlog_VERSION}")
+endif()
+
+# 检查系统是否已安装nlohmann_json
+find_package(nlohmann_json QUIET)
+if(NOT nlohmann_json_FOUND)
+    message(STATUS "System nlohmann_json not found, will use fetched version")
+    # 使用缓存功能添加nlohmann/json
+    fetch_and_cache(
+        json
+        https://github.com/nlohmann/json.git
+        v3.11.2
+    )
+else()
+    message(STATUS "Using system nlohmann_json: ${nlohmann_json_VERSION}")
+endif()
+
 # 源文件目录
 set(CORE_SOURCES
     src/main.cpp
     src/cli/cli_parser.cpp
+    src/cli/project_wizard.cpp
     src/templates/template_manager.cpp
     src/templates/template_base.cpp
     src/templates/console_template.cpp
@@ -33,7 +96,6 @@ set(CORE_SOURCES
     src/utils/file_utils.cpp
     src/utils/string_utils.cpp
     src/utils/terminal_utils.cpp
-    src/utils/logger.cpp
 )
 
 # 配置工具源文件
@@ -71,6 +133,19 @@ add_executable(cpp-scaffold ${SOURCES})
 # 链接所需库
 if(DEFINED FILESYSTEM_LIB)
     target_link_libraries(cpp-scaffold PRIVATE ${FILESYSTEM_LIB})
+endif()
+
+# 链接spdlog和nlohmann_json
+if(spdlog_FOUND)
+    target_link_libraries(cpp-scaffold PRIVATE spdlog::spdlog)
+else()
+    target_link_libraries(cpp-scaffold PRIVATE spdlog::spdlog)
+endif()
+
+if(nlohmann_json_FOUND)
+    target_link_libraries(cpp-scaffold PRIVATE nlohmann_json::nlohmann_json)
+else()
+    target_link_libraries(cpp-scaffold PRIVATE nlohmann_json::nlohmann_json)
 endif()
 
 # Windows平台需要额外的库

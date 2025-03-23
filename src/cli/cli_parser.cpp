@@ -1,500 +1,338 @@
 #include "cli_parser.h"
 
 #include <algorithm>
-#include <filesystem>
+#include <cctype>
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
-#include <string>
+#include <sstream>
 
 #include "../utils/string_utils.h"
+#include "../utils/terminal_utils.h"
+#include <fmt/color.h>
+#include <fmt/core.h>
 #include <spdlog/spdlog.h>
 
 using namespace utils;
 using json = nlohmann::json;
 
-// 初始化本地化字符串映射
-std::map<std::string, std::map<std::string, std::string>>
-    CliParser::localizationStrings = {
-        {"en",
-         {{"welcomeMessage",
-           "Welcome to CPP-Scaffold! Let's create your C++ project."},
-          {"projectName", "Project name"},
-          {"projectNameEmpty", "Project name cannot be empty."},
-          {"selectProjectType", "Select project type"},
-          {"selectBuildSystem", "Select build system"},
-          {"selectPackageManager", "Select package manager"},
-          {"includeTests", "Include unit test framework?"},
-          {"selectTestFramework", "Select test framework"},
-          {"initGit", "Initialize Git repository?"},
-          {"invalidSelection", "Invalid selection, please try again."},
-          {"pleaseSelect", "Please select"}}},
-        {"zh",
-         {{"welcomeMessage",
-           "欢迎使用 CPP-Scaffold! 让我们创建您的 C++ 项目。"},
-          {"projectName", "项目名称"},
-          {"projectNameEmpty", "项目名称不能为空。"},
-          {"selectProjectType", "选择项目类型"},
-          {"selectBuildSystem", "选择构建系统"},
-          {"selectPackageManager", "选择包管理器"},
-          {"includeTests", "包含单元测试框架？"},
-          {"selectTestFramework", "选择测试框架"},
-          {"initGit", "初始化 Git 仓库？"},
-          {"invalidSelection", "选择无效，请重试。"},
-          {"pleaseSelect", "请选择"}}}};
+// 初始化静态成员
+Language Localization::s_currentLanguage = Language::English;
+std::unordered_map<std::string, std::unordered_map<Language, std::string>>
+    Localization::s_strings;
 
-// 获取本地化字符串
-std::string CliParser::getLocalizedString(const std::string &key,
-                                          const std::string &language) {
-  auto langIt = localizationStrings.find(language);
-  if (langIt != localizationStrings.end()) {
-    auto strIt = langIt->second.find(key);
+// 枚举转换实现
+namespace enums {
+std::string_view to_string(TemplateType type) {
+  static const std::unordered_map<TemplateType, std::string_view> map = {
+      {TemplateType::Console, "console"},
+      {TemplateType::Lib, "lib"},
+      {TemplateType::Gui, "gui"},
+      {TemplateType::Network, "network"},
+      {TemplateType::Embedded, "embedded"},
+      {TemplateType::WebService, "webservice"},
+      {TemplateType::GameEngine, "gameengine"}};
+  return map.at(type);
+}
+
+std::string_view to_string(BuildSystem system) {
+  static const std::unordered_map<BuildSystem, std::string_view> map = {
+      {BuildSystem::CMake, "cmake"},     {BuildSystem::Meson, "meson"},
+      {BuildSystem::Bazel, "bazel"},     {BuildSystem::XMake, "xmake"},
+      {BuildSystem::Premake, "premake"}, {BuildSystem::Make, "make"},
+      {BuildSystem::Ninja, "ninja"}};
+  return map.at(system);
+}
+
+std::string_view to_string(PackageManager manager) {
+  static const std::unordered_map<PackageManager, std::string_view> map = {
+      {PackageManager::Vcpkg, "vcpkg"},
+      {PackageManager::Conan, "conan"},
+      {PackageManager::None, "none"},
+      {PackageManager::Spack, "spack"},
+      {PackageManager::Hunter, "hunter"}};
+  return map.at(manager);
+}
+
+std::string_view to_string(TestFramework framework) {
+  static const std::unordered_map<TestFramework, std::string_view> map = {
+      {TestFramework::GTest, "gtest"},
+      {TestFramework::Catch2, "catch2"},
+      {TestFramework::Doctest, "doctest"},
+      {TestFramework::Boost, "boost"},
+      {TestFramework::None, "none"}};
+  return map.at(framework);
+}
+
+std::string_view to_string(EditorConfig editor) {
+  static const std::unordered_map<EditorConfig, std::string_view> map = {
+      {EditorConfig::VSCode, "vscode"}, {EditorConfig::CLion, "clion"},
+      {EditorConfig::VS, "vs"},         {EditorConfig::Vim, "vim"},
+      {EditorConfig::Emacs, "emacs"},   {EditorConfig::Sublime, "sublime"}};
+  return map.at(editor);
+}
+
+std::string_view to_string(CiSystem ci) {
+  static const std::unordered_map<CiSystem, std::string_view> map = {
+      {CiSystem::GitHub, "github"},     {CiSystem::GitLab, "gitlab"},
+      {CiSystem::Travis, "travis"},     {CiSystem::AppVeyor, "appveyor"},
+      {CiSystem::AzureDevOps, "azure"}, {CiSystem::CircleCI, "circleci"}};
+  return map.at(ci);
+}
+
+std::string_view to_string(Language lang) {
+  static const std::unordered_map<Language, std::string_view> map = {
+      {Language::English, "en"}, {Language::Chinese, "zh"},
+      {Language::Spanish, "es"}, {Language::Japanese, "jp"},
+      {Language::German, "de"},  {Language::French, "fr"}};
+  return map.at(lang);
+}
+
+// 字符串转枚举（带验证）
+std::optional<TemplateType> to_template_type(std::string_view str) {
+  static const std::unordered_map<std::string_view, TemplateType> map = {
+      {"console", TemplateType::Console},
+      {"lib", TemplateType::Lib},
+      {"gui", TemplateType::Gui},
+      {"network", TemplateType::Network},
+      {"embedded", TemplateType::Embedded},
+      {"webservice", TemplateType::WebService},
+      {"gameengine", TemplateType::GameEngine}};
+
+  auto it = map.find(str);
+  if (it != map.end()) {
+    return it->second;
+  }
+  return std::nullopt;
+}
+
+std::optional<BuildSystem> to_build_system(std::string_view str) {
+  static const std::unordered_map<std::string_view, BuildSystem> map = {
+      {"cmake", BuildSystem::CMake},     {"meson", BuildSystem::Meson},
+      {"bazel", BuildSystem::Bazel},     {"xmake", BuildSystem::XMake},
+      {"premake", BuildSystem::Premake}, {"make", BuildSystem::Make},
+      {"ninja", BuildSystem::Ninja}};
+
+  auto it = map.find(str);
+  if (it != map.end()) {
+    return it->second;
+  }
+  return std::nullopt;
+}
+
+// 其他枚举转换实现...
+
+// 获取所有枚举值的字符串表示
+std::vector<std::string_view> all_template_types() {
+  return {"console",  "lib",        "gui",       "network",
+          "embedded", "webservice", "gameengine"};
+}
+
+std::vector<std::string_view> all_build_systems() {
+  return {"cmake", "meson", "bazel", "xmake", "premake", "make", "ninja"};
+}
+
+std::vector<std::string_view> all_package_managers() {
+  return {"vcpkg", "conan", "none", "spack", "hunter"};
+}
+
+// 其他枚举列表实现...
+} // namespace enums
+
+// 本地化实现
+void Localization::initialize() { loadLanguageStrings(); }
+
+std::string_view Localization::get(std::string_view key, Language lang) {
+  auto langStr = std::string(key);
+  auto langIt = s_strings.find(langStr);
+
+  if (langIt != s_strings.end()) {
+    auto strIt = langIt->second.find(lang);
     if (strIt != langIt->second.end()) {
       return strIt->second;
     }
+
+    // 尝试使用英语作为后备
+    if (lang != Language::English) {
+      strIt = langIt->second.find(Language::English);
+      if (strIt != langIt->second.end()) {
+        return strIt->second;
+      }
+    }
   }
 
-  // 如果找不到指定语言或键，尝试使用英语
-  if (language != "en") {
-    return getLocalizedString(key, "en");
-  }
-
-  // 如果英语也找不到，返回键名作为默认值
+  // 返回键作为后备
   return key;
 }
 
-// Parses command line arguments
-CliOptions CliParser::parse(int argc, char *argv[]) {
-  CliOptions options;
+void Localization::loadLanguageStrings() {
+  // 英语字符串（默认）
+  s_strings["welcomeMessage"][Language::English] =
+      "Welcome to CPP-Scaffold! Let's create your C++ project.";
+  s_strings["projectName"][Language::English] = "Project name";
+  s_strings["projectNameEmpty"][Language::English] =
+      "Project name cannot be empty.";
+  s_strings["selectProjectType"][Language::English] = "Select project type";
+  s_strings["selectBuildSystem"][Language::English] = "Select build system";
+  s_strings["selectPackageManager"][Language::English] =
+      "Select package manager";
+  s_strings["includeTests"][Language::English] = "Include unit test framework?";
+  s_strings["selectTestFramework"][Language::English] = "Select test framework";
+  s_strings["includeDocumentation"][Language::English] =
+      "Include documentation configuration?";
+  s_strings["includeCodeStyleTools"][Language::English] =
+      "Include code style and static analysis tools?";
+  s_strings["selectEditors"][Language::English] = "Select editors to configure";
+  s_strings["selectCISystems"][Language::English] =
+      "Select CI/CD systems to configure";
+  s_strings["initGit"][Language::English] = "Initialize Git repository?";
+  s_strings["invalidSelection"][Language::English] =
+      "Invalid selection, please try again.";
+  s_strings["pleaseSelect"][Language::English] = "Please select";
+  s_strings["saveAsDefault"][Language::English] =
+      "Save these options as default?";
+  s_strings["continueOrDone"][Language::English] =
+      "Continue selecting or type 'done' to finish";
 
-  if (argc <= 1) {
-    options.showHelp = true;
-    return options;
-  }
+  // 中文字符串
+  s_strings["welcomeMessage"][Language::Chinese] =
+      "欢迎使用 CPP-Scaffold! 让我们创建您的 C++ 项目。";
+  s_strings["projectName"][Language::Chinese] = "项目名称";
+  s_strings["projectNameEmpty"][Language::Chinese] = "项目名称不能为空。";
+  s_strings["selectProjectType"][Language::Chinese] = "选择项目类型";
+  s_strings["selectBuildSystem"][Language::Chinese] = "选择构建系统";
+  s_strings["selectPackageManager"][Language::Chinese] = "选择包管理器";
+  s_strings["includeTests"][Language::Chinese] = "包含单元测试框架？";
+  s_strings["selectTestFramework"][Language::Chinese] = "选择测试框架";
+  s_strings["includeDocumentation"][Language::Chinese] =
+      "是否包含项目文档配置?";
+  s_strings["includeCodeStyleTools"][Language::Chinese] =
+      "是否包含代码风格和静态分析工具?";
+  s_strings["selectEditors"][Language::Chinese] = "选择要配置的编辑器支持";
+  s_strings["selectCISystems"][Language::Chinese] = "选择要配置的CI/CD系统";
+  s_strings["initGit"][Language::Chinese] = "初始化 Git 仓库？";
+  s_strings["invalidSelection"][Language::Chinese] = "选择无效，请重试。";
+  s_strings["pleaseSelect"][Language::Chinese] = "请选择";
+  s_strings["saveAsDefault"][Language::Chinese] =
+      "是否保存这些选项作为默认配置?";
+  s_strings["continueOrDone"][Language::Chinese] = "继续选择或输入 'done' 完成";
 
-  std::string command = argv[1];
-  if (command == "help" || command == "--help" || command == "-h") {
-    options.showHelp = true;
-    return options;
-  }
-
-  if (command == "version" || command == "--version" || command == "-v") {
-    options.version = true;
-    return options;
-  }
-
-  if (command != "create" && command != "new") {
-    spdlog::error("Unknown command: {}", command);
-    options.showHelp = true;
-    return options;
-  }
-
-  // If there is a project name, set it
-  if (argc > 2) {
-    options.projectName = argv[2];
-  }
-
-  // Parse other arguments
-  for (int i = 3; i < argc; i++) {
-    std::string arg = argv[i];
-
-    if (arg == "--template" || arg == "-t") {
-      if (i + 1 < argc) {
-        options.templateType = argv[++i];
-      }
-    } else if (arg == "--build" || arg == "-b") {
-      if (i + 1 < argc) {
-        options.buildSystem = argv[++i];
-      }
-    } else if (arg == "--package" || arg == "-p") {
-      if (i + 1 < argc) {
-        options.packageManager = argv[++i];
-      }
-    } else if (arg == "--tests") {
-      options.includeTests = true;
-      if (i + 1 < argc && argv[i + 1][0] != '-') {
-        options.testFramework = argv[++i];
-      } else {
-        options.testFramework = "gtest"; // Default testing framework
-      }
-    } else if (arg == "--docs" || arg == "--documentation") {
-      options.includeDocumentation = true;
-    } else if (arg == "--code-style") {
-      options.includeCodeStyleTools = true;
-    } else if (arg == "--editor") {
-      if (i + 1 < argc) {
-        options.editorOptions.push_back(argv[++i]);
-      }
-    } else if (arg == "--ci" || arg == "--cicd") {
-      if (i + 1 < argc) {
-        options.ciOptions.push_back(argv[++i]);
-      }
-    } else if (arg == "--no-git") {
-      options.initGit = false;
-    } else if (arg == "--language" || arg == "-l") {
-      if (i + 1 < argc) {
-        options.language = argv[++i];
-      }
-    }
-  }
-
-  // If there is not enough information, get it through interactive prompts
-  if (options.projectName.empty() || options.templateType.empty() ||
-      options.buildSystem.empty() || options.packageManager.empty()) {
-    options = promptUserForOptions(options);
-  }
-
-  return options;
+  // 可以添加更多语言
 }
 
-// Show help information
-void CliParser::showHelp(const std::string &language) {
-  std::cout << "CPP-Scaffold - C++ project scaffolding tool\n\n";
-  std::cout << "Usage:\n";
-  std::cout << "  cpp-scaffold create <project name> [options]\n";
-  std::cout << "  cpp-scaffold new <project name> [options]\n\n";
-  std::cout << "Options:\n";
-  std::cout << "  -t, --template <type>      Project template type: console, "
-               "lib, gui, network, embedded\n";
-  std::cout << "  -b, --build <build system>     Build system: cmake, meson, "
-               "bazel, xmake, premake\n";
-  std::cout << "  -p, --package <package manager>   Package manager: vcpkg, "
-               "conan, none\n";
-  std::cout << "  --tests [test framework]         Include test framework: "
-               "gtest, catch2, doctest\n";
-  std::cout << "  --docs, --documentation          Include documentation "
-               "configuration\n";
-  std::cout << "  --code-style                     Include code style and "
-               "static analysis tools\n";
-  std::cout << "  --editor <editor>                Configure editor support: "
-               "vscode, clion, vs\n";
-  std::cout
-      << "                                  (can be used multiple times)\n";
-  std::cout << "  --ci, --cicd <ci system>         Configure CI/CD: github, "
-               "gitlab, travis, appveyor\n";
-  std::cout
-      << "                                  (can be used multiple times)\n";
-  std::cout << "  --no-git                         Do not initialize Git "
-               "repository\n";
-  std::cout
-      << "  -l, --language <lang>            Interface language: en, zh\n";
-  std::cout
-      << "  -h, --help                       Show this help information\n";
-  std::cout
-      << "  -v, --version                    Show version information\n\n";
-  std::cout << "Examples:\n";
-  std::cout << "  cpp-scaffold create my-app --template console --build cmake "
-               "--package vcpkg --tests\n";
-  std::cout << "  cpp-scaffold new my-lib -t lib -b cmake -p none --docs "
-               "--code-style\n";
-  std::cout << "  cpp-scaffold create my-app --ci github --ci gitlab --editor "
-               "vscode\n";
-}
-
-// Show version information
-void CliParser::showVersion() { std::cout << "CPP-Scaffold Version 1.0.0\n"; }
-
-// Interactive prompt to get options
-CliOptions CliParser::promptUserForOptions(const CliOptions &defaultOptions) {
-  CliOptions options = defaultOptions;
-  std::string lang = options.language;
-
-  std::cout << getLocalizedString("welcomeMessage", lang) << "\n\n";
-
-  // 加载默认配置
-  CliOptions defaults = loadDefaultOptions();
-
-  // If there is no project name, ask
-  if (options.projectName.empty()) {
-    options.projectName =
-        readUserInput(getLocalizedString("projectName", lang));
-    while (options.projectName.empty()) {
-      std::cout << getLocalizedString("projectNameEmpty", lang) << "\n";
-      options.projectName =
-          readUserInput(getLocalizedString("projectName", lang));
-    }
-  }
-
-  // If there is no template type, ask
-  if (options.templateType.empty()) {
-    std::vector<std::string> templateChoices = {"console", "lib", "gui",
-                                                "network", "embedded"};
-    options.templateType = readUserChoice(
-        getLocalizedString("selectProjectType", lang), templateChoices,
-        defaults.templateType.empty() ? "console" : defaults.templateType);
-  }
-
-  // If there is no build system, ask
-  if (options.buildSystem.empty()) {
-    std::vector<std::string> buildChoices = {"cmake", "meson", "bazel", "xmake",
-                                             "premake"};
-    options.buildSystem = readUserChoice(
-        getLocalizedString("selectBuildSystem", lang), buildChoices,
-        defaults.buildSystem.empty() ? "cmake" : defaults.buildSystem);
-  }
-
-  // If there is no package manager, ask
-  if (options.packageManager.empty()) {
-    std::vector<std::string> packageChoices = {"vcpkg", "conan", "none"};
-    options.packageManager = readUserChoice(
-        getLocalizedString("selectPackageManager", lang), packageChoices,
-        defaults.packageManager.empty() ? "vcpkg" : defaults.packageManager);
-  }
-
-  // Ask whether to include the test framework
-  options.includeTests = readUserConfirmation(
-      getLocalizedString("includeTests", lang), defaults.includeTests);
-
-  if (options.includeTests) {
-    std::vector<std::string> testChoices = {"gtest", "catch2", "doctest"};
-    options.testFramework = readUserChoice(
-        getLocalizedString("selectTestFramework", lang), testChoices,
-        defaults.testFramework.empty() ? "gtest" : defaults.testFramework);
-  }
-
-  // 询问是否包含文档配置
-  options.includeDocumentation = readUserConfirmation(
-      "是否包含项目文档配置?", defaults.includeDocumentation);
-
-  // 询问是否包含代码风格工具
-  options.includeCodeStyleTools = readUserConfirmation(
-      "是否包含代码风格和静态分析工具?", defaults.includeCodeStyleTools);
-
-  // 询问编辑器配置
-  std::vector<std::string> editorChoices = {"vscode", "clion", "vs"};
-  options.editorOptions = readUserMultiChoice(
-      "选择要配置的编辑器支持", editorChoices, defaults.editorOptions);
-
-  // 询问CI/CD配置
-  std::vector<std::string> ciChoices = {"github", "gitlab", "travis",
-                                        "appveyor"};
-  options.ciOptions = readUserMultiChoice("选择要配置的CI/CD系统", ciChoices,
-                                          defaults.ciOptions);
-
-  // Ask whether to initialize git
-  options.initGit = readUserConfirmation(getLocalizedString("initGit", lang),
-                                         defaults.initGit);
-
-  // 询问是否保存这些选项作为默认配置
-  if (readUserConfirmation("是否保存这些选项作为默认配置?", false)) {
-    saveOptionsAsDefaults(options);
-  }
-
-  return options;
-}
-
-// 保存选项作为默认配置
-bool CliParser::saveOptionsAsDefaults(const CliOptions &options) {
-  try {
-    json config;
-
-    // 保存基本选项
-    config["templateType"] = options.templateType;
-    config["buildSystem"] = options.buildSystem;
-    config["packageManager"] = options.packageManager;
-    config["includeTests"] = options.includeTests;
-    config["testFramework"] = options.testFramework;
-    config["includeDocumentation"] = options.includeDocumentation;
-    config["includeCodeStyleTools"] = options.includeCodeStyleTools;
-    config["initGit"] = options.initGit;
-    config["language"] = options.language;
-
-    // 保存数组选项
-    config["editorOptions"] = options.editorOptions;
-    config["ciOptions"] = options.ciOptions;
-
-    // 将配置写入文件
-    std::ofstream configFile(getConfigFilePath());
-    if (!configFile.is_open()) {
-      spdlog::error("Failed to open config file for writing");
-      return false;
-    }
-
-    configFile << config.dump(2); // 保存JSON (缩进2个空格)
-    return true;
-  } catch (const std::exception &e) {
-    spdlog::error("Error saving default options: {}", e.what());
-    return false;
-  }
-}
-
-// 从配置文件加载默认选项
-CliOptions CliParser::loadDefaultOptions() {
-  CliOptions options;
-
-  try {
-    std::ifstream configFile(getConfigFilePath());
-    if (!configFile.is_open()) {
-      spdlog::info("No default config found, using built-in defaults");
-      return options; // 返回默认构造的选项
-    }
-
-    json config = json::parse(configFile);
-
-    // 读取基本选项
-    if (config.contains("templateType"))
-      options.templateType = config["templateType"];
-    if (config.contains("buildSystem"))
-      options.buildSystem = config["buildSystem"];
-    if (config.contains("packageManager"))
-      options.packageManager = config["packageManager"];
-    if (config.contains("includeTests"))
-      options.includeTests = config["includeTests"];
-    if (config.contains("testFramework"))
-      options.testFramework = config["testFramework"];
-    if (config.contains("includeDocumentation"))
-      options.includeDocumentation = config["includeDocumentation"];
-    if (config.contains("includeCodeStyleTools"))
-      options.includeCodeStyleTools = config["includeCodeStyleTools"];
-    if (config.contains("initGit"))
-      options.initGit = config["initGit"];
-    if (config.contains("language"))
-      options.language = config["language"];
-
-    // 读取数组选项
-    if (config.contains("editorOptions")) {
-      options.editorOptions =
-          config["editorOptions"].get<std::vector<std::string>>();
-    }
-
-    if (config.contains("ciOptions")) {
-      options.ciOptions = config["ciOptions"].get<std::vector<std::string>>();
-    }
-
-    return options;
-  } catch (const std::exception &e) {
-    spdlog::error("Error loading default options: {}", e.what());
-    return options; // 返回默认构造的选项
-  }
-}
-
-// Verify that the options are valid
-bool CliParser::validateOptions(CliOptions &options) {
-  // Verify template type
-  std::vector<std::string> validTemplates = {"console", "lib", "gui", "network",
-                                             "embedded"};
-  if (!options.templateType.empty() &&
-      std::find(validTemplates.begin(), validTemplates.end(),
-                StringUtils::toLower(options.templateType)) ==
-          validTemplates.end()) {
-    spdlog::error("Invalid template type: {}", options.templateType);
-    return false;
-  }
-
-  // Verify build system
-  std::vector<std::string> validBuildSystems = {"cmake", "meson", "bazel",
-                                                "xmake", "premake"};
-  if (!options.buildSystem.empty() &&
-      std::find(validBuildSystems.begin(), validBuildSystems.end(),
-                StringUtils::toLower(options.buildSystem)) ==
-          validBuildSystems.end()) {
-    spdlog::error("Invalid build system: {}", options.buildSystem);
-    return false;
-  }
-
-  // Verify package manager
-  std::vector<std::string> validPackageManagers = {"vcpkg", "conan", "none"};
-  if (!options.packageManager.empty() &&
-      std::find(validPackageManagers.begin(), validPackageManagers.end(),
-                StringUtils::toLower(options.packageManager)) ==
-          validPackageManagers.end()) {
-    spdlog::error("Invalid package manager: {}", options.packageManager);
-    return false;
-  }
-
-  // Verify test framework
-  std::vector<std::string> validTestFrameworks = {"gtest", "catch2", "doctest"};
-  if (options.includeTests && !options.testFramework.empty() &&
-      std::find(validTestFrameworks.begin(), validTestFrameworks.end(),
-                StringUtils::toLower(options.testFramework)) ==
-          validTestFrameworks.end()) {
-    spdlog::error("Invalid test framework: {}", options.testFramework);
-    return false;
-  }
-
-  // 验证编辑器选择
-  std::vector<std::string> validEditors = {"vscode", "clion", "vs"};
-  for (const auto &editor : options.editorOptions) {
-    if (std::find(validEditors.begin(), validEditors.end(),
-                  StringUtils::toLower(editor)) == validEditors.end()) {
-      spdlog::error("Invalid editor: {}", editor);
-      return false;
-    }
-  }
-
-  // 验证CI/CD选择
-  std::vector<std::string> validCiSystems = {"github", "gitlab", "travis",
-                                             "appveyor"};
-  for (const auto &ci : options.ciOptions) {
-    if (std::find(validCiSystems.begin(), validCiSystems.end(),
-                  StringUtils::toLower(ci)) == validCiSystems.end()) {
-      spdlog::error("Invalid CI/CD system: {}", ci);
-      return false;
-    }
-  }
-
-  return true;
-}
-
-// Read user input
-std::string CliParser::readUserInput(const std::string &prompt,
-                                     const std::string &defaultValue) {
+// 用户输入实现
+std::string UserInput::read(std::string_view prompt,
+                            std::optional<std::string_view> defaultValue,
+                            std::optional<ValidatorFunction> validator) {
   std::string input;
-  if (defaultValue.empty()) {
-    std::cout << prompt << ": ";
-  } else {
-    std::cout << prompt << " [" << defaultValue << "]: ";
+
+  while (true) {
+    // 显示提示和默认值
+    if (defaultValue.has_value()) {
+      fmt::print("{} [{}]: ", prompt, *defaultValue);
+    } else {
+      fmt::print("{}: ", prompt);
+    }
+
+    // 获取用户输入
+    std::getline(std::cin, input);
+
+    // 如果输入为空且有默认值，使用默认值
+    if (input.empty() && defaultValue.has_value()) {
+      return std::string(*defaultValue);
+    }
+
+    // 验证输入
+    if (validator.has_value()) {
+      auto result = (*validator)(input);
+
+      if (std::holds_alternative<bool>(result)) {
+        if (std::get<bool>(result)) {
+          break; // 验证通过
+        }
+      } else {
+        // 显示验证错误信息
+        fmt::print(fmt::fg(fmt::color::red), "{}\n",
+                   std::get<std::string>(result));
+      }
+    } else {
+      break; // 无需验证
+    }
   }
 
-  std::getline(std::cin, input);
-  if (input.empty()) {
-    return defaultValue;
-  }
   return input;
 }
 
-// Read user choice
-std::string CliParser::readUserChoice(const std::string &prompt,
-                                      const std::vector<std::string> &choices,
-                                      const std::string &defaultValue) {
-  std::cout << prompt << ":\n";
+UserInput::ValidatorFunction UserInput::notEmptyValidator() {
+  return [](const std::string &input) -> ValidatorResult {
+    return !input.empty() || "Input cannot be empty";
+  };
+}
+
+// 读取用户确认
+bool UserInput::readConfirmation(std::string_view prompt, bool defaultValue) {
+  std::string defaultStr = defaultValue ? "Y/n" : "y/N";
+  std::string input = read(prompt, defaultStr);
+
+  if (input.empty()) {
+    return defaultValue;
+  }
+
+  std::string lowerInput = StringUtils::toLower(input);
+  return lowerInput == "y" || lowerInput == "yes";
+}
+
+// 读取用户选择
+std::string
+UserInput::readChoice(std::string_view prompt,
+                      const std::vector<std::string_view> &choices,
+                      std::optional<std::string_view> defaultValue) {
+  fmt::print("{}\n", prompt);
   printOptions(choices, defaultValue);
 
   while (true) {
-    std::string input = readUserInput("Please select", defaultValue);
+    std::string input = read(Localization::get("pleaseSelect"), defaultValue);
 
-    // Check if it is a serial number
-    if (std::all_of(input.begin(), input.end(), ::isdigit)) {
+    // 检查是否是数字
+    if (std::all_of(input.begin(), input.end(),
+                    [](char c) { return std::isdigit(c); })) {
       int index = std::stoi(input) - 1;
-      if (index >= 0 && index < choices.size()) {
-        return choices[index];
+      if (index >= 0 && index < static_cast<int>(choices.size())) {
+        return std::string(choices[index]);
       }
     }
-    // Check if it is an option name
-    else if (std::find(choices.begin(), choices.end(),
-                       StringUtils::toLower(input)) != choices.end()) {
-      return StringUtils::toLower(input);
+    // 检查是否是选项之一
+    else {
+      for (const auto &choice : choices) {
+        if (StringUtils::toLower(input) ==
+            StringUtils::toLower(std::string(choice))) {
+          return std::string(choice);
+        }
+      }
     }
 
-    std::cout << "Invalid selection, please try again.\n";
+    fmt::print(fmt::fg(fmt::color::red), "{}\n",
+               Localization::get("invalidSelection"));
   }
 }
 
-// Read user multi-choice selection
+// 多选实现
 std::vector<std::string>
-CliParser::readUserMultiChoice(const std::string &prompt,
-                               const std::vector<std::string> &choices,
-                               const std::vector<std::string> &defaultValues) {
+UserInput::readMultiChoice(std::string_view prompt,
+                           const std::vector<std::string_view> &choices,
+                           const std::vector<std::string_view> &defaultValues) {
+  std::vector<std::string> selectedOptions;
 
-  std::vector<std::string> selectedOptions = defaultValues;
+  // 转换默认值为字符串
+  for (const auto &val : defaultValues) {
+    selectedOptions.push_back(std::string(val));
+  }
 
-  std::cout << prompt << ":\n";
+  fmt::print("{}\n", prompt);
   printMultiOptions(choices, selectedOptions);
 
-  std::cout
-      << "Enter numbers to toggle selection (comma or space separated),\n";
-  std::cout
-      << "or 'all' to select all, 'none' to clear, 'done' when finished: ";
+  fmt::print("Enter numbers to toggle selection (comma or space separated),\n");
+  fmt::print("or 'all' to select all, 'none' to clear, 'done' when finished: ");
 
   std::string input;
   while (true) {
@@ -504,13 +342,16 @@ CliParser::readUserMultiChoice(const std::string &prompt,
     if (input == "done") {
       break;
     } else if (input == "all") {
-      selectedOptions = choices;
+      selectedOptions.clear();
+      for (const auto &choice : choices) {
+        selectedOptions.push_back(std::string(choice));
+      }
       printMultiOptions(choices, selectedOptions);
     } else if (input == "none") {
       selectedOptions.clear();
       printMultiOptions(choices, selectedOptions);
     } else {
-      // 分割输入，允许逗号和空格作为分隔符
+      // 解析输入，支持逗号和空格分隔
       std::vector<std::string> selections;
       std::string token;
       std::istringstream tokenStream(input);
@@ -522,32 +363,39 @@ CliParser::readUserMultiChoice(const std::string &prompt,
         }
       }
 
+      // 处理每个选择
       for (const auto &selection : selections) {
-        // 检查是否为数字
-        if (std::all_of(selection.begin(), selection.end(), ::isdigit)) {
+        // 先尝试作为数字
+        if (std::all_of(selection.begin(), selection.end(),
+                        [](char c) { return std::isdigit(c); })) {
           int index = std::stoi(selection) - 1;
-          if (index >= 0 && index < choices.size()) {
+          if (index >= 0 && index < static_cast<int>(choices.size())) {
+            std::string choice = std::string(choices[index]);
             // 切换选择状态
             auto it = std::find(selectedOptions.begin(), selectedOptions.end(),
-                                choices[index]);
+                                choice);
             if (it != selectedOptions.end()) {
               selectedOptions.erase(it);
             } else {
-              selectedOptions.push_back(choices[index]);
+              selectedOptions.push_back(choice);
             }
           }
         }
-        // 检查是否为选项名称
+        // 尝试作为选项名称
         else {
-          auto it = std::find(choices.begin(), choices.end(), selection);
-          if (it != choices.end()) {
-            // 切换选择状态
-            auto selected = std::find(selectedOptions.begin(),
-                                      selectedOptions.end(), selection);
-            if (selected != selectedOptions.end()) {
-              selectedOptions.erase(selected);
-            } else {
-              selectedOptions.push_back(selection);
+          for (const auto &choice : choices) {
+            if (StringUtils::toLower(selection) ==
+                StringUtils::toLower(std::string(choice))) {
+              std::string choiceStr = std::string(choice);
+              // 切换选择状态
+              auto it = std::find(selectedOptions.begin(),
+                                  selectedOptions.end(), choiceStr);
+              if (it != selectedOptions.end()) {
+                selectedOptions.erase(it);
+              } else {
+                selectedOptions.push_back(choiceStr);
+              }
+              break;
             }
           }
         }
@@ -556,57 +404,157 @@ CliParser::readUserMultiChoice(const std::string &prompt,
       printMultiOptions(choices, selectedOptions);
     }
 
-    std::cout << "Continue selecting or type 'done' to finish: ";
+    fmt::print("{}: ", Localization::get("continueOrDone"));
   }
 
   return selectedOptions;
 }
 
-// Read user confirmation
-bool CliParser::readUserConfirmation(const std::string &prompt,
-                                     bool defaultValue) {
-  std::string defaultStr = defaultValue ? "Y/n" : "y/N";
-  std::string input;
-
-  std::cout << prompt << " [" << defaultStr << "]: ";
-  std::getline(std::cin, input);
-
-  if (input.empty()) {
-    return defaultValue;
-  }
-
-  std::string lowerInput = StringUtils::toLower(input);
-  return lowerInput == "y" || lowerInput == "yes";
-}
-
-// Print options to the console
-void CliParser::printOptions(const std::vector<std::string> &options,
-                             const std::string &defaultOption) {
+// 打印选项
+void UserInput::printOptions(const std::vector<std::string_view> &options,
+                             std::optional<std::string_view> defaultOption) {
   for (size_t i = 0; i < options.size(); i++) {
-    std::string option = options[i];
-    std::string marker = (option == defaultOption) ? " (default)" : "";
-    std::cout << "  " << (i + 1) << ". " << option << marker << "\n";
+    std::string marker;
+    if (defaultOption.has_value() && options[i] == *defaultOption) {
+      marker = " (default)";
+      fmt::print("  {}. **{}**{}\n", i + 1, options[i], marker);
+    } else {
+      fmt::print("  {}. {}\n", i + 1, options[i]);
+    }
   }
 }
 
-// Print multi-options to the console
-void CliParser::printMultiOptions(
-    const std::vector<std::string> &options,
+// 打印多选选项
+void UserInput::printMultiOptions(
+    const std::vector<std::string_view> &options,
     const std::vector<std::string> &selectedOptions) {
   for (size_t i = 0; i < options.size(); i++) {
-    std::string option = options[i];
-    std::string marker =
-        std::find(selectedOptions.begin(), selectedOptions.end(), option) !=
-                selectedOptions.end()
-            ? " [x]"
-            : " [ ]";
-    std::cout << "  " << (i + 1) << ". " << option << marker << "\n";
+    bool isSelected =
+        std::find(selectedOptions.begin(), selectedOptions.end(),
+                  std::string(options[i])) != selectedOptions.end();
+
+    std::string marker = isSelected ? " [x]" : " [ ]";
+
+    if (isSelected) {
+      fmt::print("  {}. **{}**{}\n", i + 1, options[i], marker);
+    } else {
+      fmt::print("  {}. {}{}\n", i + 1, options[i], marker);
+    }
+  }
+}
+
+// 配置管理器实现
+CliOptions ConfigManager::loadDefaultOptions() {
+  CliOptions options;
+
+  try {
+    std::ifstream configFile(getConfigFilePath());
+    if (!configFile.is_open()) {
+      spdlog::info("未找到默认配置，使用内置默认值");
+      return options;
+    }
+
+    json config = json::parse(configFile);
+
+    // 读取基本设置
+    if (config.contains("templateType")) {
+      auto templateType =
+          enums::to_template_type(config["templateType"].get<std::string>());
+      if (templateType) {
+        options.templateType = *templateType;
+      }
+    }
+
+    if (config.contains("buildSystem")) {
+      auto buildSystem =
+          enums::to_build_system(config["buildSystem"].get<std::string>());
+      if (buildSystem) {
+        options.buildSystem = *buildSystem;
+      }
+    }
+
+    // 读取其他基本设置...
+
+    // 读取数组设置
+    if (config.contains("editorOptions") &&
+        config["editorOptions"].is_array()) {
+      options.editorOptions.clear();
+      for (const auto &editor : config["editorOptions"]) {
+        auto editorConfig = enums::to_editor_config(editor.get<std::string>());
+        if (editorConfig) {
+          options.editorOptions.push_back(*editorConfig);
+        }
+      }
+    }
+
+    // 读取CI选项...
+
+    return options;
+  } catch (const std::exception &e) {
+    spdlog::error("加载默认选项时出错: {}", e.what());
+    return options;
+  }
+}
+
+// 保存选项作为默认配置
+bool ConfigManager::saveOptionsAsDefaults(const CliOptions &options) {
+  try {
+    json config;
+
+    // 保存基本设置
+    config["templateType"] =
+        std::string(enums::to_string(options.templateType));
+    config["buildSystem"] = std::string(enums::to_string(options.buildSystem));
+    config["packageManager"] =
+        std::string(enums::to_string(options.packageManager));
+
+    if (options.networkLibrary) {
+      config["networkLibrary"] = *options.networkLibrary;
+    }
+
+    config["includeTests"] = options.includeTests;
+    config["testFramework"] =
+        std::string(enums::to_string(options.testFramework));
+    config["includeDocumentation"] = options.includeDocumentation;
+    config["includeCodeStyleTools"] = options.includeCodeStyleTools;
+    config["initGit"] = options.initGit;
+    config["language"] = std::string(enums::to_string(options.language));
+
+    // 保存数组设置
+    json editorArray = json::array();
+    for (const auto &editor : options.editorOptions) {
+      editorArray.push_back(std::string(enums::to_string(editor)));
+    }
+    config["editorOptions"] = editorArray;
+
+    json ciArray = json::array();
+    for (const auto &ci : options.ciOptions) {
+      ciArray.push_back(std::string(enums::to_string(ci)));
+    }
+    config["ciOptions"] = ciArray;
+
+    // 创建配置目录（如果不存在）
+    std::filesystem::path configPath = getConfigFilePath();
+    std::filesystem::create_directories(configPath.parent_path());
+
+    // 保存到文件
+    std::ofstream configFile(configPath);
+    if (!configFile.is_open()) {
+      spdlog::error("无法打开配置文件进行写入");
+      return false;
+    }
+
+    configFile << config.dump(2);
+    return true;
+  } catch (const std::exception &e) {
+    spdlog::error("保存默认选项时出错: {}", e.what());
+    return false;
   }
 }
 
 // 获取配置文件路径
-std::string CliParser::getConfigFilePath() {
-  // 使用标准的配置文件位置
+std::filesystem::path ConfigManager::getConfigFilePath() {
+  // 使用标准配置文件位置
   const char *homeDir = nullptr;
 
 #ifdef _WIN32
@@ -621,14 +569,457 @@ std::string CliParser::getConfigFilePath() {
 
   std::filesystem::path configDir =
       std::filesystem::path(homeDir) / ".config" / "cpp-scaffold";
+  return configDir / "config.json";
+}
 
-  // 确保配置目录存在
-  try {
-    std::filesystem::create_directories(configDir);
-  } catch (const std::exception &e) {
-    spdlog::warn("Failed to create config directory: {}", e.what());
-    return ".cpp-scaffold.json"; // 如果创建失败，使用当前目录
+// 主 CLI 解析器实现
+CliOptions CliParser::parse(int argc, char *argv[]) {
+  CliOptions options;
+
+  // 初始化本地化
+  Localization::initialize();
+
+  if (argc <= 1) {
+    // 无参数时直接启动交互式模式
+    return runInteractiveMode();
   }
 
-  return (configDir / "config.json").string();
+  std::string_view command = argv[1];
+  if (command == "help" || command == "--help" || command == "-h") {
+    options.showHelp = true;
+    return options;
+  }
+
+  if (command == "version" || command == "--version" || command == "-v") {
+    options.version = true;
+    return options;
+  }
+
+  if (command == "interactive" || command == "-i") {
+    return runInteractiveMode();
+  }
+
+  if (command != "create" && command != "new") {
+    spdlog::error("未知命令: {}", command);
+    options.showHelp = true;
+    return options;
+  }
+
+  // 如果有项目名称，设置它
+  if (argc > 2) {
+    options.projectName = argv[2];
+  }
+
+  // 解析其他参数
+  for (int i = 3; i < argc; i++) {
+    std::string_view arg = argv[i];
+
+    if (arg == "--template" || arg == "-t") {
+      if (i + 1 < argc) {
+        auto templateType = enums::to_template_type(argv[++i]);
+        if (templateType) {
+          options.templateType = *templateType;
+        }
+      }
+    } else if (arg == "--build" || arg == "-b") {
+      if (i + 1 < argc) {
+        auto buildSystem = enums::to_build_system(argv[++i]);
+        if (buildSystem) {
+          options.buildSystem = *buildSystem;
+        }
+      }
+    } else if (arg == "--package" || arg == "-p") {
+      if (i + 1 < argc) {
+        auto packageManager = enums::to_package_manager(argv[++i]);
+        if (packageManager) {
+          options.packageManager = *packageManager;
+        }
+      }
+    } else if (arg == "--network-lib") {
+      if (i + 1 < argc) {
+        options.networkLibrary = argv[++i];
+      }
+    } else if (arg == "--tests") {
+      options.includeTests = true;
+      if (i + 1 < argc && argv[i + 1][0] != '-') {
+        auto testFramework = enums::to_test_framework(argv[++i]);
+        if (testFramework) {
+          options.testFramework = *testFramework;
+        }
+      }
+    } else if (arg == "--docs" || arg == "--documentation") {
+      options.includeDocumentation = true;
+    } else if (arg == "--code-style") {
+      options.includeCodeStyleTools = true;
+    } else if (arg == "--editor") {
+      if (i + 1 < argc) {
+        auto editor = enums::to_editor_config(argv[++i]);
+        if (editor) {
+          options.editorOptions.push_back(*editor);
+        }
+      }
+    } else if (arg == "--ci" || arg == "--cicd") {
+      if (i + 1 < argc) {
+        auto ci = enums::to_ci_system(argv[++i]);
+        if (ci) {
+          options.ciOptions.push_back(*ci);
+        }
+      }
+    } else if (arg == "--no-git") {
+      options.initGit = false;
+    } else if (arg == "--language" || arg == "-l") {
+      if (i + 1 < argc) {
+        auto language = enums::to_language(argv[++i]);
+        if (language) {
+          options.language = *language;
+          Localization::setCurrentLanguage(options.language);
+        }
+      }
+    } else if (arg == "--verbose") {
+      options.verbose = true;
+    } else if (arg == "--template-path") {
+      if (i + 1 < argc) {
+        options.customTemplatePath = argv[++i];
+      }
+    }
+    // 处理其他命令行选项...
+  }
+
+  // 如果没有足够信息，通过交互式提示获取
+  if (options.projectName.empty()) {
+    options = promptUserForOptions(options);
+  }
+
+  return options;
+}
+
+// 显示帮助信息
+void CliParser::showHelp([[maybe_unused]] Language lang) {
+  std::cout << TerminalUtils::colorize("**CPP-Scaffold - C++ 项目脚手架工具**",
+                                       utils::Color::BrightCyan)
+            << "\n\n";
+
+  std::cout << TerminalUtils::colorize("用法:", utils::Color::BrightYellow)
+            << "\n";
+  std::cout << "  cpp-scaffold create <项目名称> [选项]\n";
+  std::cout << "  cpp-scaffold new <项目名称> [选项]\n";
+  std::cout << "  cpp-scaffold interactive\n\n";
+
+  std::cout << TerminalUtils::colorize("**选项:**", utils::Color::BrightYellow)
+            << "\n";
+  fmt::print("  -t, --template <类型>        项目模板类型: console, lib, gui, "
+             "network, embedded, webservice, gameengine\n");
+  fmt::print("  -b, --build <系统>           构建系统: cmake, meson, bazel, "
+             "xmake, premake, make, ninja\n");
+  fmt::print("  -p, --package <管理器>       包管理器: vcpkg, conan, none, "
+             "spack, hunter\n");
+  fmt::print(
+      "  --network-lib <库>           网络项目的网络库: asio, boost, poco\n");
+  fmt::print("  --tests [框架]               包含测试框架: gtest, catch2, "
+             "doctest, boost, none\n");
+  fmt::print("  --docs, --documentation      包含文档配置\n");
+  fmt::print("  --code-style                 包含代码风格和静态分析工具\n");
+  fmt::print("  --editor <编辑器>            配置编辑器支持: vscode, clion, "
+             "vs, vim, emacs, sublime\n");
+  fmt::print("                               (可多次使用)\n");
+  fmt::print("  --ci, --cicd <系统>          配置CI/CD: github, gitlab, "
+             "travis, appveyor, azure, circleci\n");
+  fmt::print("                               (可多次使用)\n");
+  fmt::print("  --no-git                     不初始化Git仓库\n");
+  fmt::print("  --profile <名称>             使用保存的配置文件\n");
+  fmt::print("  --template-path <路径>       使用自定义项目模板\n");
+  fmt::print(
+      "  -l, --language <语言>        界面语言: en, zh, es, jp, de, fr\n");
+  fmt::print("  --verbose                    显示详细输出\n");
+  fmt::print("  -h, --help                   显示此帮助信息\n");
+  fmt::print("  -v, --version                显示版本信息\n\n");
+
+  fmt::print("**示例:**\n");
+  fmt::print("  cpp-scaffold create my-app --template console --build cmake "
+             "--package vcpkg --tests\n");
+  fmt::print("  cpp-scaffold new my-lib -t lib -b cmake -p none --docs "
+             "--code-style\n");
+  fmt::print(
+      "  cpp-scaffold create my-app --ci github --ci gitlab --editor vscode\n");
+  fmt::print("  cpp-scaffold create my-app --profile webservice\n");
+}
+
+// 显示版本信息
+void CliParser::showVersion() { fmt::print("CPP-Scaffold Version 1.1.0\n"); }
+
+// 交互式提示获取选项
+CliOptions CliParser::promptUserForOptions(const CliOptions &defaultOptions) {
+  CliOptions options = defaultOptions;
+  Language lang = Localization::getCurrentLanguage();
+
+  // 使用终端工具显示欢迎信息
+  TerminalUtils::showInfo(
+      std::string(Localization::get("welcomeMessage", lang)));
+  std::cout << "\n";
+
+  // 加载默认配置
+  CliOptions defaults = ConfigManager::loadDefaultOptions();
+
+  // 基于操作系统等的系统建议默认值
+  CliOptions systemDefaults = getSystemSuggestedDefaults();
+
+  // 如果没有项目名称，询问
+  if (options.projectName.empty()) {
+    options.projectName =
+        UserInput::readWithHighlight(Localization::get("projectName", lang),
+                                     std::nullopt, utils::Color::BrightCyan);
+
+    if (options.projectName.empty()) {
+      TerminalUtils::showError(
+          std::string(Localization::get("projectNameEmpty", lang)));
+      options.projectName =
+          UserInput::readWithHighlight(Localization::get("projectName", lang),
+                                       std::nullopt, utils::Color::BrightCyan);
+    }
+  }
+
+  // 模板类型
+  if (options.templateType == defaults.templateType) {
+    std::string templateTypeStr = UserInput::readChoiceWithStyle(
+        Localization::get("selectProjectType", lang),
+        enums::all_template_types(), enums::to_string(defaults.templateType),
+        utils::Color::BrightGreen);
+
+    auto templateType = enums::to_template_type(templateTypeStr);
+    if (templateType) {
+      options.templateType = *templateType;
+    }
+  }
+
+  // 构建系统
+  if (options.buildSystem == defaults.buildSystem) {
+    std::string buildSystemStr = UserInput::readChoiceWithStyle(
+        Localization::get("selectBuildSystem", lang),
+        enums::all_build_systems(), enums::to_string(defaults.buildSystem),
+        utils::Color::BrightGreen);
+
+    auto buildSystem = enums::to_build_system(buildSystemStr);
+    if (buildSystem) {
+      options.buildSystem = *buildSystem;
+    }
+  }
+
+  // 询问是否包含测试框架
+  options.includeTests = UserInput::readConfirmation(
+      Localization::get("includeTests", lang), defaults.includeTests);
+
+  if (options.includeTests) {
+    std::string testFrameworkStr = UserInput::readChoiceWithStyle(
+        Localization::get("selectTestFramework", lang),
+        enums::all_test_frameworks(), enums::to_string(defaults.testFramework),
+        utils::Color::BrightGreen);
+
+    auto testFramework = enums::to_test_framework(testFrameworkStr);
+    if (testFramework) {
+      options.testFramework = *testFramework;
+    }
+  }
+
+  // 询问其他选项...
+
+  // 询问是否保存为默认值
+  if (UserInput::readConfirmation(Localization::get("saveAsDefault", lang),
+                                  false)) {
+    ConfigManager::saveOptionsAsDefaults(options);
+  }
+
+  return options;
+}
+
+// 验证选项的一致性和完整性
+bool CliParser::validateOptions(CliOptions &options) {
+  bool isValid = true;
+
+  // 项目名称验证
+  if (options.projectName.empty()) {
+    spdlog::error("项目名称不能为空");
+    isValid = false;
+  }
+
+  // 检查网络项目的网络库
+  if (options.templateType == TemplateType::Network &&
+      !options.networkLibrary.has_value()) {
+    spdlog::warn("网络项目未指定网络库，默认使用'asio'");
+    options.networkLibrary = "asio";
+  }
+
+  // 检查测试框架
+  if (options.includeTests && options.testFramework == TestFramework::None) {
+    spdlog::warn("包含测试但未指定测试框架，默认使用GTest");
+    options.testFramework = TestFramework::GTest;
+  }
+
+  return isValid;
+}
+
+// 检测操作系统以提供默认建议
+std::string CliParser::detectOS() {
+#ifdef _WIN32
+  return "windows";
+#elif defined(__APPLE__)
+  return "macos";
+#elif defined(__linux__)
+  return "linux";
+#else
+  return "unknown";
+#endif
+}
+
+// 获取基于系统环境的建议默认值
+CliOptions CliParser::getSystemSuggestedDefaults() {
+  CliOptions options;
+  std::string os = detectOS();
+
+  // 基于操作系统设置默认值
+  if (os == "windows") {
+    options.buildSystem = BuildSystem::CMake;
+    options.packageManager = PackageManager::Vcpkg;
+    options.editorOptions = {EditorConfig::VS, EditorConfig::VSCode};
+  } else if (os == "macos") {
+    options.buildSystem = BuildSystem::CMake;
+    options.packageManager = PackageManager::Conan;
+    options.editorOptions = {EditorConfig::VSCode, EditorConfig::CLion};
+  } else if (os == "linux") {
+    options.buildSystem = BuildSystem::CMake;
+    options.packageManager = PackageManager::Conan;
+    options.editorOptions = {EditorConfig::VSCode, EditorConfig::Vim};
+  }
+
+  return options;
+}
+
+// 修改 UserInput 实现，使用终端工具增强视觉效果
+std::string
+UserInput::readWithHighlight(std::string_view prompt,
+                             std::optional<std::string_view> defaultValue,
+                             utils::Color promptColor) {
+  std::string promptStr = std::string(prompt);
+
+  // 为默认值添加说明
+  if (defaultValue.has_value()) {
+    promptStr += " [" + std::string(*defaultValue) + "]";
+  }
+
+  // 使用终端工具着色
+  std::cout << TerminalUtils::colorize(promptStr, promptColor) << ": ";
+
+  std::string input;
+  std::getline(std::cin, input);
+
+  // 如果输入为空且有默认值，返回默认值
+  if (input.empty() && defaultValue.has_value()) {
+    return std::string(*defaultValue);
+  }
+
+  return input;
+}
+
+std::string UserInput::readChoiceWithStyle(
+    std::string_view prompt, const std::vector<std::string_view> &choices,
+    std::optional<std::string_view> defaultValue, utils::Color highlightColor) {
+  // 显示带颜色的提示
+  std::cout << TerminalUtils::colorize(std::string(prompt),
+                                       utils::Color::BrightCyan)
+            << "\n";
+
+  // 显示带样式的选项
+  printStyledOptions(choices, defaultValue, highlightColor);
+
+  // 获取用户输入
+  while (true) {
+    std::string pleaseSelect = std::string(Localization::get("pleaseSelect"));
+
+    if (defaultValue.has_value()) {
+      pleaseSelect += " [" + std::string(*defaultValue) + "]";
+    }
+
+    std::cout << TerminalUtils::colorize(pleaseSelect, utils::Color::White)
+              << ": ";
+
+    std::string input;
+    std::getline(std::cin, input);
+
+    // 处理空输入
+    if (input.empty() && defaultValue.has_value()) {
+      return std::string(*defaultValue);
+    }
+
+    // 检查数字选择
+    if (std::all_of(input.begin(), input.end(),
+                    [](char c) { return std::isdigit(c); })) {
+      int index = std::stoi(input) - 1;
+      if (index >= 0 && index < static_cast<int>(choices.size())) {
+        // 突出显示所选项
+        TerminalUtils::clearLine();
+        std::cout << TerminalUtils::colorize("✓ 已选择: " +
+                                                 std::string(choices[index]),
+                                             utils::Color::BrightGreen)
+                  << "\n";
+        return std::string(choices[index]);
+      }
+    }
+
+    // 检查名称选择
+    for (const auto &choice : choices) {
+      if (StringUtils::toLower(input) ==
+          StringUtils::toLower(std::string(choice))) {
+        // 突出显示所选项
+        TerminalUtils::clearLine();
+        std::cout << TerminalUtils::colorize("✓ 已选择: " + std::string(choice),
+                                             utils::Color::BrightGreen)
+                  << "\n";
+        return std::string(choice);
+      }
+    }
+
+    // 无效输入
+    TerminalUtils::showError("无效选择，请重试。");
+  }
+}
+
+void UserInput::printStyledOptions(
+    const std::vector<std::string_view> &options,
+    std::optional<std::string_view> defaultOption,
+    utils::Color highlightColor) {
+  int maxNumWidth = static_cast<int>(std::to_string(options.size()).length());
+
+  for (size_t i = 0; i < options.size(); i++) {
+    std::string optionLine = "  " + std::to_string(i + 1) + ".";
+    // 填充空格以对齐
+    optionLine += std::string(maxNumWidth + 2 - optionLine.length(), ' ');
+
+    // 默认选项使用特殊颜色
+    if (defaultOption.has_value() && options[i] == *defaultOption) {
+      optionLine += std::string(options[i]) + " (默认)";
+      std::cout << TerminalUtils::colorize(optionLine, highlightColor) << "\n";
+    } else {
+      optionLine += std::string(options[i]);
+      std::cout << optionLine << "\n";
+    }
+  }
+  std::cout << "\n";
+}
+
+// 添加交互模式入口
+CliOptions CliParser::runInteractiveMode() {
+  showCliHeader();
+  return ProjectWizard::runWizard();
+}
+
+// 显示漂亮的CLI标题
+void CliParser::showCliHeader() {
+  TerminalUtils::clearLine();
+
+  std::vector<std::string> headerLines = {"C++ Project Scaffold",
+                                          "交互式项目创建向导", "版本 1.1.0"};
+
+  // 使用框显示标题
+  TerminalUtils::showBox(headerLines, BorderStyle::Single,
+                         utils::Color::BrightCyan, utils::Color::Reset, "");
+  std::cout << "\n";
 }

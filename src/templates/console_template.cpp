@@ -64,19 +64,7 @@ bool ConsoleTemplate::create() {
   spdlog::info("\nYour project is ready!\n");
 
   // Print usage instructions
-  std::cout << fmt::format("cd {}\n", options_.projectName);
-
-  if (options_.buildSystem == "cmake") {
-    std::cout << "mkdir build && cd build\n";
-    std::cout << "cmake ..\n";
-    std::cout << "make\n";
-  } else if (options_.buildSystem == "meson") {
-    std::cout << "meson setup build\n";
-    std::cout << "cd build\n";
-    std::cout << "meson compile\n";
-  } else if (options_.buildSystem == "bazel") {
-    std::cout << "bazel build //...\n";
-  }
+  printUsageInstructions();
 
   std::cout << "\nHappy coding! 🎉\n";
 
@@ -127,22 +115,19 @@ bool ConsoleTemplate::createProjectStructure() {
 bool ConsoleTemplate::createBuildSystem() {
   std::string projectPath = options_.projectName;
 
-  if (options_.buildSystem == "cmake") {
-    // Create CMakeLists.txt
+  if (options_.buildSystem == BuildSystem::CMake) {
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "CMakeLists.txt"),
             getCMakeContent())) {
       return false;
     }
-  } else if (options_.buildSystem == "meson") {
-    // Create meson.build
+  } else if (options_.buildSystem == BuildSystem::Meson) {
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "meson.build"),
             getMesonContent())) {
       return false;
     }
-  } else if (options_.buildSystem == "bazel") {
-    // Create WORKSPACE and BUILD files
+  } else if (options_.buildSystem == BuildSystem::Bazel) {
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "WORKSPACE"),
             fmt::format("workspace(name = \"{}\")\n", options_.projectName))) {
@@ -161,15 +146,13 @@ bool ConsoleTemplate::createBuildSystem() {
 bool ConsoleTemplate::setupPackageManager() {
   std::string projectPath = options_.projectName;
 
-  if (options_.packageManager == "vcpkg") {
-    // Create vcpkg.json
+  if (options_.packageManager == PackageManager::Vcpkg) {
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "vcpkg.json"),
             getVcpkgJsonContent())) {
       return false;
     }
-  } else if (options_.packageManager == "conan") {
-    // Create conanfile.txt
+  } else if (options_.packageManager == PackageManager::Conan) {
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "conanfile.txt"),
             getConanfileContent())) {
@@ -193,11 +176,11 @@ bool ConsoleTemplate::setupTestFramework() {
   }
 
   std::string testContent;
-  if (options_.testFramework == "gtest") {
+  if (options_.testFramework == TestFramework::GTest) {
     testContent = getGTestContent();
-  } else if (options_.testFramework == "catch2") {
+  } else if (options_.testFramework == TestFramework::Catch2) {
     testContent = getCatch2Content();
-  } else if (options_.testFramework == "doctest") {
+  } else if (options_.testFramework == TestFramework::Doctest) {
     testContent = getDocTestContent();
   }
 
@@ -206,8 +189,8 @@ bool ConsoleTemplate::setupTestFramework() {
     return false;
   }
 
-  // Update build system to include tests
-  if (options_.buildSystem == "cmake") {
+  // Update build system configuration
+  if (options_.buildSystem == BuildSystem::CMake) {
     std::string cmakePath =
         FileUtils::combinePath(projectPath, "CMakeLists.txt");
     std::string cmakeContent = FileUtils::readFromFile(cmakePath);
@@ -228,7 +211,7 @@ endif()
 
     // Create tests/CMakeLists.txt
     std::string testCmakeContent;
-    if (options_.testFramework == "gtest") {
+    if (options_.testFramework == TestFramework::GTest) {
       testCmakeContent = R"(
 find_package(GTest REQUIRED)
 add_executable(${PROJECT_NAME}_tests test_main.cpp)
@@ -239,7 +222,7 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
 )
 add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
 )";
-    } else if (options_.testFramework == "catch2") {
+    } else if (options_.testFramework == TestFramework::Catch2) {
       testCmakeContent = R"(
 find_package(Catch2 REQUIRED)
 add_executable(${PROJECT_NAME}_tests test_main.cpp)
@@ -249,7 +232,7 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
 )
 add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
 )";
-    } else if (options_.testFramework == "doctest") {
+    } else if (options_.testFramework == TestFramework::Doctest) {
       testCmakeContent = R"(
 find_package(doctest REQUIRED)
 add_executable(${PROJECT_NAME}_tests test_main.cpp)
@@ -269,6 +252,22 @@ add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
   }
 
   return true;
+}
+
+void ConsoleTemplate::printUsageInstructions() {
+  std::cout << fmt::format("cd {}\n", options_.projectName);
+
+  if (options_.buildSystem == BuildSystem::CMake) {
+    std::cout << "mkdir build && cd build\n";
+    std::cout << "cmake ..\n";
+    std::cout << "make\n";
+  } else if (options_.buildSystem == BuildSystem::Meson) {
+    std::cout << "meson setup build\n";
+    std::cout << "cd build\n";
+    std::cout << "meson compile\n";
+  } else if (options_.buildSystem == BuildSystem::Bazel) {
+    std::cout << "bazel build //...\n";
+  }
 }
 
 std::string ConsoleTemplate::getMainCppContent() {
