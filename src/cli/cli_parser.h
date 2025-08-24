@@ -8,16 +8,23 @@
 #include <unordered_map>
 #include <variant>
 #include <vector>
+#include <fmt/format.h>
 
 // 使用枚举类以提高类型安全性
 enum class TemplateType {
   Console,
   Lib,
+  HeaderOnlyLib,
+  MultiExecutable,
   Gui,
   Network,
   Embedded,
   WebService,
-  GameEngine
+  GameEngine,
+  QtApp,
+  SfmlApp,
+  BoostApp,
+  TestProject
 };
 enum class BuildSystem { CMake, Meson, Bazel, XMake, Premake, Make, Ninja };
 enum class PackageManager { Vcpkg, Conan, None, Spack, Hunter };
@@ -25,6 +32,11 @@ enum class TestFramework { GTest, Catch2, Doctest, Boost, None };
 enum class EditorConfig { VSCode, CLion, VS, Vim, Emacs, Sublime };
 enum class CiSystem { GitHub, GitLab, Travis, AppVeyor, AzureDevOps, CircleCI };
 enum class Language { English, Chinese, Spanish, Japanese, German, French };
+
+// Git workflow and configuration enums
+enum class GitWorkflow { None, GitFlow, GitHubFlow, GitLabFlow, Custom };
+enum class GitBranchStrategy { SingleBranch, FeatureBranches, GitFlow, Custom };
+enum class LicenseType { MIT, Apache2, GPL3, BSD3, BSD2, Unlicense, Custom, None };
 
 // 枚举与字符串互相转换的命名空间
 namespace enums {
@@ -36,6 +48,9 @@ std::string_view to_string(TestFramework framework);
 std::string_view to_string(EditorConfig editor);
 std::string_view to_string(CiSystem ci);
 std::string_view to_string(Language lang);
+std::string_view to_string(GitWorkflow workflow);
+std::string_view to_string(GitBranchStrategy strategy);
+std::string_view to_string(LicenseType license);
 
 // 从字符串转换为枚举
 std::optional<TemplateType> to_template_type(std::string_view str);
@@ -45,6 +60,9 @@ std::optional<TestFramework> to_test_framework(std::string_view str);
 std::optional<EditorConfig> to_editor_config(std::string_view str);
 std::optional<CiSystem> to_ci_system(std::string_view str);
 std::optional<Language> to_language(std::string_view str);
+std::optional<GitWorkflow> to_git_workflow(std::string_view str);
+std::optional<GitBranchStrategy> to_git_branch_strategy(std::string_view str);
+std::optional<LicenseType> to_license_type(std::string_view str);
 
 // 获取所有值的字符串表示
 std::vector<std::string_view> all_template_types();
@@ -54,6 +72,9 @@ std::vector<std::string_view> all_test_frameworks();
 std::vector<std::string_view> all_editor_configs();
 std::vector<std::string_view> all_ci_systems();
 std::vector<std::string_view> all_languages();
+std::vector<std::string_view> all_git_workflows();
+std::vector<std::string_view> all_git_branch_strategies();
+std::vector<std::string_view> all_license_types();
 } // namespace enums
 
 // 增强的命令行选项结构
@@ -80,6 +101,36 @@ struct CliOptions {
 
   Language language = Language::English;
   std::filesystem::path customTemplatePath; // 自定义项目模板路径
+
+  // Profile and validation options
+  std::string profileName; // Project profile to use
+  bool validateConfig = true; // Enable configuration validation
+  bool strictValidation = false; // Enable strict validation mode
+
+  // Git-related options
+  GitWorkflow gitWorkflow = GitWorkflow::None;
+  GitBranchStrategy gitBranchStrategy = GitBranchStrategy::SingleBranch;
+  LicenseType licenseType = LicenseType::MIT;
+  std::string gitRemoteUrl; // Optional remote repository URL
+  std::string gitUserName; // Git user name for configuration
+  std::string gitUserEmail; // Git user email for configuration
+  bool createInitialCommit = true;
+  bool setupGitHooks = false;
+  std::vector<std::string> gitBranches; // Additional branches to create
+
+  // Documentation-related options
+  std::vector<std::string> docFormats{"markdown"}; // Output formats: markdown, html, pdf
+  std::vector<std::string> docTypes{"readme", "api"}; // Types: readme, api, user, developer
+  bool generateDoxygen = false;
+  std::string doxygenTheme = "default";
+  bool includeCodeExamples = true;
+  bool generateChangelog = false;
+
+  // Extended graphical framework options
+  std::vector<std::string> guiFrameworks; // Multiple GUI frameworks
+  std::vector<std::string> gameFrameworks; // Game development frameworks
+  std::vector<std::string> graphicsLibraries; // Graphics rendering libraries
+  bool includeShaders = false; // Include shader templates for graphics projects
 
   // 用于高级用例的额外选项
   std::unordered_map<std::string, std::string> additionalOptions;
@@ -211,6 +262,7 @@ public:
 private:
   // 显示向导欢迎界面
   static void showWelcomeScreen();
+  static void showEnhancedWelcomeScreen();
 
   // 显示步骤进度
   static void showWizardProgress(int currentStep, int totalSteps,
@@ -233,6 +285,11 @@ public:
   // 显示信息
   static void showHelp(Language lang = Language::English);
   static void showVersion();
+  static void showAvailableTemplates();
+  static void showAvailableProfiles();
+  static void showProfileInfo(const std::string& profileName);
+  static void validateProject(const std::string& projectPath);
+  static void validateConfiguration(const CliOptions& options);
 
   // 交互式选项配置
   [[nodiscard]] static CliOptions
@@ -253,4 +310,33 @@ private:
 
   // 显示漂亮的CLI标题
   static void showCliHeader();
+};
+
+// fmt formatters for custom enums
+template <>
+struct fmt::formatter<TemplateType> : fmt::formatter<std::string_view> {
+  auto format(TemplateType type, fmt::format_context& ctx) const {
+    return fmt::formatter<std::string_view>::format(::enums::to_string(type), ctx);
+  }
+};
+
+template <>
+struct fmt::formatter<BuildSystem> : fmt::formatter<std::string_view> {
+  auto format(BuildSystem system, fmt::format_context& ctx) const {
+    return fmt::formatter<std::string_view>::format(::enums::to_string(system), ctx);
+  }
+};
+
+template <>
+struct fmt::formatter<PackageManager> : fmt::formatter<std::string_view> {
+  auto format(PackageManager manager, fmt::format_context& ctx) const {
+    return fmt::formatter<std::string_view>::format(::enums::to_string(manager), ctx);
+  }
+};
+
+template <>
+struct fmt::formatter<CiSystem> : fmt::formatter<std::string_view> {
+  auto format(CiSystem ci, fmt::format_context& ctx) const {
+    return fmt::formatter<std::string_view>::format(::enums::to_string(ci), ctx);
+  }
 };

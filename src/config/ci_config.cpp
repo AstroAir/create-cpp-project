@@ -26,12 +26,12 @@ bool CIConfig::createCIConfig(const std::string &projectPath,
 }
 
 bool CIConfig::createCIConfigs(const std::string &projectPath,
-                               const std::vector<std::string> &ciTypes,
+                               const std::vector<CiSystem> &ciTypes,
                                const CliOptions &options) {
   bool success = true;
 
   for (const auto &ciType : ciTypes) {
-    if (!createCIConfig(projectPath, ciType, options)) {
+    if (!createCIConfig(projectPath, std::string(enums::to_string(ciType)), options)) {
       success = false;
     }
   }
@@ -109,7 +109,7 @@ std::string CIConfig::getGitHubActionsYamlContent(const CliOptions &options) {
   std::string buildCommands;
   std::string testCommands;
 
-  if (options.buildSystem == "cmake") {
+  if (enums::to_string(options.buildSystem) == "cmake") {
     buildCommands = fmt::format(R"(      - name: Configure
                 run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
@@ -121,7 +121,7 @@ std::string CIConfig::getGitHubActionsYamlContent(const CliOptions &options) {
             - name: Test
                 run: cd build && ctest -C Release --output-on-failure)");
     }
-  } else if (options.buildSystem == "meson") {
+  } else if (enums::to_string(options.buildSystem) == "meson") {
     buildCommands = fmt::format(R"(      - name: Configure
                 run: meson setup build
 
@@ -133,7 +133,7 @@ std::string CIConfig::getGitHubActionsYamlContent(const CliOptions &options) {
             - name: Test
                 run: cd build && meson test)");
     }
-  } else if (options.buildSystem == "bazel") {
+  } else if (enums::to_string(options.buildSystem) == "bazel") {
     buildCommands = fmt::format(R"(      - name: Build
                 run: bazel build //...)");
 
@@ -142,7 +142,7 @@ std::string CIConfig::getGitHubActionsYamlContent(const CliOptions &options) {
             - name: Test
                 run: bazel test //...)");
     }
-  } else if (options.buildSystem == "xmake") {
+  } else if (enums::to_string(options.buildSystem) == "xmake") {
     buildCommands = fmt::format(R"(      - name: Build
                 run: xmake)");
 
@@ -151,7 +151,7 @@ std::string CIConfig::getGitHubActionsYamlContent(const CliOptions &options) {
             - name: Test
                 run: xmake test)");
     }
-  } else if (options.buildSystem == "premake") {
+  } else if (enums::to_string(options.buildSystem) == "premake") {
     buildCommands = fmt::format(R"(      - name: Configure
                 run: premake5 gmake2
 
@@ -167,14 +167,14 @@ std::string CIConfig::getGitHubActionsYamlContent(const CliOptions &options) {
   }
 
   std::string packageManagerConfig;
-  if (options.packageManager == "vcpkg") {
+  if (enums::to_string(options.packageManager) == "vcpkg") {
     packageManagerConfig = fmt::format(R"(      - name: Setup vcpkg
                 uses: lukka/run-vcpkg@v7
                 with:
                     vcpkgGitCommitId: master
-                    
+
 )");
-  } else if (options.packageManager == "conan") {
+  } else if (enums::to_string(options.packageManager) == "conan") {
     packageManagerConfig = fmt::format(R"(      - name: Setup Conan
                 run: |
                     pip install conan
@@ -225,7 +225,7 @@ std::string CIConfig::getGitLabCIYamlContent(const CliOptions &options) {
   std::string buildScript;
   std::string testScript;
 
-  if (options.buildSystem == "cmake") {
+  if (enums::to_string(options.buildSystem) == "cmake") {
     buildScript = R"(  script:
     - cmake -B build -DCMAKE_BUILD_TYPE=Release
     - cmake --build build --config Release)";
@@ -234,7 +234,7 @@ std::string CIConfig::getGitLabCIYamlContent(const CliOptions &options) {
       testScript = R"(
     - cd build && ctest -C Release --output-on-failure)";
     }
-  } else if (options.buildSystem == "meson") {
+  } else if (enums::to_string(options.buildSystem) == "meson") {
     buildScript = R"(  script:
     - meson setup build
     - cd build && meson compile)";
@@ -243,7 +243,7 @@ std::string CIConfig::getGitLabCIYamlContent(const CliOptions &options) {
       testScript = R"(
     - cd build && meson test)";
     }
-  } else if (options.buildSystem == "bazel") {
+  } else if (enums::to_string(options.buildSystem) == "bazel") {
     buildScript = R"(  script:
     - bazel build //...)";
 
@@ -251,7 +251,7 @@ std::string CIConfig::getGitLabCIYamlContent(const CliOptions &options) {
       testScript = R"(
     - bazel test //...)";
     }
-  } else if (options.buildSystem == "xmake") {
+  } else if (enums::to_string(options.buildSystem) == "xmake") {
     buildScript = R"(  script:
     - xmake)";
 
@@ -259,7 +259,7 @@ std::string CIConfig::getGitLabCIYamlContent(const CliOptions &options) {
       testScript = R"(
     - xmake test)";
     }
-  } else if (options.buildSystem == "premake") {
+  } else if (enums::to_string(options.buildSystem) == "premake") {
     buildScript = R"(  script:
     - premake5 gmake2
     - make config=release)";
@@ -279,14 +279,14 @@ build:
   stage: build
   image: gcc:latest
 )" +
-         (options.packageManager == "vcpkg" ? R"(  before_script:
+         (enums::to_string(options.packageManager) == "vcpkg" ? R"(  before_script:
     - apt-get update && apt-get install -y git cmake ninja-build curl zip unzip tar pkg-config
     - git clone https://github.com/Microsoft/vcpkg.git
     - ./vcpkg/bootstrap-vcpkg.sh
-    - ./vcpkg/vcpkg install )" + options.networkLibrary +
+    - ./vcpkg/vcpkg install )" + (options.networkLibrary ? *options.networkLibrary : "") +
                                                   R"(
 )"
-          : options.packageManager == "conan" ? R"(  before_script:
+          : enums::to_string(options.packageManager) == "conan" ? R"(  before_script:
     - apt-get update && apt-get install -y git cmake python3-pip
     - pip3 install conan
     - conan profile new default --detect
@@ -310,11 +310,11 @@ test:
     - build
   script:
     - cd build && )" +
-                    (options.buildSystem == "cmake"
+                    (enums::to_string(options.buildSystem) == "cmake"
                          ? "ctest -C Release --output-on-failure"
-                     : options.buildSystem == "meson" ? "meson test"
-                     : options.buildSystem == "bazel" ? "bazel test //..."
-                     : options.buildSystem == "xmake"
+                     : enums::to_string(options.buildSystem) == "meson" ? "meson test"
+                     : enums::to_string(options.buildSystem) == "bazel" ? "bazel test //..."
+                     : enums::to_string(options.buildSystem) == "xmake"
                          ? "xmake test"
                          : "bin/Release/" + options.projectName + "_tests") +
                     R"(
@@ -326,7 +326,7 @@ std::string CIConfig::getTravisCIYamlContent(const CliOptions &options) {
   std::string buildScript;
   std::string testScript = "";
 
-  if (options.buildSystem == "cmake") {
+  if (enums::to_string(options.buildSystem) == "cmake") {
     buildScript = fmt::format(R"(  - cmake -B build -DCMAKE_BUILD_TYPE=Release
     - cmake --build build --config Release)");
 
@@ -334,7 +334,7 @@ std::string CIConfig::getTravisCIYamlContent(const CliOptions &options) {
       testScript = fmt::format(R"(
     - cd build && ctest -C Release --output-on-failure)");
     }
-  } else if (options.buildSystem == "meson") {
+  } else if (enums::to_string(options.buildSystem) == "meson") {
     buildScript = fmt::format(R"(  - meson setup build
     - cd build && meson compile)");
 
@@ -342,21 +342,21 @@ std::string CIConfig::getTravisCIYamlContent(const CliOptions &options) {
       testScript = fmt::format(R"(
     - cd build && meson test)");
     }
-  } else if (options.buildSystem == "bazel") {
+  } else if (enums::to_string(options.buildSystem) == "bazel") {
     buildScript = fmt::format(R"(  - bazel build //...)");
 
     if (options.includeTests) {
       testScript = fmt::format(R"(
     - bazel test //...)");
     }
-  } else if (options.buildSystem == "xmake") {
+  } else if (enums::to_string(options.buildSystem) == "xmake") {
     buildScript = fmt::format(R"(  - xmake)");
 
     if (options.includeTests) {
       testScript = fmt::format(R"(
     - xmake test)");
     }
-  } else if (options.buildSystem == "premake") {
+  } else if (enums::to_string(options.buildSystem) == "premake") {
     buildScript = fmt::format(R"(  - premake5 gmake2
     - make config=release)");
 
@@ -391,33 +391,33 @@ before_install:{}{}{}{}
 
 script:
 {}{})",
-                     options.buildSystem == "bazel" ? R"(
+                     enums::to_string(options.buildSystem) == "bazel" ? R"(
             - bazel)"
                                                     : "",
-                     options.buildSystem == "meson" ? R"(
+                     enums::to_string(options.buildSystem) == "meson" ? R"(
             - python3-pip
             - python3-setuptools
             - python3-wheel)"
                                                     : "",
-                     options.packageManager == "vcpkg"
+                     enums::to_string(options.packageManager) == "vcpkg"
                          ? fmt::format(R"(
     - git clone https://github.com/Microsoft/vcpkg.git
     - ./vcpkg/bootstrap-vcpkg.sh
     - ./vcpkg/vcpkg install {})",
-                                       options.networkLibrary)
-                     : options.packageManager == "conan" ? R"(
+                                       options.networkLibrary.value_or("Unknown"))
+                     : enums::to_string(options.packageManager) == "conan" ? R"(
     - pip3 install conan
     - conan profile new default --detect
     - conan install . --build=missing)"
                                                          : "",
-                     options.buildSystem == "meson" ? R"(
+                     enums::to_string(options.buildSystem) == "meson" ? R"(
     - pip3 install meson)"
                                                     : "",
-                     options.buildSystem == "premake" ? R"(
+                     enums::to_string(options.buildSystem) == "premake" ? R"(
     - wget https://github.com/premake/premake-core/releases/download/v5.0.0-alpha16/premake-5.0.0-alpha16-linux.tar.gz
     - tar -xf premake-5.0.0-alpha16-linux.tar.gz)"
                                                       : "",
-                     options.buildSystem == "xmake" ? R"(
+                     enums::to_string(options.buildSystem) == "xmake" ? R"(
     - bash <(curl -fsSL https://xmake.io/shget.text))"
                                                     : "",
                      buildScript, testScript);
@@ -427,7 +427,7 @@ std::string CIConfig::getAppVeyorYamlContent(const CliOptions &options) {
   std::string buildCommands;
   std::string testCommands = "";
 
-  if (options.buildSystem == "cmake") {
+  if (enums::to_string(options.buildSystem) == "cmake") {
     buildCommands = R"(build_script:
   - cmake -B build -A x64 -DCMAKE_BUILD_TYPE=Release
   - cmake --build build --config Release)";
@@ -438,7 +438,7 @@ test_script:
   - cd build
   - ctest -C Release --output-on-failure)";
     }
-  } else if (options.buildSystem == "meson") {
+  } else if (enums::to_string(options.buildSystem) == "meson") {
     buildCommands = R"(build_script:
   - meson setup build
   - cd build
@@ -450,7 +450,7 @@ test_script:
   - cd build
   - meson test)";
     }
-  } else if (options.buildSystem == "bazel") {
+  } else if (enums::to_string(options.buildSystem) == "bazel") {
     buildCommands = R"(build_script:
   - bazel build //...)";
 
@@ -459,7 +459,7 @@ test_script:
 test_script:
   - bazel test //...)";
     }
-  } else if (options.buildSystem == "xmake") {
+  } else if (enums::to_string(options.buildSystem) == "xmake") {
     buildCommands = R"(build_script:
   - xmake)";
 
@@ -468,7 +468,7 @@ test_script:
 test_script:
   - xmake test)";
     }
-  } else if (options.buildSystem == "premake") {
+  } else if (enums::to_string(options.buildSystem) == "premake") {
     buildCommands = R"(build_script:
   - premake5 vs2019
   - msbuild /p:Configuration=Release )" +
@@ -491,24 +491,24 @@ configuration:
   - Release
 
 install:)" +
-         (options.packageManager == "vcpkg" ? R"(
+         (enums::to_string(options.packageManager) == "vcpkg" ? R"(
   - git clone https://github.com/Microsoft/vcpkg.git C:\vcpkg
   - C:\vcpkg\bootstrap-vcpkg.bat
-  - C:\vcpkg\vcpkg.exe install )" + options.networkLibrary +
+  - C:\vcpkg\vcpkg.exe install )" + (options.networkLibrary ? *options.networkLibrary : "") +
                                                   R"( --triplet x64-windows)"
-          : options.packageManager == "conan" ? R"(
+          : enums::to_string(options.packageManager) == "conan" ? R"(
   - set PATH=%PATH%;C:\Python38\Scripts
   - pip install conan
   - conan profile new default --detect
   - conan install . --build=missing)"
                                               : "") +
-         (options.buildSystem == "meson" ? R"(
+         (enums::to_string(options.buildSystem) == "meson" ? R"(
   - pip install meson ninja)"
                                          : "") +
-         (options.buildSystem == "xmake" ? R"(
+         (enums::to_string(options.buildSystem) == "xmake" ? R"(
   - ps: Invoke-Expression (Invoke-WebRequest 'https://xmake.io/psget.text' -UseBasicParsing).Content)"
                                          : "") +
-         (options.buildSystem == "premake" ? R"(
+         (enums::to_string(options.buildSystem) == "premake" ? R"(
   - ps: Start-FileDownload 'https://github.com/premake/premake-core/releases/download/v5.0.0-alpha16/premake-5.0.0-alpha16-windows.zip'
   - 7z x premake-5.0.0-alpha16-windows.zip -o"C:\premake"
   - set PATH=%PATH%;C:\premake)"

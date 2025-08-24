@@ -14,46 +14,49 @@ using namespace utils;
 CliOptions ProjectWizard::runWizard(const CliOptions &initialOptions) {
   CliOptions options = initialOptions;
 
-  // 显示欢迎屏幕
-  showWelcomeScreen();
+  // 显示增强的欢迎屏幕
+  showEnhancedWelcomeScreen();
 
   // 设置总步骤数
-  const int totalSteps = 5;
+  const int totalSteps = 6;
 
   // 第1步：配置项目名称和路径
-  showWizardProgress(1, totalSteps, "项目基本信息");
+  TerminalUtils::showStepIndicator(1, totalSteps, "Project Details");
   if (!configureProjectDetails(options)) {
     TerminalUtils::showError("取消项目创建。");
     return initialOptions;
   }
 
   // 第2步：构建系统和包管理器
-  showWizardProgress(2, totalSteps, "构建系统配置");
+  TerminalUtils::showStepIndicator(2, totalSteps, "Build System & Package Manager");
   if (!configureBuildSystem(options)) {
     TerminalUtils::showError("取消项目创建。");
     return initialOptions;
   }
 
   // 第3步：测试框架
-  showWizardProgress(3, totalSteps, "测试框架配置");
+  TerminalUtils::showStepIndicator(3, totalSteps, "Testing Framework");
   if (!configureTestFramework(options)) {
     TerminalUtils::showError("取消项目创建。");
     return initialOptions;
   }
 
   // 第4步：编辑器和开发工具
-  showWizardProgress(4, totalSteps, "开发工具配置");
+  TerminalUtils::showStepIndicator(4, totalSteps, "Development Tools");
   if (!configureDevTools(options)) {
     TerminalUtils::showError("取消项目创建。");
     return initialOptions;
   }
 
   // 第5步：CI/CD系统
-  showWizardProgress(5, totalSteps, "CI/CD系统配置");
+  TerminalUtils::showStepIndicator(5, totalSteps, "CI/CD Configuration");
   if (!configureCiCd(options)) {
     TerminalUtils::showError("取消项目创建。");
     return initialOptions;
   }
+
+  // 第6步：最终确认
+  TerminalUtils::showStepIndicator(6, totalSteps, "Final Review");
 
   // 显示摘要并确认
   if (!showSummaryAndConfirm(options)) {
@@ -207,26 +210,36 @@ CliOptions ProjectWizard::runQuickStartWizard() {
 
 // 实现项目详情配置
 bool ProjectWizard::configureProjectDetails(CliOptions &options) {
-  // 标题
-  std::vector<std::string> headerLines = {"项目基本信息配置",
-                                          "设置项目的基础属性"};
-  TerminalUtils::showBox(headerLines, BorderStyle::Rounded,
-                         Color::BrightMagenta, Color::White, "第1步");
+  // Enhanced project details configuration
+  std::cout << "\n";
+  TerminalUtils::showTypingAnimation("Let's start with the basics...", 40);
   std::cout << "\n";
 
-  // 项目名称
-  std::string projectName = UserInput::readWithHighlight(
-      "项目名称",
-      options.projectName.empty()
-          ? std::nullopt
-          : std::make_optional(std::string_view(options.projectName)),
-      utils::Color::BrightCyan);
+  // Project name with enhanced input
+  std::string defaultName = options.projectName.empty() ? "my-awesome-project" : options.projectName;
+  std::string projectName = TerminalUtils::showInputDialog(
+      "What's your project name?",
+      "Enter a descriptive name for your project",
+      defaultName);
 
   if (projectName.empty()) {
-    TerminalUtils::showError("项目名称不能为空。");
+    TerminalUtils::showError("Project name cannot be empty!");
     return false;
   }
   options.projectName = projectName;
+
+  // Project path with enhanced input (for display purposes)
+  std::string defaultPath = std::filesystem::current_path().string();
+  std::string projectPath = TerminalUtils::showInputDialog(
+      "Where should we create your project?",
+      "Path to create the project directory",
+      defaultPath);
+  // Note: Project path is handled by the template manager during creation
+
+  // Enhanced template selection
+  std::cout << "\n";
+  TerminalUtils::showTypingAnimation("Now, let's choose your project type...", 40);
+  std::cout << "\n";
 
   // 项目类型，使用带颜色的表格展示选项
   std::vector<std::vector<TableCell>> templateTable;
@@ -883,6 +896,46 @@ void ProjectWizard::showWelcomeScreen() {
   std::cout << TerminalUtils::colorize("按Enter键继续...",
                                        utils::Color::BrightYellow)
             << "\n";
+  std::cin.get();
+}
+
+// Enhanced Next.js-style welcome screen
+void ProjectWizard::showEnhancedWelcomeScreen() {
+  // Show animated logo
+  TerminalUtils::showAnimatedLogo();
+
+  // Show branded header with typing animation
+  TerminalUtils::showBrandedHeader("C++ Project Scaffold", "Create modern C++ projects with ease");
+
+  // Show typing animation for welcome message
+  TerminalUtils::showTypingAnimation("Welcome to the interactive project creation wizard!", 30);
+  std::cout << "\n";
+
+  // Show feature highlights
+  std::vector<std::pair<std::string, std::string>> features = {
+    {"🚀", "Modern C++ project templates"},
+    {"⚡", "Multiple build systems (CMake, Meson, Bazel)"},
+    {"📦", "Package manager integration (vcpkg, Conan)"},
+    {"🧪", "Testing framework setup (GTest, Catch2)"},
+    {"🔧", "IDE configuration (VS Code, CLion)"},
+    {"🔄", "CI/CD pipeline templates"}
+  };
+
+  std::cout << TerminalUtils::colorAndStyle("✨ Features:", Color::BrightYellow, {TextStyle::Bold}) << "\n\n";
+
+  for (const auto& feature : features) {
+    std::cout << "  " << TerminalUtils::colorize(feature.first, Color::BrightGreen)
+              << " " << TerminalUtils::colorize(feature.second, Color::White) << "\n";
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  }
+
+  std::cout << "\n";
+
+  // Show pulsing "Let's get started" message
+  TerminalUtils::showPulsingText("Let's create something amazing!", Color::BrightCyan, 2);
+
+  // Wait for user to continue
+  std::cout << "\n" << TerminalUtils::colorize("Press Enter to continue...", Color::BrightYellow);
   std::cin.get();
 }
 

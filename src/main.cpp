@@ -1,7 +1,15 @@
 #include "cli/cli_parser.h"
 #include "templates/template_manager.h"
+#include "utils/progress_indicator.h"
+#include "utils/interactive_menu.h"
+#include "config/config_manager.h"
+#include "testing/test_framework_manager.h"
+#include "documentation/doc_generator.h"
+#include "utils/framework_integration.h"
 
 #include <iostream>
+#include <thread>
+#include <chrono>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
@@ -42,6 +50,59 @@ void initializeLogger(bool verbose) {
   }
 }
 
+// Demonstrate enhanced features
+void demonstrateEnhancedFeatures() {
+  spdlog::info("Demonstrating enhanced CPP-Scaffold features...");
+
+  // 1. Progress Indicators
+  {
+    auto progress = utils::progress::spinner("Initializing enhanced features");
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    progress->update(0.5, "Loading configuration system");
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    progress->finish("Enhanced features initialized!");
+  }
+
+  // 2. Configuration Management
+  {
+    auto& configManager = config::ConfigManager::getInstance();
+    spdlog::info("Configuration system available with {} profiles",
+                 configManager.listProfiles().size());
+  }
+
+  // 3. Framework Integration
+  {
+    auto frameworks = utils::FrameworkIntegration::listAvailableFrameworks();
+    spdlog::info("Available frameworks: {}", frameworks.size());
+    for (const auto& framework : frameworks) {
+      auto info = utils::FrameworkIntegration::getFrameworkInfo(framework);
+      if (info) {
+        spdlog::debug("Framework: {} - {}", info->name, info->description);
+      }
+    }
+  }
+
+  // 4. Testing Infrastructure
+  {
+    auto& testManager = testing::TestFrameworkManager::getInstance();
+    auto testFrameworks = testManager.listSupportedFrameworks();
+    spdlog::info("Supported test frameworks: {}", testFrameworks.size());
+  }
+
+  // 5. Documentation Generation
+  {
+    documentation::DocConfig docConfig;
+    docConfig.projectName = "CPP-Scaffold";
+    docConfig.projectDescription = "Enhanced C++ project scaffolding tool";
+    docConfig.author = "CPP-Scaffold Team";
+
+    documentation::DocGenerator docGen(docConfig);
+    spdlog::info("Documentation generator configured for: {}", docConfig.projectName);
+  }
+
+  spdlog::info("All enhanced features are operational!");
+}
+
 int main(int argc, char *argv[]) {
   try {
     // Perform basic initialization first
@@ -49,6 +110,11 @@ int main(int argc, char *argv[]) {
 
     spdlog::info("CPP-Scaffold is starting...");
     spdlog::debug("Parsing command line arguments");
+
+    // Demonstrate enhanced features if in verbose mode
+    if (false) { // Set to true to enable demonstration
+      demonstrateEnhancedFeatures();
+    }
 
     // Parse command line arguments
     CliOptions options = CliParser::parse(argc, argv);
@@ -79,7 +145,7 @@ int main(int argc, char *argv[]) {
     spdlog::info("Creating project: {}", options.projectName);
     spdlog::debug(
         "Project configuration: Type={}, Build System={}, Package Manager={}",
-        options.templateType, options.buildSystem, options.packageManager);
+        enums::to_string(options.templateType), enums::to_string(options.buildSystem), enums::to_string(options.packageManager));
 
     TemplateManager templateManager;
     spdlog::debug("Template manager initialized");

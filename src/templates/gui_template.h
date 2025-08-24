@@ -12,6 +12,7 @@ protected:
   bool createBuildSystem() override;
   bool setupPackageManager() override;
   bool setupTestFramework() override;
+  bool setupDocumentation();
 
 private:
   // 确定GUI框架
@@ -42,4 +43,11 @@ private:
   std::string getGtkGladeContent();
   std::string getLoggingHeaderContent();
   std::string getLoggingCppContent();
+
+  // Framework-specific content generators
+  std::string getFrameworkSpecificHeaderContent();
+  std::string getFrameworkSpecificSourceContent();
+  std::string getGTKSpecificContent();
+  std::string getFLTKSpecificContent();
+  std::string getImGuiSpecificContent();
 };

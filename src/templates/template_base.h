@@ -1,6 +1,7 @@
 #pragma once
 #include "../cli/cli_parser.h"
 #include "../utils/file_utils.h"
+#include "../testing/test_framework_manager.h"
 #include <string>
 
 class TemplateBase {
@@ -59,4 +60,7 @@ protected:
   
   // 打印项目创建后的使用指南
   void printUsageGuide();
+
+  // 执行创建后的操作
+  bool executePostCreationActions();
 };

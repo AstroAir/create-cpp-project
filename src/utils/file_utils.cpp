@@ -58,7 +58,9 @@ std::vector<std::string> FileUtils::listFiles(const std::string &directory) {
   std::vector<std::string> files;
   try {
     for (const auto &entry : fs::directory_iterator(directory)) {
-      files.push_back(entry.path().string());
+      if (entry.is_regular_file()) {
+        files.push_back(entry.path().filename().string());
+      }
     }
   } catch (const std::exception &e) {
     spdlog::error("Error listing files: {}", e.what());
@@ -110,7 +112,11 @@ std::string FileUtils::getFileName(const std::string &path) {
 }
 
 std::string FileUtils::getDirectoryName(const std::string &path) {
-  return fs::path(path).parent_path().string();
+  auto parent = fs::path(path).parent_path();
+  if (parent.empty()) {
+    return ".";
+  }
+  return parent.string();
 }
 
 std::string FileUtils::getFileExtension(const std::string &path) {
@@ -125,6 +131,7 @@ std::string FileUtils::combinePath(const std::string &path1,
 bool FileUtils::setExecutable(const std::string& filePath) {
   #ifdef _WIN32
     // Windows不需要设置执行权限
+    (void)filePath; // Suppress unused parameter warning
     return true;
   #else
     // Unix系统使用chmod

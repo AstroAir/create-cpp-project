@@ -424,7 +424,12 @@ std::string TerminalUtils::truncate(const std::string &text, int maxLength,
 
 std::vector<std::string> TerminalUtils::wrapText(const std::string &text,
                                                  int width) {
-  if (width <= 0) {
+  if (width == 0) {
+    // Special case: width 0 means no wrapping, return original text
+    return {text};
+  }
+
+  if (width < 0) {
     width = getTerminalWidth();
   }
 
@@ -433,6 +438,19 @@ std::vector<std::string> TerminalUtils::wrapText(const std::string &text,
   std::string word, line;
 
   while (stream >> word) {
+    // Handle very long words that exceed the width
+    while (word.length() > static_cast<size_t>(width)) {
+      if (line.empty()) {
+        // If line is empty, break the word at width
+        lines.push_back(word.substr(0, width));
+        word = word.substr(width);
+      } else {
+        // If line has content, finish the line and start new one
+        lines.push_back(line);
+        line.clear();
+      }
+    }
+
     if (line.empty()) {
       line = word;
     } else if (line.length() + word.length() + 1 <=
@@ -749,7 +767,274 @@ void TerminalUtils::handleTerminalResize(std::function<void()> redrawFunc) {
   if (redrawFunc) {
     redrawFunc();
   }
+#else
+  (void)redrawFunc; // Suppress unused parameter warning on Windows
 #endif
+}
+
+// Enhanced Next.js-style features implementation
+void TerminalUtils::showBrandedHeader(const std::string &title, const std::string &subtitle) {
+  int width = getTerminalWidth();
+  if (width < 40) width = 80; // fallback
+
+  clearScreen();
+
+  // Create a stylized header with gradient-like effect
+  std::string topBorder = "+" + std::string(width - 2, '-') + "+";
+  std::string bottomBorder = "+" + std::string(width - 2, '-') + "+";
+
+  std::cout << colorize(topBorder, Color::BrightCyan) << "\n";
+
+  // Title with centering
+  std::string centeredTitle = centerText(title, width - 4);
+  std::cout << colorize("│ ", Color::BrightCyan)
+            << colorAndStyle(centeredTitle, Color::BrightWhite, {TextStyle::Bold})
+            << colorize(" │", Color::BrightCyan) << "\n";
+
+  if (!subtitle.empty()) {
+    std::string centeredSubtitle = centerText(subtitle, width - 4);
+    std::cout << colorize("│ ", Color::BrightCyan)
+              << colorize(centeredSubtitle, Color::BrightBlack)
+              << colorize(" │", Color::BrightCyan) << "\n";
+  }
+
+  std::cout << colorize(bottomBorder, Color::BrightCyan) << "\n\n";
+}
+
+void TerminalUtils::showStepIndicator(int currentStep, int totalSteps, const std::string &stepName) {
+  std::cout << "\n";
+
+  // Progress dots
+  for (int i = 1; i <= totalSteps; i++) {
+    if (i == currentStep) {
+      std::cout << colorize("●", Color::BrightGreen);
+    } else if (i < currentStep) {
+      std::cout << colorize("●", Color::Green);
+    } else {
+      std::cout << colorize("○", Color::BrightBlack);
+    }
+
+    if (i < totalSteps) {
+      std::cout << colorize("─", Color::BrightBlack);
+    }
+  }
+
+  std::cout << "\n";
+  std::cout << colorAndStyle("Step " + std::to_string(currentStep) + " of " + std::to_string(totalSteps),
+                            Color::BrightCyan, {TextStyle::Bold}) << ": "
+            << colorize(stepName, Color::White) << "\n\n";
+}
+
+void TerminalUtils::showAnimatedLogo() {
+  std::vector<std::string> logo = {
+    "   ______ ______ ______       ______ ______ ______ ______ ______ ______ ______ ______ ",
+    "  /      /      /      \\     /      /      /      /      /      /      /      /      \\",
+    " /      /      /        \\   /      /      /      /      /      /      /      /        \\",
+    "/      /      /          \\ /      /      /      /      /      /      /      /          \\",
+    "\\      \\      \\          / \\      \\      \\      \\      \\      \\      \\      \\          /",
+    " \\      \\      \\        /   \\      \\      \\      \\      \\      \\      \\      \\        /",
+    "  \\______\\______\\______/     \\______\\______\\______\\______\\______\\______\\______\\______/"
+  };
+
+  for (const auto &line : logo) {
+    std::cout << colorize(centerText(line), Color::BrightCyan) << "\n";
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  std::cout << "\n";
+}
+
+void TerminalUtils::printCharWithDelay(char c, int delayMs) {
+  std::cout << c << std::flush;
+  std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
+}
+
+void TerminalUtils::showTypingAnimation(const std::string &text, int delayMs) {
+  for (char c : text) {
+    printCharWithDelay(c, delayMs);
+  }
+  std::cout << "\n";
+}
+
+void TerminalUtils::showPulsingText(const std::string &text, Color color, int pulses) {
+  for (int i = 0; i < pulses; i++) {
+    moveCursorToLineStart();
+    clearLine();
+    std::cout << colorAndStyle(text, color, {TextStyle::Bold}) << std::flush;
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+    moveCursorToLineStart();
+    clearLine();
+    std::cout << colorize(text, Color::BrightBlack) << std::flush;
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+
+  moveCursorToLineStart();
+  clearLine();
+  std::cout << colorAndStyle(text, color, {TextStyle::Bold}) << "\n";
+}
+
+void TerminalUtils::showModernProgressBar(int percent, const std::string &label, Color color) {
+  int width = 40;
+  int filled = (percent * width) / 100;
+
+  std::string bar = "[";
+  for (int i = 0; i < width; i++) {
+    if (i < filled) {
+      bar += "=";
+    } else if (i == filled && percent < 100) {
+      bar += ">";
+    } else {
+      bar += " ";
+    }
+  }
+  bar += "]";
+
+  moveCursorToLineStart();
+  clearLine();
+
+  if (!label.empty()) {
+    std::cout << colorize(label + " ", Color::White);
+  }
+
+  std::cout << colorize(bar, color) << " "
+            << colorAndStyle(std::to_string(percent) + "%", Color::BrightWhite, {TextStyle::Bold})
+            << std::flush;
+
+  if (percent >= 100) {
+    std::cout << "\n";
+  }
+}
+
+void TerminalUtils::showDotSpinner(const std::string &message, int durationMs) {
+  const std::vector<std::string> frames = {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"};
+  int frameCount = frames.size();
+  int frameDelay = 100; // ms per frame
+  int totalFrames = durationMs / frameDelay;
+
+  hideCursor();
+
+  for (int i = 0; i < totalFrames; i++) {
+    moveCursorToLineStart();
+    clearLine();
+
+    std::string frame = frames[i % frameCount];
+    std::cout << colorize(frame, Color::BrightCyan) << " "
+              << colorize(message, Color::White) << std::flush;
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(frameDelay));
+  }
+
+  moveCursorToLineStart();
+  clearLine();
+  showCursor();
+}
+
+int TerminalUtils::showInteractiveMenu(const std::vector<std::string> &options,
+                                      const std::string &prompt, int defaultSelection) {
+  if (options.empty()) return -1;
+
+  int selected = defaultSelection;
+  if (selected < 0 || selected >= static_cast<int>(options.size())) {
+    selected = 0;
+  }
+
+  if (!prompt.empty()) {
+    std::cout << colorAndStyle(prompt, Color::BrightCyan, {TextStyle::Bold}) << "\n\n";
+  }
+
+  // For now, implement as a simple numbered menu (can be enhanced with arrow key navigation later)
+  for (size_t i = 0; i < options.size(); i++) {
+    if (static_cast<int>(i) == selected) {
+      std::cout << colorAndStyle("> " + std::to_string(i + 1) + ". " + options[i],
+                                Color::BrightGreen, {TextStyle::Bold}) << "\n";
+    } else {
+      std::cout << colorize("  " + std::to_string(i + 1) + ". " + options[i], Color::White) << "\n";
+    }
+  }
+
+  std::cout << "\n" << colorize("Enter your choice (1-" + std::to_string(options.size()) + "): ",
+                               Color::BrightYellow);
+
+  int choice;
+  std::cin >> choice;
+  std::cin.ignore(); // Clear the newline
+
+  if (choice >= 1 && choice <= static_cast<int>(options.size())) {
+    return choice - 1;
+  }
+
+  return selected; // Return default if invalid input
+}
+
+bool TerminalUtils::showConfirmDialog(const std::string &message, bool defaultValue) {
+  std::string prompt = message + " " + (defaultValue ? "[Y/n]" : "[y/N]") + ": ";
+  std::cout << colorize(prompt, Color::BrightYellow);
+
+  std::string input;
+  std::getline(std::cin, input);
+
+  if (input.empty()) {
+    return defaultValue;
+  }
+
+  char first = static_cast<char>(std::tolower(static_cast<unsigned char>(input[0])));
+  return first == 'y';
+}
+
+std::string TerminalUtils::showInputDialog(const std::string &prompt,
+                                         const std::string &placeholder,
+                                         const std::string &defaultValue) {
+  std::string fullPrompt = prompt;
+  if (!defaultValue.empty()) {
+    fullPrompt += " [" + defaultValue + "]";
+  } else if (!placeholder.empty()) {
+    fullPrompt += " (" + placeholder + ")";
+  }
+  fullPrompt += ": ";
+
+  std::cout << colorize(fullPrompt, Color::BrightCyan);
+
+  std::string input;
+  std::getline(std::cin, input);
+
+  if (input.empty() && !defaultValue.empty()) {
+    return defaultValue;
+  }
+
+  return input;
+}
+
+void TerminalUtils::showCard(const std::string& title, const std::vector<std::string>& content, Color color) {
+    std::cout << colorize("+- " + title + " " + std::string(50 - title.length(), '-') + "+", color) << std::endl;
+
+    for (const auto& line : content) {
+        std::cout << colorize("| ", color) << line << std::endl;
+    }
+
+    std::cout << colorize("+" + std::string(52, '-') + "+", color) << std::endl;
+}
+
+void TerminalUtils::showTwoColumnLayout(const std::vector<std::pair<std::string, std::string>>& items) {
+    const int leftWidth = 25;
+
+    for (const auto& [left, right] : items) {
+        std::string leftPadded = left;
+        if (leftPadded.length() > leftWidth) {
+            leftPadded = leftPadded.substr(0, leftWidth - 3) + "...";
+        } else {
+            leftPadded.resize(leftWidth, ' ');
+        }
+
+        std::cout << colorize(leftPadded, Color::BrightCyan) << " : " << right << std::endl;
+    }
+}
+
+void TerminalUtils::showFeatureList(const std::vector<std::pair<std::string, std::string>>& features) {
+    for (const auto& [feature, description] : features) {
+        std::cout << colorize("* " + feature, Color::BrightGreen) << std::endl;
+        std::cout << "  " << description << std::endl;
+        std::cout << std::endl;
+    }
 }
 
 } // namespace utils

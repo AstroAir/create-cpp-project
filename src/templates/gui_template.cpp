@@ -10,18 +10,27 @@ GuiTemplate::GuiTemplate(const CliOptions &options) : TemplateBase(options) {
   // 确定GUI框架类型 (默认为Qt)
   guiFramework_ = "qt";
 
-  // 检查是否有框架指定在项目名称中
-  std::string projectName = StringUtils::toLower(options.projectName);
-  if (projectName.find("qt") != std::string::npos) {
-    guiFramework_ = "qt";
-  } else if (projectName.find("wx") != std::string::npos ||
-             projectName.find("wxwidgets") != std::string::npos) {
-    guiFramework_ = "wxwidgets";
-  } else if (projectName.find("gtk") != std::string::npos) {
-    guiFramework_ = "gtk";
+  // 优先使用命令行指定的GUI框架
+  if (!options.guiFrameworks.empty()) {
+    guiFramework_ = options.guiFrameworks[0]; // 使用第一个指定的框架
+  } else {
+    // 检查是否有框架指定在项目名称中
+    std::string projectName = StringUtils::toLower(options.projectName);
+    if (projectName.find("qt") != std::string::npos) {
+      guiFramework_ = "qt";
+    } else if (projectName.find("wx") != std::string::npos ||
+               projectName.find("wxwidgets") != std::string::npos) {
+      guiFramework_ = "wxwidgets";
+    } else if (projectName.find("gtk") != std::string::npos) {
+      guiFramework_ = "gtk";
+    } else if (projectName.find("fltk") != std::string::npos) {
+      guiFramework_ = "fltk";
+    } else if (projectName.find("imgui") != std::string::npos) {
+      guiFramework_ = "imgui";
+    }
   }
 
-  // TODO: 从命令行参数中获取GUI框架类型 (需要扩展CliOptions)
+  std::cout << "🎨 选择的GUI框架: " << guiFramework_ << std::endl;
 }
 
 bool GuiTemplate::create() {
@@ -40,28 +49,28 @@ bool GuiTemplate::create() {
     std::cout << "创建项目结构失败\n";
     return false;
   }
-  std::cout << "✅ 项目结构已创建\n";
+  std::cout << "�?项目结构已创建\n";
 
   // 创建GUI特定文件
   if (!createGuiSpecificFiles()) {
     std::cout << "创建GUI特定文件失败\n";
     return false;
   }
-  std::cout << "✅ GUI特定文件已创建\n";
+  std::cout << "�?GUI特定文件已创建\n";
 
   // 创建构建系统
   if (!createBuildSystem()) {
     std::cout << "配置构建系统失败\n";
     return false;
   }
-  std::cout << "✅ 构建系统已配置\n";
+  std::cout << "�?构建系统已配置\n";
 
   // 设置包管理器
   if (!setupPackageManager()) {
     std::cout << "设置包管理器失败\n";
     return false;
   }
-  std::cout << "✅ 包管理器已设置\n";
+  std::cout << "�?包管理器已设置\n";
 
   // 设置测试框架
   if (options_.includeTests) {
@@ -69,7 +78,16 @@ bool GuiTemplate::create() {
       std::cout << "设置测试框架失败\n";
       return false;
     }
-    std::cout << "✅ 测试框架已配置\n";
+    std::cout << "�?测试框架已配置\n";
+  }
+
+  // 设置文档
+  if (options_.includeDocumentation) {
+    if (!setupDocumentation()) {
+      std::cout << "设置文档失败\n";
+      return false;
+    }
+    std::cout << "�?文档已配置\n";
   }
 
   // 初始化Git
@@ -78,7 +96,7 @@ bool GuiTemplate::create() {
       std::cout << "初始化Git仓库失败\n";
       return false;
     }
-    std::cout << "✅ 已初始化Git仓库\n";
+    std::cout << "�?已初始化Git仓库\n";
   }
 
   std::cout << "\n你的GUI项目已准备就绪！\n\n";
@@ -86,19 +104,19 @@ bool GuiTemplate::create() {
   // 打印使用说明
   std::cout << "cd " << options_.projectName << "\n";
 
-  if (options_.buildSystem == "cmake") {
+  if (enums::to_string(options_.buildSystem) == "cmake") {
     std::cout << "mkdir build && cd build\n";
     std::cout << "cmake ..\n";
     std::cout << "make\n";
-  } else if (options_.buildSystem == "meson") {
+  } else if (enums::to_string(options_.buildSystem) == "meson") {
     std::cout << "meson setup build\n";
     std::cout << "cd build\n";
     std::cout << "meson compile\n";
-  } else if (options_.buildSystem == "bazel") {
+  } else if (enums::to_string(options_.buildSystem) == "bazel") {
     std::cout << "bazel build //...\n";
   }
 
-  std::cout << "\n祝编码愉快! 🎉\n";
+  std::cout << "\n祝编码愉�? 🎉\n";
 
   return true;
 }
@@ -106,7 +124,7 @@ bool GuiTemplate::create() {
 bool GuiTemplate::createProjectStructure() {
   std::string projectPath = options_.projectName;
 
-  // 创建主目录
+  // 创建主目�?
   if (!FileUtils::createDirectory(projectPath)) {
     return false;
   }
@@ -159,39 +177,55 @@ bool GuiTemplate::createGuiSpecificFiles() {
   std::string includeProjectPath =
       FileUtils::combinePath(includePath, options_.projectName);
 
-  // 创建主要源文件
+  // 创建主要源文�?
   if (!FileUtils::writeToFile(FileUtils::combinePath(srcPath, "main.cpp"),
                               getMainCppContent())) {
     return false;
   }
 
-  // 创建MainWindow头文件和实现
-  if (!FileUtils::writeToFile(
-          FileUtils::combinePath(includeProjectPath, "main_window.h"),
-          getMainWindowHeaderContent())) {
-    return false;
+  // 根据不同的GUI框架创建不同的文�?
+  if (guiFramework_ == "qt") {
+    // Qt特定文件
+    if (!FileUtils::writeToFile(
+            FileUtils::combinePath(includeProjectPath, "main_window.h"),
+            getMainWindowHeaderContent())) {
+      return false;
+    }
+
+    if (!FileUtils::writeToFile(
+            FileUtils::combinePath(srcPath, "main_window.cpp"),
+            getMainWindowCppContent())) {
+      return false;
+    }
+
+    if (!FileUtils::writeToFile(
+            FileUtils::combinePath(includeProjectPath, "application.h"),
+            getAppHeaderContent())) {
+      return false;
+    }
+
+    if (!FileUtils::writeToFile(
+            FileUtils::combinePath(srcPath, "application.cpp"),
+            getAppCppContent())) {
+      return false;
+    }
+  } else if (guiFramework_ == "gtk" || guiFramework_ == "fltk" ||
+             guiFramework_ == "wxwidgets" || guiFramework_ == "imgui") {
+    // 对于其他框架，创建简化的结构
+    if (!FileUtils::writeToFile(
+            FileUtils::combinePath(includeProjectPath, "app.h"),
+            getFrameworkSpecificHeaderContent())) {
+      return false;
+    }
+
+    if (!FileUtils::writeToFile(
+            FileUtils::combinePath(srcPath, "app.cpp"),
+            getFrameworkSpecificSourceContent())) {
+      return false;
+    }
   }
 
-  if (!FileUtils::writeToFile(
-          FileUtils::combinePath(srcPath, "main_window.cpp"),
-          getMainWindowCppContent())) {
-    return false;
-  }
-
-  // 创建Application头文件和实现
-  if (!FileUtils::writeToFile(
-          FileUtils::combinePath(includeProjectPath, "application.h"),
-          getAppHeaderContent())) {
-    return false;
-  }
-
-  if (!FileUtils::writeToFile(
-          FileUtils::combinePath(srcPath, "application.cpp"),
-          getAppCppContent())) {
-    return false;
-  }
-
-  // 创建日志工具类
+  // 创建日志工具�?
   if (!FileUtils::writeToFile(
           FileUtils::combinePath(includeProjectPath, "logging.h"),
           getLoggingHeaderContent())) {
@@ -203,7 +237,7 @@ bool GuiTemplate::createGuiSpecificFiles() {
     return false;
   }
 
-  // 为不同框架创建特定文件
+  // 为不同框架创建特定文�?
   if (guiFramework_ == "qt") {
     std::string uiPath = FileUtils::combinePath(projectPath, "ui");
     if (!FileUtils::writeToFile(
@@ -242,21 +276,21 @@ bool GuiTemplate::createGuiSpecificFiles() {
 bool GuiTemplate::createBuildSystem() {
   std::string projectPath = options_.projectName;
 
-  if (options_.buildSystem == "cmake") {
+  if (enums::to_string(options_.buildSystem) == "cmake") {
     // 创建CMakeLists.txt
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "CMakeLists.txt"),
             getCMakeContent())) {
       return false;
     }
-  } else if (options_.buildSystem == "meson") {
+  } else if (enums::to_string(options_.buildSystem) == "meson") {
     // 创建meson.build
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "meson.build"),
             getMesonContent())) {
       return false;
     }
-  } else if (options_.buildSystem == "bazel") {
+  } else if (enums::to_string(options_.buildSystem) == "bazel") {
     // 创建WORKSPACE和BUILD文件
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "WORKSPACE"),
@@ -276,14 +310,14 @@ bool GuiTemplate::createBuildSystem() {
 bool GuiTemplate::setupPackageManager() {
   std::string projectPath = options_.projectName;
 
-  if (options_.packageManager == "vcpkg") {
+  if (enums::to_string(options_.packageManager) == "vcpkg") {
     // 创建vcpkg.json
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "vcpkg.json"),
             getVcpkgJsonContent())) {
       return false;
     }
-  } else if (options_.packageManager == "conan") {
+  } else if (enums::to_string(options_.packageManager) == "conan") {
     // 创建conanfile.txt
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "conanfile.txt"),
@@ -308,11 +342,11 @@ bool GuiTemplate::setupTestFramework() {
   }
 
   std::string testContent;
-  if (options_.testFramework == "gtest") {
+  if (enums::to_string(options_.testFramework) == "gtest") {
     testContent = getGTestContent();
-  } else if (options_.testFramework == "catch2") {
+  } else if (enums::to_string(options_.testFramework) == "catch2") {
     testContent = getCatch2Content();
-  } else if (options_.testFramework == "doctest") {
+  } else if (enums::to_string(options_.testFramework) == "doctest") {
     testContent = getDocTestContent();
   }
 
@@ -321,8 +355,8 @@ bool GuiTemplate::setupTestFramework() {
     return false;
   }
 
-  // 更新构建系统以包含测试
-  if (options_.buildSystem == "cmake") {
+  // 更新构建系统以包含测�?
+  if (enums::to_string(options_.buildSystem) == "cmake") {
     std::string cmakePath =
         FileUtils::combinePath(projectPath, "CMakeLists.txt");
     std::string cmakeContent = FileUtils::readFromFile(cmakePath);
@@ -342,7 +376,7 @@ endif()
 
     // 创建tests/CMakeLists.txt
     std::string testCmakeContent;
-    if (options_.testFramework == "gtest") {
+    if (enums::to_string(options_.testFramework) == "gtest") {
       testCmakeContent = R"(
 find_package(GTest REQUIRED)
 add_executable(${PROJECT_NAME}_tests
@@ -356,7 +390,7 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
 )
 add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
 )";
-    } else if (options_.testFramework == "catch2") {
+    } else if (enums::to_string(options_.testFramework) == "catch2") {
       testCmakeContent = R"(
 find_package(Catch2 REQUIRED)
 add_executable(${PROJECT_NAME}_tests
@@ -369,7 +403,7 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
 )
 add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
 )";
-    } else if (options_.testFramework == "doctest") {
+    } else if (enums::to_string(options_.testFramework) == "doctest") {
       testCmakeContent = R"(
 find_package(doctest REQUIRED)
 add_executable(${PROJECT_NAME}_tests
@@ -401,7 +435,7 @@ std::string GuiTemplate::getMainCppContent() {
            options_.projectName + R"(/logging.h"
 
 int main(int argc, char* argv[]) {
-    // 初始化日志系统
+    // 初始化日志系�?
     )" + options_.projectName +
            R"(::Logging::init("logs/app.log");
     
@@ -410,16 +444,16 @@ int main(int argc, char* argv[]) {
     )" + options_.projectName +
            R"(::Application app;
     
-    // 显示主窗口
+    // 显示主窗�?
     if (!app.initialize()) {
-        SPDLOG_ERROR("应用初始化失败");
+        SPDLOG_ERROR("应用初始化失�?);
         return 1;
     }
     
-    // 运行应用主循环
+    // 运行应用主循�?
     SPDLOG_INFO("应用启动成功");
     int result = qtApp.exec();
-    SPDLOG_INFO("应用退出，返回码: {}", result);
+    SPDLOG_INFO("应用退出，返回�? {}", result);
     
     return result;
 }
@@ -434,17 +468,17 @@ wxIMPLEMENT_APP_NO_MAIN()" +
            options_.projectName + R"(::Application);
 
 int main(int argc, char* argv[]) {
-    // 初始化日志系统
+    // 初始化日志系�?
     )" + options_.projectName +
            R"(::Logging::init("logs/app.log");
-    SPDLOG_INFO("应用启动中");
+    SPDLOG_INFO("应用启动�?);
     
     // 运行wxWidgets应用
     wxEntryStart(argc, argv);
     int result = wxEntry(argc, argv);
     wxEntryCleanup();
     
-    SPDLOG_INFO("应用退出，返回码: {}", result);
+    SPDLOG_INFO("应用退出，返回�? {}", result);
     return result;
 }
 )";
@@ -454,10 +488,10 @@ int main(int argc, char* argv[]) {
            options_.projectName + R"(/logging.h"
 
 int main(int argc, char* argv[]) {
-    // 初始化日志系统
+    // 初始化日志系�?
     )" + options_.projectName +
            R"(::Logging::init("logs/app.log");
-    SPDLOG_INFO("应用启动中");
+    SPDLOG_INFO("应用启动�?);
     
     // 初始化GTK
     gtk_init(&argc, &argv);
@@ -467,14 +501,14 @@ int main(int argc, char* argv[]) {
            R"(::Application app;
     
     if (!app.initialize()) {
-        SPDLOG_ERROR("应用初始化失败");
+        SPDLOG_ERROR("应用初始化失�?);
         return 1;
     }
     
-    // 运行GTK主循环
+    // 运行GTK主循�?
     SPDLOG_INFO("应用启动成功");
     int result = app.run();
-    SPDLOG_INFO("应用退出，返回码: {}", result);
+    SPDLOG_INFO("应用退出，返回�? {}", result);
     
     return result;
 }
@@ -487,23 +521,23 @@ int main(int argc, char* argv[]) {
          options_.projectName + R"(/logging.h"
 
 int main(int argc, char* argv[]) {
-    // 初始化日志系统
+    // 初始化日志系�?
     )" + options_.projectName +
          R"(::Logging::init("logs/app.log");
-    SPDLOG_INFO("应用启动中");
+    SPDLOG_INFO("应用启动�?);
     
     // 创建应用实例
     )" + options_.projectName +
          R"(::Application app;
     if (!app.initialize()) {
-        SPDLOG_ERROR("应用初始化失败");
+        SPDLOG_ERROR("应用初始化失�?);
         return 1;
     }
     
-    // 运行应用主循环
+    // 运行应用主循�?
     SPDLOG_INFO("应用启动成功");
     int result = app.run();
-    SPDLOG_INFO("应用退出，返回码: {}", result);
+    SPDLOG_INFO("应用退出，返回�? {}", result);
     
     return result;
 }
@@ -540,19 +574,19 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
     
-    // 初始化窗口
+    // 初始化窗�?
     bool initialize();
 
 private slots:
-    // 槽函数
+    // 槽函�?
     void onActionExit();
     void onActionAbout();
     
 private:
-    // UI设计器生成的UI类
+    // UI设计器生成的UI�?
     std::unique_ptr<Ui::MainWindow> ui;
     
-    // 初始化菜单
+    // 初始化菜�?
     void setupMenus();
     
     // 初始化状态栏
@@ -582,7 +616,7 @@ private:
 namespace )" +
            options_.projectName + R"( {
 
-// 窗口标识符
+// 窗口标识�?
 enum {
     ID_MAIN_WINDOW = wxID_HIGHEST + 1,
     ID_MENU_EXIT,
@@ -594,7 +628,7 @@ public:
     MainWindow(const wxString& title, const wxPoint& pos, const wxSize& size);
     ~MainWindow() override;
     
-    // 初始化窗口
+    // 初始化窗�?
     bool initialize();
 
 private:
@@ -612,7 +646,7 @@ private:
     void onExit(wxCommandEvent& event);
     void onAbout(wxCommandEvent& event);
     
-    // 事件表
+    // 事件�?
     wxDECLARE_EVENT_TABLE();
 };
 
@@ -641,7 +675,7 @@ public:
     MainWindow();
     ~MainWindow();
     
-    // 初始化窗口
+    // 初始化窗�?
     bool initialize();
     
     // 显示窗口
@@ -697,7 +731,7 @@ public:
     MainWindow();
     ~MainWindow();
     
-    // 初始化窗口
+    // 初始化窗�?
     bool initialize();
     
     // 显示窗口
@@ -739,7 +773,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    SPDLOG_DEBUG("MainWindow构造函数");
+    SPDLOG_DEBUG("MainWindow构造函�?);
 }
 
 MainWindow::~MainWindow()
@@ -758,7 +792,7 @@ bool MainWindow::initialize()
     setWindowTitle(tr(")" +
            options_.projectName + R"("));
     
-    // 初始化菜单
+    // 初始化菜�?
     setupMenus();
     
     // 初始化状态栏
@@ -767,7 +801,7 @@ bool MainWindow::initialize()
     // 连接信号和槽
     connectSignals();
     
-    SPDLOG_INFO("MainWindow初始化完成");
+    SPDLOG_INFO("MainWindow初始化完�?);
     return true;
 }
 
@@ -775,7 +809,7 @@ void MainWindow::setupMenus()
 {
     SPDLOG_DEBUG("设置菜单");
     
-    // 连接退出操作
+    // 连接退出操�?
     connect(ui->actionExit, &QAction::triggered, this, &MainWindow::onActionExit);
     
     // 连接关于操作
@@ -795,7 +829,7 @@ void MainWindow::connectSignals()
 
 void MainWindow::onActionExit()
 {
-    SPDLOG_DEBUG("触发退出操作");
+    SPDLOG_DEBUG("触发退出操�?);
     close();
 }
 
@@ -805,7 +839,7 @@ void MainWindow::onActionAbout()
     QMessageBox::about(this, tr("关于"),
                        tr(")" +
            options_.projectName + R"( v1.0\n\n"
-                          "一个使用Qt框架的GUI应用。"));
+                          "一个使用Qt框架的GUI应用�?));
 }
 
 } // namespace )" +
@@ -819,7 +853,7 @@ void MainWindow::onActionAbout()
 namespace )" +
            options_.projectName + R"( {
 
-// 事件表定义
+// 事件表定�?
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
     EVT_MENU(ID_MENU_EXIT, MainWindow::onExit)
     EVT_MENU(ID_MENU_ABOUT, MainWindow::onAbout)
@@ -828,7 +862,7 @@ wxEND_EVENT_TABLE()
 MainWindow::MainWindow(const wxString& title, const wxPoint& pos, const wxSize& size)
     : wxFrame(nullptr, ID_MAIN_WINDOW, title, pos, size)
 {
-    SPDLOG_DEBUG("MainWindow构造函数");
+    SPDLOG_DEBUG("MainWindow构造函�?);
 }
 
 MainWindow::~MainWindow()
@@ -848,7 +882,7 @@ bool MainWindow::initialize()
     setupStatusBar();
     setupControls();
     
-    SPDLOG_INFO("MainWindow初始化完成");
+    SPDLOG_INFO("MainWindow初始化完�?);
     return true;
 }
 
@@ -858,18 +892,18 @@ void MainWindow::setupMenus()
     
     // 创建文件菜单
     wxMenu *menuFile = new wxMenu;
-    menuFile->Append(ID_MENU_EXIT, "退出\tAlt+F4", "退出应用程序");
+    menuFile->Append(ID_MENU_EXIT, "退出\tAlt+F4", "退出应用程�?);
     
     // 创建帮助菜单
     wxMenu *menuHelp = new wxMenu;
-    menuHelp->Append(ID_MENU_ABOUT, "关于...\tF1", "显示关于对话框");
+    menuHelp->Append(ID_MENU_ABOUT, "关于...\tF1", "显示关于对话�?);
     
-    // 创建菜单栏
+    // 创建菜单�?
     menuBar = new wxMenuBar;
     menuBar->Append(menuFile, "文件");
     menuBar->Append(menuHelp, "帮助");
     
-    // 设置菜单栏
+    // 设置菜单�?
     SetMenuBar(menuBar);
 }
 
@@ -886,13 +920,13 @@ void MainWindow::setupControls()
 {
     SPDLOG_DEBUG("设置控件");
     
-    // 创建主面板
+    // 创建主面�?
     mainPanel = new wxPanel(this, wxID_ANY);
     
     // 创建一个简单的布局
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
     
-    // 添加一个文本标签
+    // 添加一个文本标�?
     sizer->Add(
         new wxStaticText(mainPanel, wxID_ANY, "欢迎使用 )" +
            options_.projectName + R"("),
@@ -906,7 +940,7 @@ void MainWindow::setupControls()
 
 void MainWindow::onExit(wxCommandEvent& event)
 {
-    SPDLOG_DEBUG("触发退出操作");
+    SPDLOG_DEBUG("触发退出操�?);
     Close(true);
 }
 
@@ -937,7 +971,7 @@ namespace )" +
 MainWindow::MainWindow() 
     : uiFilePath("ui/main_window.glade")
 {
-    SPDLOG_DEBUG("MainWindow构造函数");
+    SPDLOG_DEBUG("MainWindow构造函�?);
 }
 
 MainWindow::~MainWindow()
@@ -961,10 +995,10 @@ bool MainWindow::initialize()
         return false;
     }
     
-    // 获取主窗口控件
+    // 获取主窗口控�?
     window = GTK_WIDGET(gtk_builder_get_object(builder, "main_window"));
     if (!window) {
-        SPDLOG_ERROR("无法获取主窗口控件");
+        SPDLOG_ERROR("无法获取主窗口控�?);
         g_object_unref(builder);
         return false;
     }
@@ -979,16 +1013,16 @@ bool MainWindow::initialize()
     g_signal_connect(gtk_builder_get_object(builder, "menu_about"), "activate", 
                     G_CALLBACK(onAbout), this);
     
-    // 窗口关闭时退出应用
+    // 窗口关闭时退出应�?
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), nullptr);
     
-    // 显示所有控件
+    // 显示所有控�?
     gtk_widget_show_all(window);
     
-    // 释放构建器
+    // 释放构建�?
     g_object_unref(builder);
     
-    SPDLOG_INFO("MainWindow初始化完成");
+    SPDLOG_INFO("MainWindow初始化完�?);
     return true;
 }
 
@@ -1022,7 +1056,7 @@ void MainWindow::setupSignals()
 
 void MainWindow::onExit(GtkWidget* widget, gpointer data)
 {
-    SPDLOG_DEBUG("触发退出操作");
+    SPDLOG_DEBUG("触发退出操�?);
     gtk_main_quit();
 }
 
@@ -1048,7 +1082,7 @@ void MainWindow::onAbout(GtkWidget* widget, gpointer data)
 )";
   }
 
-  // 默认返回一个通用版
+  // 默认返回一个通用�?
   return R"(#include ")" + options_.projectName + R"(/main_window.h"
 
 namespace )" +
@@ -1056,7 +1090,7 @@ namespace )" +
 
 MainWindow::MainWindow()
 {
-    SPDLOG_DEBUG("MainWindow构造函数");
+    SPDLOG_DEBUG("MainWindow构造函�?);
 }
 
 MainWindow::~MainWindow()
@@ -1068,7 +1102,7 @@ bool MainWindow::initialize()
 {
     SPDLOG_DEBUG("初始化MainWindow");
     initialized = true;
-    SPDLOG_INFO("MainWindow初始化完成");
+    SPDLOG_INFO("MainWindow初始化完�?);
     return true;
 }
 
@@ -1079,7 +1113,7 @@ void MainWindow::show()
         visible = true;
         SPDLOG_INFO("MainWindow现在可见");
     } else {
-        SPDLOG_ERROR("尝试显示未初始化的窗口");
+        SPDLOG_ERROR("尝试显示未初始化的窗�?);
     }
 }
 
@@ -1124,14 +1158,14 @@ public:
     Application();
     ~Application() override;
     
-    // 初始化应用程序
+    // 初始化应用程�?
     bool initialize();
     
-    // 获取主窗口
+    // 获取主窗�?
     MainWindow* mainWindow() { return mainWindow_.get(); }
 
 private:
-    // 主窗口
+    // 主窗�?
     std::unique_ptr<MainWindow> mainWindow_;
     
     // 加载应用程序配置
@@ -1167,17 +1201,17 @@ public:
     Application();
     virtual ~Application();
     
-    // wxWidgets应用初始化
+    // wxWidgets应用初始�?
     bool OnInit() override;
     
-    // wxWidgets应用退出
+    // wxWidgets应用退�?
     int OnExit() override;
     
-    // 获取主窗口
+    // 获取主窗�?
     MainWindow* getMainWindow() { return mainWindow_; }
     
 private:
-    // 主窗口
+    // 主窗�?
     MainWindow* mainWindow_{nullptr};
     
     // 加载应用程序配置
@@ -1212,17 +1246,17 @@ public:
     Application();
     ~Application();
     
-    // 初始化应用程序
+    // 初始化应用程�?
     bool initialize();
     
     // 运行应用程序
     int run();
     
-    // 获取主窗口
+    // 获取主窗�?
     MainWindow* getMainWindow() { return mainWindow_.get(); }
     
 private:
-    // 主窗口
+    // 主窗�?
     std::unique_ptr<MainWindow> mainWindow_;
     
     // 加载应用程序配置
@@ -1240,7 +1274,7 @@ private:
 )";
   }
 
-  // 默认返回通用版
+  // 默认返回通用�?
   return R"(#pragma once
 #ifndef )" +
          headerGuard + R"(
@@ -1259,17 +1293,17 @@ public:
     Application();
     ~Application();
     
-    // 初始化应用程序
+    // 初始化应用程�?
     bool initialize();
     
-    // 运行应用程序主循环
+    // 运行应用程序主循�?
     int run();
     
-    // 获取主窗口
+    // 获取主窗�?
     MainWindow* getMainWindow() { return mainWindow_.get(); }
     
 private:
-    // 主窗口
+    // 主窗�?
     std::unique_ptr<MainWindow> mainWindow_;
     
     // 应用程序是否正在运行
@@ -1300,7 +1334,7 @@ namespace )" +
 Application::Application()
     : QObject(nullptr)
 {
-    SPDLOG_DEBUG("Application构造函数");
+    SPDLOG_DEBUG("Application构造函�?);
 }
 
 Application::~Application()
@@ -1311,24 +1345,24 @@ Application::~Application()
 
 bool Application::initialize()
 {
-    SPDLOG_INFO("初始化应用程序");
+    SPDLOG_INFO("初始化应用程�?);
     
     // 加载设置
     if (!loadSettings()) {
         SPDLOG_WARN("无法加载应用程序设置");
     }
     
-    // 创建并初始化主窗口
+    // 创建并初始化主窗�?
     mainWindow_ = std::make_unique<MainWindow>();
     if (!mainWindow_->initialize()) {
         SPDLOG_ERROR("初始化主窗口失败");
         return false;
     }
     
-    // 显示主窗口
+    // 显示主窗�?
     mainWindow_->show();
     
-    SPDLOG_INFO("应用程序初始化完成");
+    SPDLOG_INFO("应用程序初始化完�?);
     return true;
 }
 
@@ -1357,7 +1391,7 @@ namespace )" +
 
 Application::Application()
 {
-    SPDLOG_DEBUG("Application构造函数");
+    SPDLOG_DEBUG("Application构造函�?);
 }
 
 Application::~Application()
@@ -1368,7 +1402,7 @@ Application::~Application()
 
 bool Application::OnInit()
 {
-    SPDLOG_INFO("初始化应用程序");
+    SPDLOG_INFO("初始化应用程�?);
     
     // 设置应用程序名称
     SetAppName(")" +
@@ -1379,7 +1413,7 @@ bool Application::OnInit()
         SPDLOG_WARN("无法加载应用程序设置");
     }
     
-    // 创建并初始化主窗口
+    // 创建并初始化主窗�?
     mainWindow_ = new MainWindow(")" +
            options_.projectName + R"(", wxPoint(50, 50), wxSize(800, 600));
     if (!mainWindow_->initialize()) {
@@ -1387,16 +1421,16 @@ bool Application::OnInit()
         return false;
     }
     
-    // 显示主窗口
+    // 显示主窗�?
     mainWindow_->Show(true);
     
-    SPDLOG_INFO("应用程序初始化完成");
+    SPDLOG_INFO("应用程序初始化完�?);
     return true;
 }
 
 int Application::OnExit()
 {
-    SPDLOG_INFO("应用程序退出");
+    SPDLOG_INFO("应用程序退�?);
     
     // 保存设置
     saveSettings();
@@ -1429,7 +1463,7 @@ namespace )" +
 
 Application::Application()
 {
-    SPDLOG_DEBUG("Application构造函数");
+    SPDLOG_DEBUG("Application构造函�?);
 }
 
 Application::~Application()
@@ -1440,21 +1474,21 @@ Application::~Application()
 
 bool Application::initialize()
 {
-    SPDLOG_INFO("初始化应用程序");
+    SPDLOG_INFO("初始化应用程�?);
     
     // 加载设置
     if (!loadSettings()) {
         SPDLOG_WARN("无法加载应用程序设置");
     }
     
-    // 创建并初始化主窗口
+    // 创建并初始化主窗�?
     mainWindow_ = std::make_unique<MainWindow>();
     if (!mainWindow_->initialize()) {
         SPDLOG_ERROR("初始化主窗口失败");
         return false;
     }
     
-    SPDLOG_INFO("应用程序初始化完成");
+    SPDLOG_INFO("应用程序初始化完�?);
     return true;
 }
 
@@ -1462,7 +1496,7 @@ int Application::run()
 {
     SPDLOG_INFO("运行应用程序");
     
-    // 运行GTK主循环
+    // 运行GTK主循�?
     gtk_main();
     
     return 0;
@@ -1487,7 +1521,7 @@ bool Application::saveSettings()
 )";
   }
 
-  // 默认返回通用版
+  // 默认返回通用�?
   return R"(#include ")" + options_.projectName + R"(/application.h"
 #include <chrono>
 #include <thread>
@@ -1497,7 +1531,7 @@ namespace )" +
 
 Application::Application()
 {
-    SPDLOG_DEBUG("Application构造函数");
+    SPDLOG_DEBUG("Application构造函�?);
 }
 
 Application::~Application()
@@ -1508,21 +1542,21 @@ Application::~Application()
 
 bool Application::initialize()
 {
-    SPDLOG_INFO("初始化应用程序");
+    SPDLOG_INFO("初始化应用程�?);
     
     // 加载设置
     if (!loadSettings()) {
         SPDLOG_WARN("无法加载应用程序设置");
     }
     
-    // 创建并初始化主窗口
+    // 创建并初始化主窗�?
     mainWindow_ = std::make_unique<MainWindow>();
     if (!mainWindow_->initialize()) {
         SPDLOG_ERROR("初始化主窗口失败");
         return false;
     }
     
-    SPDLOG_INFO("应用程序初始化完成");
+    SPDLOG_INFO("应用程序初始化完�?);
     return true;
 }
 
@@ -1531,11 +1565,11 @@ int Application::run()
     SPDLOG_INFO("运行应用程序");
     
     if (!mainWindow_) {
-        SPDLOG_ERROR("主窗口未初始化");
+        SPDLOG_ERROR("主窗口未初始�?);
         return 1;
     }
     
-    // 显示主窗口
+    // 显示主窗�?
     mainWindow_->show();
     
     // 模拟事件循环
@@ -1548,14 +1582,14 @@ int Application::run()
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         
         // 在实际应用中，这里会有一个真正的事件循环
-        // 对于本示例，我们只是模拟几秒钟然后退出
+        // 对于本示例，我们只是模拟几秒钟然后退�?
         static int counter = 0;
-        if (++counter > 50) { // 运行约5秒
+        if (++counter > 50) { // 运行�?�?
             running = false;
         }
     }
     
-    SPDLOG_INFO("应用程序主循环结束");
+    SPDLOG_INFO("应用程序主循环结�?);
     return 0;
 }
 
@@ -1592,7 +1626,7 @@ std::string GuiTemplate::getLoggingHeaderContent() {
 #include <spdlog/spdlog.h>
 #include <string>
 
-// 定义使用spdlog的宏，方便在项目中调用
+// 定义使用spdlog的宏，方便在项目中调�?
 #define SPDLOG_TRACE(...) SPDLOG_LOGGER_TRACE(spdlog::default_logger_raw(), __VA_ARGS__)
 #define SPDLOG_DEBUG(...) SPDLOG_LOGGER_DEBUG(spdlog::default_logger_raw(), __VA_ARGS__)
 #define SPDLOG_INFO(...) SPDLOG_LOGGER_INFO(spdlog::default_logger_raw(), __VA_ARGS__)
@@ -1605,7 +1639,7 @@ namespace )" +
 
 class Logging {
 public:
-    // 初始化日志系统
+    // 初始化日志系�?
     static bool init(const std::string& logFilePath, 
                    spdlog::level::level_enum level = spdlog::level::info);
     
@@ -1678,19 +1712,19 @@ bool Logging::init(const std::string& logFilePath, spdlog::level::level_enum lev
             logger->set_level(level_);
             spdlog::set_default_logger(logger);
             
-            spdlog::warn("无法创建日志目录，仅使用控制台输出");
+            spdlog::warn("无法创建日志目录，仅使用控制台输�?);
             initialized_ = true;
             return false;
         }
         
-        // 创建一个旋转文件日志，最大5MB，保留3个备份
+        // 创建一个旋转文件日志，最�?MB，保�?个备�?
         auto rotating_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
             logFilePath_, 5 * 1024 * 1024, 3);
         
         // 同时输出到控制台
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
         
-        // 创建带有两个接收器的记录器
+        // 创建带有两个接收器的记录�?
         std::vector<spdlog::sink_ptr> sinks {rotating_sink, console_sink};
         auto logger = std::make_shared<spdlog::logger>("multi_sink", sinks.begin(), sinks.end());
         
@@ -1703,7 +1737,7 @@ bool Logging::init(const std::string& logFilePath, spdlog::level::level_enum lev
         // 设置为默认记录器
         spdlog::set_default_logger(logger);
         
-        // 记录初始化信息
+        // 记录初始化信�?
         spdlog::info("日志系统初始化成功，级别: {}, 路径: {}", 
                    spdlog::level::to_string_view(level_), logFilePath_);
         
@@ -1711,7 +1745,7 @@ bool Logging::init(const std::string& logFilePath, spdlog::level::level_enum lev
         return true;
     }
     catch (const spdlog::spdlog_ex& ex) {
-        std::cerr << "日志初始化失败: " << ex.what() << std::endl;
+        std::cerr << "日志初始化失�? " << ex.what() << std::endl;
         return false;
     }
 }
@@ -1728,7 +1762,7 @@ void Logging::setLevel(spdlog::level::level_enum level) {
     level_ = level;
     if (initialized_) {
         spdlog::set_level(level_);
-        spdlog::info("日志级别设置为: {}", spdlog::level::to_string_view(level_));
+        spdlog::info("日志级别设置�? {}", spdlog::level::to_string_view(level_));
     }
 }
 
@@ -1778,32 +1812,32 @@ std::string GuiTemplate::getReadmeContent() {
                                                        : "通用UI框架";
 
   // 确定GUI框架依赖
-  std::string guiDependency = guiFramework_ == "qt"          ? "Qt 6.x或5.x"
+  std::string guiDependency = guiFramework_ == "qt"          ? "Qt 6.x"
                               : guiFramework_ == "wxwidgets" ? "wxWidgets 3.x"
                               : guiFramework_ == "gtk"       ? "GTK 3.x"
                                                              : "GUI框架库";
 
   // 包管理器信息
   std::string packageManagerInfo =
-      options_.packageManager != "none"
-          ? fmt::format("- {}包管理\n", options_.packageManager)
+      enums::to_string(options_.packageManager) != "none"
+          ? fmt::format("- {}包管理\n", enums::to_string(options_.packageManager))
           : "";
 
   // 测试框架信息
   std::string testFrameworkInfo =
       options_.includeTests
-          ? fmt::format("- 集成{}测试框架\n", options_.testFramework)
+          ? fmt::format("- 集成{}测试框架\n", enums::to_string(options_.testFramework))
           : "";
 
   // 包管理器依赖
   std::string packageManagerDep =
-      options_.packageManager != "none"
-          ? fmt::format("- {}\n", options_.packageManager)
+      enums::to_string(options_.packageManager) != "none"
+          ? fmt::format("- {}\n", enums::to_string(options_.packageManager))
           : "";
 
   // 构建步骤
   std::string buildSteps;
-  if (options_.buildSystem == "cmake") {
+  if (enums::to_string(options_.buildSystem) == "cmake") {
     buildSteps = R"(# 创建构建目录
 mkdir build && cd build
 
@@ -1812,7 +1846,7 @@ cmake ..
 
 # 编译
 make)";
-  } else if (options_.buildSystem == "meson") {
+  } else if (enums::to_string(options_.buildSystem) == "meson") {
     buildSteps = R"(# 配置项目
 meson setup build
 
@@ -1828,10 +1862,10 @@ bazel build //...)";
   std::string testSection = "";
   if (options_.includeTests) {
     std::string testCmd;
-    if (options_.buildSystem == "cmake") {
+    if (enums::to_string(options_.buildSystem) == "cmake") {
       testCmd = R"(cd build
 ctest)";
-    } else if (options_.buildSystem == "meson") {
+    } else if (enums::to_string(options_.buildSystem) == "meson") {
       testCmd = R"(cd build
 meson test)";
     } else {
@@ -1849,7 +1883,7 @@ meson test)";
 
   // 运行命令
   std::string runCmd;
-  if (options_.buildSystem == "cmake" || options_.buildSystem == "meson") {
+  if (enums::to_string(options_.buildSystem) == "cmake" || enums::to_string(options_.buildSystem) == "meson") {
     runCmd = fmt::format(R"(cd build
 ./{})",
                          options_.projectName);
@@ -1861,7 +1895,7 @@ meson test)";
   std::string uiSection = "";
   if (guiFramework_ == "qt" || guiFramework_ == "gtk") {
     uiSection = fmt::format(R"(├── ui/                    # UI设计文件
-│   └── main_window.{}  # 主窗口界面设计
+�?  └── main_window.{}  # 主窗口界面设�?
 )",
                             (guiFramework_ == "qt" ? "ui" : "glade"));
   }
@@ -1870,14 +1904,14 @@ meson test)";
   std::string testsDir = options_.includeTests
                              ?
                              R"(├── tests/                 # 测试目录
-│   └── test_main.cpp       # 测试入口
+�?  └── test_main.cpp       # 测试入口
 )"
                              : "";
 
   // 使用fmt格式化整个README内容
   return fmt::format(R"(# {0}
 
-一个使用{1}开发的C++ GUI应用，由CPP-Scaffold创建。
+一个使用{1}开发的C++ GUI应用，由CPP-Scaffold创建�?
 
 ## 功能特点
 
@@ -1889,9 +1923,9 @@ meson test)";
 
 ## 构建说明
 
-### 依赖项
+### 依赖�?
 
-- C++17兼容编译器
+- C++17兼容编译�?
 - {5}
 - spdlog
 - {2} 构建系统
@@ -1915,16 +1949,16 @@ meson test)";
 
 ```
 {0}/
-├── include/               # 头文件目录
-│   └── {0}/
-│       ├── application.h  # 应用类
-│       ├── main_window.h  # 主窗口 
-│       └── logging.h      # 日志工具
-├── src/                   # 源文件目录
-│   ├── main.cpp           # 程序入口点
-│   ├── application.cpp    # 应用实现
-│   ├── main_window.cpp    # 主窗口实现
-│   └── logging.cpp        # 日志工具实现
+├── include/               # 头文件目�?
+�?  └── {0}/
+�?      ├── application.h  # 应用�?
+�?      ├── main_window.h  # 主窗�?
+�?      └── logging.h      # 日志工具
+├── src/                   # 源文件目�?
+�?  ├── main.cpp           # 程序入口�?
+�?  ├── application.cpp    # 应用实现
+�?  ├── main_window.cpp    # 主窗口实�?
+�?  └── logging.cpp        # 日志工具实现
 {10}├── resources/             # 资源文件目录
 {11}├── README.md              # 项目说明文档
 └── CMakeLists.txt          # CMake构建脚本
@@ -1936,17 +1970,17 @@ meson test)";
 
 ```cpp
 // 示例用法
-SPDLOG_TRACE("这是一个跟踪日志");
-SPDLOG_DEBUG("这是一个调试日志");
-SPDLOG_INFO("这是一个信息日志");
-SPDLOG_WARN("这是一个警告日志");
-SPDLOG_ERROR("这是一个错误日志: {{0}}", error_code);
-SPDLOG_CRITICAL("这是一个严重错误日志");
+SPDLOG_TRACE("这是一个跟踪日�?);
+SPDLOG_DEBUG("这是一个调试日�?);
+SPDLOG_INFO("这是一个信息日�?);
+SPDLOG_WARN("这是一个警告日�?);
+SPDLOG_ERROR("这是一个错误日�? {{0}}", error_code);
+SPDLOG_CRITICAL("这是一个严重错误日�?);
 ```
 
-## 许可证
+## 许可�?
 
-此项目使用MIT许可证 - 详见LICENSE文件)",
+此项目使用MIT许可�?- 详见LICENSE文件)",
                      options_.projectName, guiName, options_.buildSystem,
                      packageManagerInfo, testFrameworkInfo, guiDependency,
                      packageManagerDep, buildSteps, testSection, runCmd,
@@ -2005,7 +2039,7 @@ add_definitions(${GTK3_CFLAGS_OTHER})
   }
 
   // vcpkg集成
-  if (options_.packageManager == "vcpkg") {
+  if (enums::to_string(options_.packageManager) == "vcpkg") {
     content += R"(
 # vcpkg integration
 if(DEFINED ENV{VCPKG_ROOT})
@@ -2014,7 +2048,7 @@ endif()
 )";
   }
 
-  // 源文件定义
+  // 源文件定�?
   content += R"(
 # Source files
 set(SOURCES
@@ -2062,7 +2096,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})";
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 )";
 
-  // 链接库
+  // 链接�?
   if (guiFramework_ == "qt") {
     content += R"(
 target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_LIBS} spdlog::spdlog)
@@ -2081,7 +2115,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog)
 )";
   }
 
-  // 库目标(用于测试)
+  // 库目�?用于测试)
   content += R"(
 # Library target (for reuse in tests)
 add_library(${PROJECT_NAME}_lib STATIC ${SOURCES})";
@@ -2096,7 +2130,7 @@ add_library(${PROJECT_NAME}_lib STATIC ${SOURCES})";
 target_include_directories(${PROJECT_NAME}_lib PUBLIC include)
 )";
 
-  // 链接库目标的库
+  // 链接库目标的�?
   if (guiFramework_ == "qt") {
     content += R"(
 target_link_libraries(${PROJECT_NAME}_lib PUBLIC ${QT_LIBS} spdlog::spdlog)
@@ -2168,19 +2202,19 @@ gtk_dep = dependency('gtk+-3.0', version : '>=3.20')
 
   // 测试框架依赖
   if (options_.includeTests) {
-    if (options_.testFramework == "gtest") {
+    if (enums::to_string(options_.testFramework) == "gtest") {
       content += R"(
 # Test dependencies
 gtest_dep = dependency('gtest', main : true)
 test_deps = [gtest_dep]
 )";
-    } else if (options_.testFramework == "catch2") {
+    } else if (enums::to_string(options_.testFramework) == "catch2") {
       content += R"(
 # Test dependencies
 catch2_dep = dependency('catch2')
 test_deps = [catch2_dep]
 )";
-    } else if (options_.testFramework == "doctest") {
+    } else if (enums::to_string(options_.testFramework) == "doctest") {
       content += R"(
 # Test dependencies
 doctest_dep = dependency('doctest')
@@ -2189,7 +2223,7 @@ test_deps = [doctest_dep]
     }
   }
 
-  // 源文件
+  // 源文�?
   content += R"(
 # Source files
 src_files = [
@@ -2212,7 +2246,7 @@ dependencies = [spdlog_dep, )";
   } else if (guiFramework_ == "gtk") {
     content += "gtk_dep";
   } else {
-    content += "[]"; // 空依赖列表
+    content += "[]"; // 空依赖列�?
   }
 
   content += R"(]
@@ -2323,9 +2357,9 @@ cc_test(
         ":)" + options_.projectName +
                R"(_lib",
         "@)" +
-               (options_.testFramework == "gtest"
+               (enums::to_string(options_.testFramework) == "gtest"
                     ? "com_google_googletest//:gtest_main"
-                : options_.testFramework == "catch2" ? "catch2//:catch2"
+                : enums::to_string(options_.testFramework) == "catch2" ? "catch2//:catch2"
                                                      : "doctest//:doctest") +
                R"(",
     ],
@@ -2337,7 +2371,7 @@ cc_test(
 }
 
 std::string GuiTemplate::getVcpkgJsonContent() {
-  // 创建依赖项列表，从spdlog开始
+  // 创建依赖项列表，从spdlog开�?
   std::vector<std::string> dependencies = {
       R"({
         "name": "spdlog"
@@ -2361,9 +2395,9 @@ std::string GuiTemplate::getVcpkgJsonContent() {
   // 根据测试配置添加测试框架依赖
   if (options_.includeTests) {
     std::string testFrameworkName;
-    if (options_.testFramework == "gtest") {
+    if (enums::to_string(options_.testFramework) == "gtest") {
       testFrameworkName = "gtest";
-    } else if (options_.testFramework == "catch2") {
+    } else if (enums::to_string(options_.testFramework) == "catch2") {
       testFrameworkName = "catch2";
     } else {
       testFrameworkName = "doctest";
@@ -2374,7 +2408,7 @@ std::string GuiTemplate::getVcpkgJsonContent() {
                                        testFrameworkName));
   }
 
-  // 构建依赖项字符串，每个依赖项之间用逗号和换行连接
+  // 构建依赖项字符串，每个依赖项之间用逗号和换行连�?
   std::string dependenciesStr;
   for (size_t i = 0; i < dependencies.size(); ++i) {
     dependenciesStr += dependencies[i];
@@ -2410,11 +2444,11 @@ spdlog/1.10.0
   }
 
   if (options_.includeTests) {
-    if (options_.testFramework == "gtest") {
+    if (enums::to_string(options_.testFramework) == "gtest") {
       content += "gtest/1.12.1\n";
-    } else if (options_.testFramework == "catch2") {
+    } else if (enums::to_string(options_.testFramework) == "catch2") {
       content += "catch2/3.1.0\n";
-    } else if (options_.testFramework == "doctest") {
+    } else if (enums::to_string(options_.testFramework) == "doctest") {
       content += "doctest/2.4.9\n";
     }
   }
@@ -2423,9 +2457,9 @@ spdlog/1.10.0
 [generators]
 )";
 
-  if (options_.buildSystem == "cmake") {
+  if (enums::to_string(options_.buildSystem) == "cmake") {
     content += "cmake\n";
-  } else if (options_.buildSystem == "meson") {
+  } else if (enums::to_string(options_.buildSystem) == "meson") {
     content += "pkg_config\n";
   } else {
     content += "cmake_find_package\n";
@@ -2440,7 +2474,7 @@ std::string GuiTemplate::getGTestContent() {
          options_.projectName + R"(/logging.h"
 #include <memory>
 
-// 初始化日志系统
+// 初始化日志系�?
 class LoggingEnvironment : public ::testing::Environment {
 public:
     ~LoggingEnvironment() override = default;
@@ -2450,10 +2484,10 @@ public:
         )" +
          options_.projectName +
          R"(::Logging::init("logs/test.log", spdlog::level::debug);
-        SPDLOG_INFO("测试开始");
+        SPDLOG_INFO("测试开�?);
     }
     
-    // 测试结束后清理
+    // 测试结束后清�?
     void TearDown() override {
         SPDLOG_INFO("测试结束");
         )" +
@@ -2461,9 +2495,9 @@ public:
     }
 };
 
-// 测试Logging类
+// 测试Logging�?
 TEST(LoggingTest, InitializationWorks) {
-    // 由于在Environment中已经初始化，所以这里应该可以正常使用
+    // 由于在Environment中已经初始化，所以这里应该可以正常使�?
     EXPECT_EQ()" +
          options_.projectName + R"(::Logging::getLevel(), spdlog::level::debug);
     
@@ -2495,13 +2529,13 @@ std::string GuiTemplate::getCatch2Content() {
          options_.projectName + R"(/logging.h"
 #include <memory>
 
-// 初始化日志系统
+// 初始化日志系�?
 struct LoggingFixture {
     LoggingFixture() {
         )" +
          options_.projectName +
          R"(::Logging::init("logs/test.log", spdlog::level::debug);
-        SPDLOG_INFO("测试开始");
+        SPDLOG_INFO("测试开�?);
     }
     
     ~LoggingFixture() {
@@ -2511,7 +2545,7 @@ struct LoggingFixture {
     }
 };
 
-TEST_CASE_METHOD(LoggingFixture, "测试Logging类", "[logging]") {
+TEST_CASE_METHOD(LoggingFixture, "测试Logging�?, "[logging]") {
     SECTION("测试日志级别") {
         REQUIRE()" +
          options_.projectName +
@@ -2541,14 +2575,14 @@ std::string GuiTemplate::getDocTestContent() {
          options_.projectName + R"(/logging.h"
 #include <memory>
 
-// 初始化日志系统
+// 初始化日志系�?
 class LoggingFixture {
 public:
     LoggingFixture() {
         )" +
          options_.projectName +
          R"(::Logging::init("logs/test.log", spdlog::level::debug);
-        SPDLOG_INFO("测试开始");
+        SPDLOG_INFO("测试开�?);
     }
     
     ~LoggingFixture() {
@@ -2558,7 +2592,7 @@ public:
     }
 };
 
-TEST_CASE_FIXTURE(LoggingFixture, "测试Logging类") {
+TEST_CASE_FIXTURE(LoggingFixture, "测试Logging�?) {
     SUBCASE("测试日志级别") {
         CHECK()" +
          options_.projectName +
@@ -2645,7 +2679,7 @@ std::string GuiTemplate::getQtUiContent() {
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionExit">
    <property name="text">
-    <string>退出</string>
+    <string>退�?/string>
    </property>
    <property name="shortcut">
     <string>Alt+F4</string>
@@ -2715,7 +2749,7 @@ std::string GuiTemplate::getGtkGladeContent() {
                       <object class="GtkMenuItem" id="menu_exit">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">退出</property>
+                        <property name="label" translatable="yes">退�?/property>
                       </object>
                     </child>
                   </object>
@@ -2786,5 +2820,240 @@ std::string GuiTemplate::getGtkGladeContent() {
     </child>
   </object>
 </interface>
+)";
+}
+
+bool GuiTemplate::setupDocumentation() {
+  std::string projectPath = options_.projectName;
+  std::string docsPath = FileUtils::combinePath(projectPath, "docs");
+
+  if (!FileUtils::createDirectory(docsPath)) {
+    std::cout << "Failed to create documentation directory\n";
+    return false;
+  }
+
+  // Create basic documentation files
+  std::string readmeContent = fmt::format(R"(# {} Documentation
+
+This directory contains the documentation for the {} GUI application.
+
+## Building Documentation
+
+To build the documentation, you can use Doxygen:
+
+```bash
+doxygen Doxyfile
+```
+
+## Documentation Structure
+
+- `api/` - API documentation
+- `user/` - User guide
+- `developer/` - Developer documentation
+)", options_.projectName, options_.projectName);
+
+  if (!FileUtils::writeToFile(FileUtils::combinePath(docsPath, "README.md"), readmeContent)) {
+    std::cout << "Failed to create documentation README\n";
+    return false;
+  }
+
+  // Create subdirectories
+  FileUtils::createDirectory(FileUtils::combinePath(docsPath, "api"));
+  FileUtils::createDirectory(FileUtils::combinePath(docsPath, "user"));
+  FileUtils::createDirectory(FileUtils::combinePath(docsPath, "developer"));
+
+  return true;
+}
+
+// Framework-specific content generators
+std::string GuiTemplate::getFrameworkSpecificHeaderContent() {
+  if (guiFramework_ == "gtk") {
+    return getGTKSpecificContent();
+  } else if (guiFramework_ == "fltk") {
+    return getFLTKSpecificContent();
+  } else if (guiFramework_ == "imgui") {
+    return getImGuiSpecificContent();
+  } else if (guiFramework_ == "wxwidgets") {
+    return R"(#pragma once
+#include <wx/wx.h>
+
+class MyApp : public wxApp {
+public:
+    virtual bool OnInit();
+};
+
+class MyFrame : public wxFrame {
+public:
+    MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size);
+
+private:
+    void OnHello(wxCommandEvent& event);
+    void OnExit(wxCommandEvent& event);
+    void OnAbout(wxCommandEvent& event);
+    void OnClose(wxCloseEvent& event);
+
+    wxDECLARE_EVENT_TABLE();
+};
+
+enum {
+    ID_Hello = 1
+};
+)";
+  }
+
+  return ""; // Default empty content
+}
+
+std::string GuiTemplate::getFrameworkSpecificSourceContent() {
+  if (guiFramework_ == "gtk") {
+    return R"(#include "app.h"
+#include <gtk/gtk.h>
+
+static void activate(GtkApplication* app, gpointer user_data) {
+    GtkWidget *window;
+    GtkWidget *button;
+    GtkWidget *box;
+
+    window = gtk_application_window_new(app);
+    gtk_window_set_title(GTK_WINDOW(window), ")" + options_.projectName + R"(");
+    gtk_window_set_default_size(GTK_WINDOW(window), 400, 300);
+
+    box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_widget_set_halign(box, GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(box, GTK_ALIGN_CENTER);
+    gtk_window_set_child(GTK_WINDOW(window), box);
+
+    button = gtk_button_new_with_label("Hello from )" + options_.projectName + R"(!");
+    g_signal_connect_swapped(button, "clicked", G_CALLBACK(gtk_window_destroy), window);
+    gtk_box_append(GTK_BOX(box), button);
+
+    gtk_widget_show(window);
+}
+
+int main(int argc, char **argv) {
+    GtkApplication *app;
+    int status;
+
+    app = gtk_application_new("org.example.)" + options_.projectName + R"(", G_APPLICATION_FLAGS_NONE);
+    g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
+    status = g_application_run(G_APPLICATION(app), argc, argv);
+    g_object_unref(app);
+
+    return status;
+}
+)";
+  } else if (guiFramework_ == "fltk") {
+    return R"(#include "app.h"
+#include <FL/Fl.H>
+#include <FL/Fl_Window.H>
+#include <FL/Fl_Button.H>
+#include <FL/fl_ask.H>
+
+void button_callback(Fl_Widget* widget, void* data) {
+    fl_message("Hello from )" + options_.projectName + R"(!");
+}
+
+int main(int argc, char **argv) {
+    Fl_Window *window = new Fl_Window(400, 300, ")" + options_.projectName + R"(");
+
+    Fl_Button *button = new Fl_Button(150, 125, 100, 50, "Click Me!");
+    button->callback(button_callback);
+
+    window->end();
+    window->show(argc, argv);
+
+    return Fl::run();
+}
+)";
+  } else if (guiFramework_ == "wxwidgets") {
+    return R"(#include "app.h"
+
+wxIMPLEMENT_APP(MyApp);
+
+bool MyApp::OnInit() {
+    MyFrame *frame = new MyFrame(")" + options_.projectName + R"(", wxPoint(50, 50), wxSize(450, 340));
+    frame->Show(true);
+    return true;
+}
+
+wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
+    EVT_MENU(ID_Hello,   MyFrame::OnHello)
+    EVT_MENU(wxID_EXIT,  MyFrame::OnExit)
+    EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
+    EVT_CLOSE(MyFrame::OnClose)
+wxEND_EVENT_TABLE()
+
+MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
+        : wxFrame(NULL, wxID_ANY, title, pos, size) {
+    wxMenu *menuFile = new wxMenu;
+    menuFile->Append(ID_Hello, "&Hello...\tCtrl-H", "Help string shown in status bar for this menu item");
+    menuFile->AppendSeparator();
+    menuFile->Append(wxID_EXIT);
+
+    wxMenu *menuHelp = new wxMenu;
+    menuHelp->Append(wxID_ABOUT);
+
+    wxMenuBar *menuBar = new wxMenuBar;
+    menuBar->Append(menuFile, "&File");
+    menuBar->Append(menuHelp, "&Help");
+
+    SetMenuBar(menuBar);
+
+    CreateStatusBar();
+    SetStatusText("Welcome to )" + options_.projectName + R"(!");
+}
+
+void MyFrame::OnExit(wxCommandEvent& event) {
+    Close(true);
+}
+
+void MyFrame::OnAbout(wxCommandEvent& event) {
+    wxMessageBox("This is a )" + options_.projectName + R"( sample", "About )" + options_.projectName + R"(", wxOK | wxICON_INFORMATION);
+}
+
+void MyFrame::OnHello(wxCommandEvent& event) {
+    wxLogMessage("Hello world from )" + options_.projectName + R"(!");
+}
+
+void MyFrame::OnClose(wxCloseEvent& event) {
+    Destroy();
+}
+)";
+  }
+
+  return ""; // Default empty content
+}
+
+// Helper methods for specific frameworks
+std::string GuiTemplate::getGTKSpecificContent() {
+  return R"(#pragma once
+#include <gtk/gtk.h>
+
+// GTK Application class declarations
+void activate(GtkApplication* app, gpointer user_data);
+)";
+}
+
+std::string GuiTemplate::getFLTKSpecificContent() {
+  return R"(#pragma once
+#include <FL/Fl.H>
+#include <FL/Fl_Window.H>
+#include <FL/Fl_Button.H>
+#include <FL/fl_ask.H>
+
+// FLTK Application class declarations
+void button_callback(Fl_Widget* widget, void* data);
+)";
+}
+
+std::string GuiTemplate::getImGuiSpecificContent() {
+  return R"(#pragma once
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+#include <GLFW/glfw3.h>
+
+// ImGui Application class declarations
+void glfw_error_callback(int error, const char* description);
 )";
 }

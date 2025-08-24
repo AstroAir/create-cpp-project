@@ -1,0 +1,165 @@
+# =============================================================================
+# clang-format configuration for CPP-Scaffold
+# =============================================================================
+# This configuration follows a modified Google C++ Style Guide
+# Run: clang-format -i --style=file <file> to format a file
+
+Language: Cpp
+BasedOnStyle: Google
+
+# =============================================================================
+# Basic Formatting
+# =============================================================================
+
+# Indentation
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 8
+
+# Line length
+ColumnLimit: 100
+
+# =============================================================================
+# Braces and Spacing
+# =============================================================================
+
+# Brace wrapping
+BreakBeforeBraces: Attach
+Cpp11BracedListStyle: true
+
+# Spacing
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 2
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: true
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+# =============================================================================
+# Line Breaking
+# =============================================================================
+
+# Function and class formatting
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortBlocksOnASingleLine: false
+
+# Break before operators
+BreakBeforeBinaryOperators: None
+BreakBeforeTernaryOperators: true
+
+# Constructor initializers
+BreakConstructorInitializers: BeforeColon
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+ConstructorInitializerIndentWidth: 4
+
+# Function parameters
+AllowAllParametersOfDeclarationOnNextLine: true
+BinPackParameters: true
+BinPackArguments: true
+
+# =============================================================================
+# Alignment
+# =============================================================================
+
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignEscapedNewlines: Left
+AlignOperands: true
+AlignTrailingComments: true
+
+# =============================================================================
+# Includes and Namespaces
+# =============================================================================
+
+# Include sorting
+SortIncludes: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  # System headers
+  - Regex: '^<.*\.h>'
+    Priority: 1
+  # C++ standard library
+  - Regex: '^<.*>'
+    Priority: 2
+  # Third-party libraries
+  - Regex: '^".*/'
+    Priority: 3
+  # Project headers
+  - Regex: '^".*'
+    Priority: 4
+
+# Namespace formatting
+NamespaceIndentation: None
+CompactNamespaces: false
+
+# =============================================================================
+# Comments and Documentation
+# =============================================================================
+
+# Comment formatting
+ReflowComments: true
+CommentPragmas: '^ IWYU pragma:'
+
+# =============================================================================
+# C++ Specific Features
+# =============================================================================
+
+# Modern C++ features
+Standard: Cpp17
+
+# Template formatting
+AlwaysBreakTemplateDeclarations: Yes
+
+# Pointer and reference alignment
+PointerAlignment: Left
+ReferenceAlignment: Pointer
+
+# =============================================================================
+# Penalties (for line breaking decisions)
+# =============================================================================
+
+PenaltyBreakAssignment: 2
+PenaltyBreakBeforeFirstCallParameter: 1
+PenaltyBreakComment: 300
+PenaltyBreakFirstLessLess: 120
+PenaltyBreakString: 1000
+PenaltyBreakTemplateDeclaration: 10
+PenaltyExcessCharacter: 1000000
+PenaltyReturnTypeOnItsOwnLine: 200
+
+# =============================================================================
+# Miscellaneous
+# =============================================================================
+
+# Keep empty lines
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+
+# Formatting of specific constructs
+DerivePointerAlignment: false
+DisableFormat: false
+ForEachMacros:
+  - foreach
+  - Q_FOREACH
+  - BOOST_FOREACH
+
+# Experimental features
+ExperimentalAutoDetectBinPacking: false
+
+# Fix includes
+FixNamespaceComments: true

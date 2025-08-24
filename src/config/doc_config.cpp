@@ -56,6 +56,8 @@ bool DocConfig::createSphinxConfig(const std::string &projectPath,
                                    const CliOptions &options) {
   // This method would create Sphinx configuration if needed
   // Currently not implemented
+  (void)projectPath; // TODO: Implement Sphinx configuration
+  (void)options;     // TODO: Use options for Sphinx configuration
   return true;
 }
 

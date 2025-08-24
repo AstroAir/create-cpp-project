@@ -1,9 +1,12 @@
 #include "template_base.h"
 #include "../utils/file_utils.h"
+#include "../utils/git_utils.h"
+#include "../utils/progress_indicator.h"
 #include "../config/ci_config.h"
 #include "../config/editor_config.h"
 #include "../config/code_style_config.h"
 #include "../config/doc_config.h"
+// #include "../utils/post_creation_actions.h"
 #include <iostream>
 
 bool TemplateBase::initializeGit(const std::string &projectPath) {
@@ -13,17 +16,73 @@ bool TemplateBase::initializeGit(const std::string &projectPath) {
 
   std::cout << "📦 初始化Git仓库...\n";
 
-  std::string gitignoreContent = getGitignoreContent();
-  if (!utils::FileUtils::writeToFile(
-          utils::FileUtils::combinePath(projectPath, ".gitignore"),
-          gitignoreContent)) {
+  // Use enhanced Git utilities
+  std::filesystem::path projectDir(projectPath);
+
+  // Initialize Git repository
+  if (!utils::GitUtils::initializeRepository(projectDir)) {
+    std::cerr << "❌ Git仓库初始化失败\n";
+    return false;
+  }
+
+  // Create comprehensive .gitignore
+  std::string templateType = std::string(enums::to_string(options_.templateType));
+  std::string buildSystem = std::string(enums::to_string(options_.buildSystem));
+  std::string packageManager = std::string(enums::to_string(options_.packageManager));
+
+  if (!utils::GitUtils::createGitignore(projectDir, templateType, buildSystem, packageManager)) {
     std::cerr << "❌ 创建.gitignore文件失败\n";
     return false;
   }
 
-  // 创建初始README如果不存在
-  std::string readmePath =
-      utils::FileUtils::combinePath(projectPath, "README.md");
+  // Create .gitattributes
+  if (!utils::GitUtils::createGitAttributes(projectDir)) {
+    std::cerr << "❌ 创建.gitattributes文件失败\n";
+    return false;
+  }
+
+  // Enhanced repository configuration
+  std::string gitWorkflow = std::string(enums::to_string(options_.gitWorkflow));
+  std::string licenseType = std::string(enums::to_string(options_.licenseType));
+
+  if (!utils::GitUtils::configureRepositoryAdvanced(projectDir,
+                                                   options_.gitUserName,
+                                                   options_.gitUserEmail,
+                                                   options_.gitRemoteUrl,
+                                                   options_.setupGitHooks)) {
+    std::cerr << "❌ Git仓库高级配置失败\n";
+  }
+
+  // Setup Git workflow
+  if (gitWorkflow != "none") {
+    if (!utils::GitUtils::setupGitWorkflow(projectDir, gitWorkflow)) {
+      std::cerr << "❌ Git工作流配置失败\n";
+    }
+  }
+
+  // Create branches based on strategy
+  std::string branchStrategy = std::string(enums::to_string(options_.gitBranchStrategy));
+  if (!utils::GitUtils::createBranchesFromStrategy(projectDir, branchStrategy, options_.gitBranches)) {
+    std::cerr << "❌ Git分支创建失败\n";
+  }
+
+  // Create license file
+  if (licenseType != "none") {
+    if (!utils::GitUtils::createLicenseFile(projectDir, licenseType, options_.projectName,
+                                           options_.gitUserName.empty() ? "Project Author" : options_.gitUserName)) {
+      std::cerr << "❌ 许可证文件创建失败\n";
+    }
+  }
+
+  // Create code quality configurations if enabled
+  if (options_.includeCodeStyleTools) {
+    utils::CodeQualityTools::createClangFormatConfig(projectDir);
+    utils::CodeQualityTools::createClangTidyConfig(projectDir);
+    utils::CodeQualityTools::createEditorConfig(projectDir);
+  }
+
+  // Create initial README if it doesn't exist
+  std::string readmePath = utils::FileUtils::combinePath(projectPath, "README.md");
   if (!utils::FileUtils::fileExists(readmePath)) {
     if (!utils::FileUtils::writeToFile(
             readmePath, "# " + options_.projectName +
@@ -32,25 +91,15 @@ bool TemplateBase::initializeGit(const std::string &projectPath) {
     }
   }
 
-  std::cout << "🔨 执行git init...\n";
-
-// 执行git命令初始化仓库
-#ifdef _WIN32
-  std::string command =
-      "cd \"" + projectPath +
-      "\" && git init && git add . && git commit -m \"Initial commit\"";
-#else
-  std::string command =
-      "cd '" + projectPath +
-      "' && git init && git add . && git commit -m \"Initial commit\"";
-#endif
-
-  int result = system(command.c_str());
-  if (result != 0) {
-    std::cerr << "❌ Git初始化失败，返回代码: " << result << "\n";
-    return false;
+  // Create initial commit if requested
+  if (options_.createInitialCommit) {
+    if (!utils::GitUtils::createInitialCommit(projectDir, "Initial commit")) {
+      std::cerr << "❌ 创建初始提交失败\n";
+      return false;
+    }
   }
 
+  std::cout << "✅ Git仓库初始化完成\n";
   return true;
 }
 
@@ -235,7 +284,7 @@ bool TemplateBase::setupEditorConfig(const std::string &projectPath) {
 
   std::cout << "📦 设置编辑器配置...\n";
   
-  bool result = EditorConfig::createEditorConfigs(projectPath, options_.editorOptions, options_);
+  bool result = EditorConfigManager::createEditorConfigs(projectPath, options_.editorOptions, options_);
   
   if (result) {
     std::cout << "✅ 编辑器配置创建成功\n";
@@ -292,19 +341,19 @@ void TemplateBase::printUsageGuide() {
   std::cout << "   cd " << options_.projectName << "\n\n";
 
   std::cout << "2. 构建项目:\n";
-  if (options_.buildSystem == "cmake") {
+  if (enums::to_string(options_.buildSystem) == "cmake") {
     std::cout << "   mkdir build && cd build\n";
     std::cout << "   cmake ..\n";
     std::cout << "   cmake --build .\n";
-  } else if (options_.buildSystem == "meson") {
+  } else if (enums::to_string(options_.buildSystem) == "meson") {
     std::cout << "   meson setup build\n";
     std::cout << "   cd build\n";
     std::cout << "   meson compile\n";
-  } else if (options_.buildSystem == "bazel") {
+  } else if (enums::to_string(options_.buildSystem) == "bazel") {
     std::cout << "   bazel build //...\n";
-  } else if (options_.buildSystem == "xmake") {
+  } else if (enums::to_string(options_.buildSystem) == "xmake") {
     std::cout << "   xmake\n";
-  } else if (options_.buildSystem == "premake") {
+  } else if (enums::to_string(options_.buildSystem) == "premake") {
     std::cout << "   premake5 gmake\n";
     std::cout << "   make\n";
   }
@@ -312,27 +361,27 @@ void TemplateBase::printUsageGuide() {
 
   if (options_.includeTests) {
     std::cout << "3. 运行测试:\n";
-    if (options_.buildSystem == "cmake") {
+    if (enums::to_string(options_.buildSystem) == "cmake") {
       std::cout << "   cd build\n";
       std::cout << "   ctest\n";
-    } else if (options_.buildSystem == "meson") {
+    } else if (enums::to_string(options_.buildSystem) == "meson") {
       std::cout << "   cd build\n";
       std::cout << "   meson test\n";
-    } else if (options_.buildSystem == "bazel") {
+    } else if (enums::to_string(options_.buildSystem) == "bazel") {
       std::cout << "   bazel test //...\n";
-    } else if (options_.buildSystem == "xmake") {
+    } else if (enums::to_string(options_.buildSystem) == "xmake") {
       std::cout << "   xmake test\n";
-    } else if (options_.buildSystem == "premake") {
+    } else if (enums::to_string(options_.buildSystem) == "premake") {
       std::cout << "   bin/Debug/" << options_.projectName << "_tests\n";
     }
     std::cout << "\n";
   }
 
-  if (options_.packageManager != "none") {
+  if (enums::to_string(options_.packageManager) != "none") {
     std::cout << "4. 包管理: \n";
-    if (options_.packageManager == "vcpkg") {
+    if (enums::to_string(options_.packageManager) == "vcpkg") {
       std::cout << "   vcpkg安装依赖已在vcpkg.json中配置\n";
-    } else if (options_.packageManager == "conan") {
+    } else if (enums::to_string(options_.packageManager) == "conan") {
       std::cout << "   在构建项目前运行:\n";
       std::cout << "   conan install . --build=missing\n";
     }
@@ -343,7 +392,7 @@ void TemplateBase::printUsageGuide() {
     std::cout << "5. CI/CD配置: \n";
     std::cout << "   已为以下CI/CD系统创建配置:\n";
     for (const auto& ci : options_.ciOptions) {
-      std::cout << "   - " << ci << "\n";
+      std::cout << "   - " << enums::to_string(ci) << "\n";
     }
     std::cout << "\n";
   }
@@ -367,4 +416,12 @@ void TemplateBase::printUsageGuide() {
   }
 
   std::cout << "祝编码愉快! 🎉\n";
+}
+
+// 执行创建后的操作
+bool TemplateBase::executePostCreationActions() {
+  // Temporarily disabled due to namespace conflicts
+  // utils::PostCreationActions& actions = utils::PostCreationActions::getInstance();
+  // return actions.executeAll(options_);
+  return true;
 }

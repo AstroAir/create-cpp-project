@@ -29,10 +29,12 @@ file(MAKE_DIRECTORY ${DEPS_CACHE_DIR})
 
 # 自定义函数用于缓存下载的依赖项
 function(fetch_and_cache NAME GIT_REPO GIT_TAG)
-    # 创建缓存目录路径
+    # 创建缓存目录路径，替换所有特殊字符
     string(REPLACE "/" "_" SAFE_REPO_NAME ${GIT_REPO})
+    string(REPLACE ":" "_" SAFE_REPO_NAME ${SAFE_REPO_NAME})
+    string(REPLACE "." "_" SAFE_REPO_NAME ${SAFE_REPO_NAME})
     set(CACHE_DIR "${DEPS_CACHE_DIR}/${NAME}_${SAFE_REPO_NAME}_${GIT_TAG}")
-    
+
     # 检查缓存目录是否存在
     if(EXISTS ${CACHE_DIR})
         message(STATUS "使用缓存的依赖项: ${NAME} (${GIT_TAG})")
@@ -49,7 +51,7 @@ function(fetch_and_cache NAME GIT_REPO GIT_TAG)
             SOURCE_DIR ${CACHE_DIR}
         )
     endif()
-    
+
     # 使依赖项可用
     FetchContent_MakeAvailable(${NAME})
 endfunction()
@@ -76,7 +78,7 @@ if(NOT nlohmann_json_FOUND)
     fetch_and_cache(
         json
         https://github.com/nlohmann/json.git
-        v3.11.2
+        v3.11.3
     )
 else()
     message(STATUS "Using system nlohmann_json: ${nlohmann_json_VERSION}")
@@ -91,11 +93,22 @@ set(CORE_SOURCES
     src/templates/template_base.cpp
     src/templates/console_template.cpp
     src/templates/library_template.cpp
+    src/templates/header_only_lib_template.cpp
+    # src/templates/multi_executable_template.cpp
     src/templates/gui_template.cpp
     src/templates/network_template.cpp
+    src/templates/custom_template.cpp
+    src/templates/webservice_template.cpp
+    src/templates/embedded_template.cpp
     src/utils/file_utils.cpp
     src/utils/string_utils.cpp
     src/utils/terminal_utils.cpp
+    src/utils/git_utils.cpp
+    src/utils/framework_integration.cpp
+    src/utils/progress_indicator.cpp
+    src/utils/interactive_menu.cpp
+    # src/utils/dependency_manager.cpp
+    # src/utils/post_creation_actions.cpp
 )
 
 # 配置工具源文件
@@ -104,10 +117,23 @@ set(CONFIG_SOURCES
     src/config/ci_config.cpp
     src/config/code_style_config.cpp
     src/config/doc_config.cpp
+    src/config/config_manager.cpp
+    src/config/user_preferences.cpp
+    src/config/interactive_config.cpp
+    src/config/project_profiles.cpp
+    src/config/config_validator.cpp
+)
+
+set(TESTING_SOURCES
+    src/testing/test_framework_manager.cpp
+)
+
+set(DOCUMENTATION_SOURCES
+    src/documentation/doc_generator.cpp
 )
 
 # 所有源文件
-set(SOURCES ${CORE_SOURCES} ${CONFIG_SOURCES})
+set(SOURCES ${CORE_SOURCES} ${CONFIG_SOURCES} ${TESTING_SOURCES} ${DOCUMENTATION_SOURCES})
 
 # 包含目录
 include_directories(src)
@@ -185,8 +211,16 @@ endif()
 include(CPack)
 
 # 添加单元测试 (如果BUILD_TESTING被启用)
-option(BUILD_TESTING "Build the testing tree." OFF)
+option(BUILD_TESTING "Build the testing tree." ON)
 if(BUILD_TESTING)
     enable_testing()
+
+    # 添加Google Test
+    fetch_and_cache(
+        googletest
+        https://github.com/google/googletest.git
+        v1.14.0
+    )
+
     add_subdirectory(tests)
 endif()

@@ -1,0 +1,141 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+        body: |
+          ## Changes in this Release
+          
+          Please see the [CHANGELOG.md](CHANGELOG.md) for detailed information about this release.
+          
+          ## Installation
+          
+          ### Binary Releases
+          Download the appropriate binary for your platform from the assets below.
+          
+          ### Build from Source
+          ```bash
+          git clone https://github.com/cpp-scaffold/cpp-scaffold.git
+          cd cpp-scaffold
+          git checkout ${{ github.ref }}
+          mkdir build && cd build
+          cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
+          ninja
+          ```
+          
+          ## Verification
+          
+          All binaries are built using GitHub Actions and can be verified against the source code.
+
+  build-release:
+    needs: create-release
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset_name: cpp-scaffold-linux-x64
+            cmake_generator: Ninja
+          - os: windows-latest
+            asset_name: cpp-scaffold-windows-x64.exe
+            cmake_generator: Ninja
+          - os: macos-latest
+            asset_name: cpp-scaffold-macos-x64
+            cmake_generator: Ninja
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build
+
+    - name: Install dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install ninja
+
+    - name: Install dependencies (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        choco install ninja
+
+    - name: Set up MSVC (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Configure CMake
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G "${{ matrix.cmake_generator }}"
+
+    - name: Build
+      run: cmake --build build --config ${{env.BUILD_TYPE}}
+
+    - name: Test
+      working-directory: build
+      run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+
+    - name: Package (Linux/macOS)
+      if: matrix.os != 'windows-latest'
+      run: |
+        cp build/cpp-scaffold ${{ matrix.asset_name }}
+        tar -czf ${{ matrix.asset_name }}.tar.gz ${{ matrix.asset_name }}
+
+    - name: Package (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        copy build\cpp-scaffold.exe ${{ matrix.asset_name }}
+        7z a ${{ matrix.asset_name }}.zip ${{ matrix.asset_name }}
+
+    - name: Upload Release Asset (Linux/macOS)
+      if: matrix.os != 'windows-latest'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./${{ matrix.asset_name }}.tar.gz
+        asset_name: ${{ matrix.asset_name }}.tar.gz
+        asset_content_type: application/gzip
+
+    - name: Upload Release Asset (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./${{ matrix.asset_name }}.zip
+        asset_name: ${{ matrix.asset_name }}.zip
+        asset_content_type: application/zip

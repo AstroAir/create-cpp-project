@@ -2,13 +2,18 @@
 
 #include <algorithm>
 #include <cctype>
-#include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <sstream>
 
 #include "../utils/string_utils.h"
 #include "../utils/terminal_utils.h"
+#include "../utils/file_utils.h"
+#include "../config/config_manager.h"
+#include "../config/user_preferences.h"
+#include "../config/interactive_config.h"
+#include "../config/project_profiles.h"
+#include "../config/config_validator.h"
 #include <fmt/color.h>
 #include <fmt/core.h>
 #include <spdlog/spdlog.h>
@@ -27,11 +32,17 @@ std::string_view to_string(TemplateType type) {
   static const std::unordered_map<TemplateType, std::string_view> map = {
       {TemplateType::Console, "console"},
       {TemplateType::Lib, "lib"},
+      {TemplateType::HeaderOnlyLib, "header-only-lib"},
+      {TemplateType::MultiExecutable, "multi-executable"},
       {TemplateType::Gui, "gui"},
       {TemplateType::Network, "network"},
       {TemplateType::Embedded, "embedded"},
       {TemplateType::WebService, "webservice"},
-      {TemplateType::GameEngine, "gameengine"}};
+      {TemplateType::GameEngine, "gameengine"},
+      {TemplateType::QtApp, "qt-app"},
+      {TemplateType::SfmlApp, "sfml-app"},
+      {TemplateType::BoostApp, "boost-app"},
+      {TemplateType::TestProject, "test-project"}};
   return map.at(type);
 }
 
@@ -88,16 +99,46 @@ std::string_view to_string(Language lang) {
   return map.at(lang);
 }
 
+std::string_view to_string(GitWorkflow workflow) {
+  static const std::unordered_map<GitWorkflow, std::string_view> map = {
+      {GitWorkflow::None, "none"}, {GitWorkflow::GitFlow, "gitflow"},
+      {GitWorkflow::GitHubFlow, "github-flow"}, {GitWorkflow::GitLabFlow, "gitlab-flow"},
+      {GitWorkflow::Custom, "custom"}};
+  return map.at(workflow);
+}
+
+std::string_view to_string(GitBranchStrategy strategy) {
+  static const std::unordered_map<GitBranchStrategy, std::string_view> map = {
+      {GitBranchStrategy::SingleBranch, "single"}, {GitBranchStrategy::FeatureBranches, "feature"},
+      {GitBranchStrategy::GitFlow, "gitflow"}, {GitBranchStrategy::Custom, "custom"}};
+  return map.at(strategy);
+}
+
+std::string_view to_string(LicenseType license) {
+  static const std::unordered_map<LicenseType, std::string_view> map = {
+      {LicenseType::MIT, "mit"}, {LicenseType::Apache2, "apache2"},
+      {LicenseType::GPL3, "gpl3"}, {LicenseType::BSD3, "bsd3"},
+      {LicenseType::BSD2, "bsd2"}, {LicenseType::Unlicense, "unlicense"},
+      {LicenseType::Custom, "custom"}, {LicenseType::None, "none"}};
+  return map.at(license);
+}
+
 // 字符串转枚举（带验证）
 std::optional<TemplateType> to_template_type(std::string_view str) {
   static const std::unordered_map<std::string_view, TemplateType> map = {
       {"console", TemplateType::Console},
       {"lib", TemplateType::Lib},
+      {"header-only-lib", TemplateType::HeaderOnlyLib},
+      {"multi-executable", TemplateType::MultiExecutable},
       {"gui", TemplateType::Gui},
       {"network", TemplateType::Network},
       {"embedded", TemplateType::Embedded},
       {"webservice", TemplateType::WebService},
-      {"gameengine", TemplateType::GameEngine}};
+      {"gameengine", TemplateType::GameEngine},
+      {"qt-app", TemplateType::QtApp},
+      {"sfml-app", TemplateType::SfmlApp},
+      {"boost-app", TemplateType::BoostApp},
+      {"test-project", TemplateType::TestProject}};
 
   auto it = map.find(str);
   if (it != map.end()) {
@@ -120,12 +161,115 @@ std::optional<BuildSystem> to_build_system(std::string_view str) {
   return std::nullopt;
 }
 
-// 其他枚举转换实现...
+std::optional<PackageManager> to_package_manager(std::string_view str) {
+  static const std::unordered_map<std::string_view, PackageManager> map = {
+      {"vcpkg", PackageManager::Vcpkg}, {"conan", PackageManager::Conan},
+      {"none", PackageManager::None}, {"spack", PackageManager::Spack},
+      {"hunter", PackageManager::Hunter}};
+
+  auto it = map.find(str);
+  if (it != map.end()) {
+    return it->second;
+  }
+  return std::nullopt;
+}
+
+std::optional<TestFramework> to_test_framework(std::string_view str) {
+  static const std::unordered_map<std::string_view, TestFramework> map = {
+      {"gtest", TestFramework::GTest}, {"catch2", TestFramework::Catch2},
+      {"doctest", TestFramework::Doctest}, {"boost", TestFramework::Boost},
+      {"none", TestFramework::None}};
+
+  auto it = map.find(str);
+  if (it != map.end()) {
+    return it->second;
+  }
+  return std::nullopt;
+}
+
+std::optional<EditorConfig> to_editor_config(std::string_view str) {
+  static const std::unordered_map<std::string_view, EditorConfig> map = {
+      {"vscode", EditorConfig::VSCode}, {"clion", EditorConfig::CLion},
+      {"vs", EditorConfig::VS}, {"vim", EditorConfig::Vim},
+      {"emacs", EditorConfig::Emacs}, {"sublime", EditorConfig::Sublime}};
+
+  auto it = map.find(str);
+  if (it != map.end()) {
+    return it->second;
+  }
+  return std::nullopt;
+}
+
+std::optional<CiSystem> to_ci_system(std::string_view str) {
+  static const std::unordered_map<std::string_view, CiSystem> map = {
+      {"github", CiSystem::GitHub}, {"gitlab", CiSystem::GitLab},
+      {"travis", CiSystem::Travis}, {"appveyor", CiSystem::AppVeyor},
+      {"azure", CiSystem::AzureDevOps}, {"circleci", CiSystem::CircleCI}};
+
+  auto it = map.find(str);
+  if (it != map.end()) {
+    return it->second;
+  }
+  return std::nullopt;
+}
+
+std::optional<Language> to_language(std::string_view str) {
+  static const std::unordered_map<std::string_view, Language> map = {
+      {"en", Language::English}, {"zh", Language::Chinese},
+      {"es", Language::Spanish}, {"jp", Language::Japanese},
+      {"de", Language::German}, {"fr", Language::French}};
+
+  auto it = map.find(str);
+  if (it != map.end()) {
+    return it->second;
+  }
+  return std::nullopt;
+}
+
+std::optional<GitWorkflow> to_git_workflow(std::string_view str) {
+  static const std::unordered_map<std::string_view, GitWorkflow> map = {
+      {"none", GitWorkflow::None}, {"gitflow", GitWorkflow::GitFlow},
+      {"github-flow", GitWorkflow::GitHubFlow}, {"gitlab-flow", GitWorkflow::GitLabFlow},
+      {"custom", GitWorkflow::Custom}};
+
+  auto it = map.find(str);
+  if (it != map.end()) {
+    return it->second;
+  }
+  return std::nullopt;
+}
+
+std::optional<GitBranchStrategy> to_git_branch_strategy(std::string_view str) {
+  static const std::unordered_map<std::string_view, GitBranchStrategy> map = {
+      {"single", GitBranchStrategy::SingleBranch}, {"feature", GitBranchStrategy::FeatureBranches},
+      {"gitflow", GitBranchStrategy::GitFlow}, {"custom", GitBranchStrategy::Custom}};
+
+  auto it = map.find(str);
+  if (it != map.end()) {
+    return it->second;
+  }
+  return std::nullopt;
+}
+
+std::optional<LicenseType> to_license_type(std::string_view str) {
+  static const std::unordered_map<std::string_view, LicenseType> map = {
+      {"mit", LicenseType::MIT}, {"apache2", LicenseType::Apache2},
+      {"gpl3", LicenseType::GPL3}, {"bsd3", LicenseType::BSD3},
+      {"bsd2", LicenseType::BSD2}, {"unlicense", LicenseType::Unlicense},
+      {"custom", LicenseType::Custom}, {"none", LicenseType::None}};
+
+  auto it = map.find(str);
+  if (it != map.end()) {
+    return it->second;
+  }
+  return std::nullopt;
+}
 
 // 获取所有枚举值的字符串表示
 std::vector<std::string_view> all_template_types() {
-  return {"console",  "lib",        "gui",       "network",
-          "embedded", "webservice", "gameengine"};
+  return {"console", "lib", "header-only-lib", "multi-executable", "gui",
+          "network", "embedded", "webservice", "gameengine", "qt-app",
+          "sfml-app", "boost-app", "test-project"};
 }
 
 std::vector<std::string_view> all_build_systems() {
@@ -136,7 +280,33 @@ std::vector<std::string_view> all_package_managers() {
   return {"vcpkg", "conan", "none", "spack", "hunter"};
 }
 
-// 其他枚举列表实现...
+std::vector<std::string_view> all_test_frameworks() {
+  return {"gtest", "catch2", "doctest", "boost", "none"};
+}
+
+std::vector<std::string_view> all_editor_configs() {
+  return {"vscode", "clion", "vs", "vim", "emacs", "sublime"};
+}
+
+std::vector<std::string_view> all_ci_systems() {
+  return {"github", "gitlab", "travis", "appveyor", "azure", "circleci"};
+}
+
+std::vector<std::string_view> all_languages() {
+  return {"en", "zh", "es", "jp", "de", "fr"};
+}
+
+std::vector<std::string_view> all_git_workflows() {
+  return {"none", "gitflow", "github-flow", "gitlab-flow", "custom"};
+}
+
+std::vector<std::string_view> all_git_branch_strategies() {
+  return {"single", "feature", "gitflow", "custom"};
+}
+
+std::vector<std::string_view> all_license_types() {
+  return {"mit", "apache2", "gpl3", "bsd3", "bsd2", "unlicense", "custom", "none"};
+}
 } // namespace enums
 
 // 本地化实现
@@ -163,6 +333,14 @@ std::string_view Localization::get(std::string_view key, Language lang) {
 
   // 返回键作为后备
   return key;
+}
+
+Language Localization::getCurrentLanguage() {
+  return s_currentLanguage;
+}
+
+void Localization::setCurrentLanguage(Language lang) {
+  s_currentLanguage = lang;
 }
 
 void Localization::loadLanguageStrings() {
@@ -445,107 +623,55 @@ void UserInput::printMultiOptions(
 
 // 配置管理器实现
 CliOptions ConfigManager::loadDefaultOptions() {
-  CliOptions options;
-
   try {
-    std::ifstream configFile(getConfigFilePath());
-    if (!configFile.is_open()) {
-      spdlog::info("未找到默认配置，使用内置默认值");
-      return options;
+    // Use the new enhanced configuration manager
+    auto& configManager = config::ConfigManager::getInstance();
+    auto& userPrefs = config::UserPreferences::getInstance();
+
+    // Load configuration if not already loaded
+    if (!configManager.loadConfiguration()) {
+      spdlog::warn("Failed to load configuration, using system defaults");
     }
 
-    json config = json::parse(configFile);
-
-    // 读取基本设置
-    if (config.contains("templateType")) {
-      auto templateType =
-          enums::to_template_type(config["templateType"].get<std::string>());
-      if (templateType) {
-        options.templateType = *templateType;
-      }
+    if (!userPrefs.loadPreferences()) {
+      spdlog::warn("Failed to load user preferences, using system defaults");
     }
 
-    if (config.contains("buildSystem")) {
-      auto buildSystem =
-          enums::to_build_system(config["buildSystem"].get<std::string>());
-      if (buildSystem) {
-        options.buildSystem = *buildSystem;
-      }
-    }
+    // Get default options from the enhanced system
+    CliOptions options = configManager.loadDefaultOptions();
 
-    // 读取其他基本设置...
-
-    // 读取数组设置
-    if (config.contains("editorOptions") &&
-        config["editorOptions"].is_array()) {
-      options.editorOptions.clear();
-      for (const auto &editor : config["editorOptions"]) {
-        auto editorConfig = enums::to_editor_config(editor.get<std::string>());
-        if (editorConfig) {
-          options.editorOptions.push_back(*editorConfig);
-        }
-      }
-    }
-
-    // 读取CI选项...
+    // Apply user preferences
+    options = userPrefs.applyPreferencesToOptions(options);
 
     return options;
+
   } catch (const std::exception &e) {
     spdlog::error("加载默认选项时出错: {}", e.what());
-    return options;
+    return CliOptions{};
   }
 }
 
 // 保存选项作为默认配置
 bool ConfigManager::saveOptionsAsDefaults(const CliOptions &options) {
   try {
-    json config;
+    // Use the new enhanced configuration manager
+    auto& configManager = config::ConfigManager::getInstance();
+    auto& userPrefs = config::UserPreferences::getInstance();
 
-    // 保存基本设置
-    config["templateType"] =
-        std::string(enums::to_string(options.templateType));
-    config["buildSystem"] = std::string(enums::to_string(options.buildSystem));
-    config["packageManager"] =
-        std::string(enums::to_string(options.packageManager));
+    // Save options as defaults in the enhanced system
+    bool success = configManager.saveOptionsAsDefaults(options);
 
-    if (options.networkLibrary) {
-      config["networkLibrary"] = *options.networkLibrary;
+    // Also update user preferences
+    userPrefs.updatePreferencesFromOptions(options);
+
+    if (success) {
+      spdlog::info("Default options saved successfully");
+    } else {
+      spdlog::error("Failed to save default options");
     }
 
-    config["includeTests"] = options.includeTests;
-    config["testFramework"] =
-        std::string(enums::to_string(options.testFramework));
-    config["includeDocumentation"] = options.includeDocumentation;
-    config["includeCodeStyleTools"] = options.includeCodeStyleTools;
-    config["initGit"] = options.initGit;
-    config["language"] = std::string(enums::to_string(options.language));
+    return success;
 
-    // 保存数组设置
-    json editorArray = json::array();
-    for (const auto &editor : options.editorOptions) {
-      editorArray.push_back(std::string(enums::to_string(editor)));
-    }
-    config["editorOptions"] = editorArray;
-
-    json ciArray = json::array();
-    for (const auto &ci : options.ciOptions) {
-      ciArray.push_back(std::string(enums::to_string(ci)));
-    }
-    config["ciOptions"] = ciArray;
-
-    // 创建配置目录（如果不存在）
-    std::filesystem::path configPath = getConfigFilePath();
-    std::filesystem::create_directories(configPath.parent_path());
-
-    // 保存到文件
-    std::ofstream configFile(configPath);
-    if (!configFile.is_open()) {
-      spdlog::error("无法打开配置文件进行写入");
-      return false;
-    }
-
-    configFile << config.dump(2);
-    return true;
   } catch (const std::exception &e) {
     spdlog::error("保存默认选项时出错: {}", e.what());
     return false;
@@ -597,6 +723,54 @@ CliOptions CliParser::parse(int argc, char *argv[]) {
 
   if (command == "interactive" || command == "-i") {
     return runInteractiveMode();
+  }
+
+  if (command == "config" || command == "configure") {
+    // Run the interactive configuration wizard
+    config::InteractiveConfigWizard::runConfigurationWizard();
+    options.showHelp = true; // Exit after configuration
+    return options;
+  }
+
+  if (command == "list-templates" || command == "list") {
+    showAvailableTemplates();
+    options.showHelp = true; // Exit after showing templates
+    return options;
+  }
+
+  if (command == "validate") {
+    if (argc > 2) {
+      validateProject(argv[2]);
+    } else {
+      validateProject(".");
+    }
+    options.showHelp = true; // Exit after validation
+    return options;
+  }
+
+  if (command == "list-profiles" || command == "profiles") {
+    showAvailableProfiles();
+    options.showHelp = true; // Exit after showing profiles
+    return options;
+  }
+
+  if (command == "show-profile" || command == "profile-info") {
+    if (argc > 2) {
+      showProfileInfo(argv[2]);
+    } else {
+      std::cout << TerminalUtils::colorize("❌ Please specify a profile name", utils::Color::BrightRed) << "\n";
+      std::cout << "Usage: cpp-scaffold show-profile <profile-name>\n";
+    }
+    options.showHelp = true; // Exit after showing profile info
+    return options;
+  }
+
+  if (command == "validate-config") {
+    // Parse remaining arguments to get configuration
+    CliOptions configOptions = parse(argc, argv);
+    validateConfiguration(configOptions);
+    options.showHelp = true; // Exit after validation
+    return options;
   }
 
   if (command != "create" && command != "new") {
@@ -681,8 +855,152 @@ CliOptions CliParser::parse(int argc, char *argv[]) {
       if (i + 1 < argc) {
         options.customTemplatePath = argv[++i];
       }
+    } else if (arg == "--profile") {
+      if (i + 1 < argc) {
+        options.profileName = argv[++i];
+      }
+    } else if (arg == "--validate-config") {
+      options.validateConfig = true;
+    } else if (arg == "--strict-validation") {
+      options.strictValidation = true;
+    } else if (arg == "--git-workflow") {
+      if (i + 1 < argc) {
+        auto workflow = enums::to_git_workflow(argv[++i]);
+        if (workflow) {
+          options.gitWorkflow = *workflow;
+        }
+      }
+    } else if (arg == "--git-branch-strategy") {
+      if (i + 1 < argc) {
+        auto strategy = enums::to_git_branch_strategy(argv[++i]);
+        if (strategy) {
+          options.gitBranchStrategy = *strategy;
+        }
+      }
+    } else if (arg == "--license") {
+      if (i + 1 < argc) {
+        auto license = enums::to_license_type(argv[++i]);
+        if (license) {
+          options.licenseType = *license;
+        }
+      }
+    } else if (arg == "--git-remote") {
+      if (i + 1 < argc) {
+        options.gitRemoteUrl = argv[++i];
+      }
+    } else if (arg == "--git-user") {
+      if (i + 1 < argc) {
+        options.gitUserName = argv[++i];
+      }
+    } else if (arg == "--git-email") {
+      if (i + 1 < argc) {
+        options.gitUserEmail = argv[++i];
+      }
+    } else if (arg == "--git-hooks") {
+      options.setupGitHooks = true;
+    } else if (arg == "--no-initial-commit") {
+      options.createInitialCommit = false;
+    } else if (arg == "--doc-formats") {
+      if (i + 1 < argc) {
+        std::string formats = argv[++i];
+        options.docFormats.clear();
+        // Parse comma-separated formats
+        std::stringstream ss(formats);
+        std::string format;
+        while (std::getline(ss, format, ',')) {
+          options.docFormats.push_back(format);
+        }
+      }
+    } else if (arg == "--doc-types") {
+      if (i + 1 < argc) {
+        std::string types = argv[++i];
+        options.docTypes.clear();
+        // Parse comma-separated types
+        std::stringstream ss(types);
+        std::string type;
+        while (std::getline(ss, type, ',')) {
+          options.docTypes.push_back(type);
+        }
+      }
+    } else if (arg == "--doxygen") {
+      options.generateDoxygen = true;
+    } else if (arg == "--doxygen-theme") {
+      if (i + 1 < argc) {
+        options.doxygenTheme = argv[++i];
+      }
+    } else if (arg == "--no-code-examples") {
+      options.includeCodeExamples = false;
+    } else if (arg == "--changelog") {
+      options.generateChangelog = true;
+    } else if (arg == "--gui-frameworks") {
+      if (i + 1 < argc) {
+        std::string frameworks = argv[++i];
+        options.guiFrameworks.clear();
+        // Parse comma-separated frameworks
+        std::stringstream ss(frameworks);
+        std::string framework;
+        while (std::getline(ss, framework, ',')) {
+          options.guiFrameworks.push_back(framework);
+        }
+      }
+    } else if (arg == "--game-frameworks") {
+      if (i + 1 < argc) {
+        std::string frameworks = argv[++i];
+        options.gameFrameworks.clear();
+        // Parse comma-separated frameworks
+        std::stringstream ss(frameworks);
+        std::string framework;
+        while (std::getline(ss, framework, ',')) {
+          options.gameFrameworks.push_back(framework);
+        }
+      }
+    } else if (arg == "--graphics-libs") {
+      if (i + 1 < argc) {
+        std::string libs = argv[++i];
+        options.graphicsLibraries.clear();
+        // Parse comma-separated libraries
+        std::stringstream ss(libs);
+        std::string lib;
+        while (std::getline(ss, lib, ',')) {
+          options.graphicsLibraries.push_back(lib);
+        }
+      }
+    } else if (arg == "--include-shaders") {
+      options.includeShaders = true;
     }
     // 处理其他命令行选项...
+  }
+
+  // Apply profile if specified
+  if (!options.profileName.empty()) {
+    auto& profileManager = config::ProjectProfileManager::getInstance();
+    profileManager.loadBuiltInProfiles();
+
+    CliOptions profileOptions = profileManager.applyProfile(options.profileName, options);
+    if (profileOptions.projectName != options.projectName) {
+      // Profile was found and applied
+      options = profileOptions;
+      // Restore the project name from command line
+      if (!options.projectName.empty()) {
+        options.projectName = profileOptions.projectName;
+      }
+    }
+  }
+
+  // Validate configuration if requested
+  if (options.validateConfig) {
+    auto& validator = config::ConfigValidator::getInstance();
+    if (options.strictValidation) {
+      validator.setStrictMode(true);
+    }
+
+    auto result = validator.validateConfiguration(options);
+    config::validation_utils::printValidationResult(result);
+
+    if (!result.isValid && options.strictValidation) {
+      std::cout << TerminalUtils::colorize("❌ Configuration validation failed in strict mode. Aborting.", utils::Color::BrightRed) << "\n";
+      exit(1);
+    }
   }
 
   // 如果没有足够信息，通过交互式提示获取
@@ -703,12 +1021,16 @@ void CliParser::showHelp([[maybe_unused]] Language lang) {
             << "\n";
   std::cout << "  cpp-scaffold create <项目名称> [选项]\n";
   std::cout << "  cpp-scaffold new <项目名称> [选项]\n";
-  std::cout << "  cpp-scaffold interactive\n\n";
+  std::cout << "  cpp-scaffold interactive\n";
+  std::cout << "  cpp-scaffold config\n";
+  std::cout << "  cpp-scaffold list-templates\n";
+  std::cout << "  cpp-scaffold validate [项目路径]\n\n";
 
   std::cout << TerminalUtils::colorize("**选项:**", utils::Color::BrightYellow)
             << "\n";
-  fmt::print("  -t, --template <类型>        项目模板类型: console, lib, gui, "
-             "network, embedded, webservice, gameengine\n");
+  fmt::print("  -t, --template <类型>        项目模板类型: console, lib, header-only-lib, "
+             "multi-executable, gui, network, embedded, webservice, gameengine, "
+             "qt-app, sfml-app, boost-app, test-project\n");
   fmt::print("  -b, --build <系统>           构建系统: cmake, meson, bazel, "
              "xmake, premake, make, ninja\n");
   fmt::print("  -p, --package <管理器>       包管理器: vcpkg, conan, none, "
@@ -726,6 +1048,24 @@ void CliParser::showHelp([[maybe_unused]] Language lang) {
              "travis, appveyor, azure, circleci\n");
   fmt::print("                               (可多次使用)\n");
   fmt::print("  --no-git                     不初始化Git仓库\n");
+  fmt::print("  --git-workflow <类型>        Git工作流: none, gitflow, github-flow, gitlab-flow, custom\n");
+  fmt::print("  --git-branch-strategy <策略> Git分支策略: single, feature, gitflow, custom\n");
+  fmt::print("  --license <类型>             许可证类型: mit, apache2, gpl3, bsd3, bsd2, unlicense, custom, none\n");
+  fmt::print("  --git-remote <URL>           Git远程仓库URL\n");
+  fmt::print("  --git-user <用户名>          Git用户名\n");
+  fmt::print("  --git-email <邮箱>           Git用户邮箱\n");
+  fmt::print("  --git-hooks                  设置Git钩子\n");
+  fmt::print("  --no-initial-commit          不创建初始提交\n");
+  fmt::print("  --doc-formats <格式>         文档输出格式: markdown,html,pdf (逗号分隔)\n");
+  fmt::print("  --doc-types <类型>           文档类型: readme,api,user,developer (逗号分隔)\n");
+  fmt::print("  --doxygen                    生成Doxygen配置\n");
+  fmt::print("  --doxygen-theme <主题>       Doxygen主题\n");
+  fmt::print("  --no-code-examples           不包含代码示例\n");
+  fmt::print("  --changelog                  生成变更日志\n");
+  fmt::print("  --gui-frameworks <框架>      GUI框架: qt,gtk,fltk,imgui,wxwidgets (逗号分隔)\n");
+  fmt::print("  --game-frameworks <框架>     游戏框架: sdl2,sfml,allegro (逗号分隔)\n");
+  fmt::print("  --graphics-libs <库>         图形库: opengl,vulkan,directx (逗号分隔)\n");
+  fmt::print("  --include-shaders            包含着色器模板\n");
   fmt::print("  --profile <名称>             使用保存的配置文件\n");
   fmt::print("  --template-path <路径>       使用自定义项目模板\n");
   fmt::print(
@@ -742,10 +1082,191 @@ void CliParser::showHelp([[maybe_unused]] Language lang) {
   fmt::print(
       "  cpp-scaffold create my-app --ci github --ci gitlab --editor vscode\n");
   fmt::print("  cpp-scaffold create my-app --profile webservice\n");
+  fmt::print("  cpp-scaffold create my-game --template gui --gui-frameworks sdl2,opengl --include-shaders\n");
+  fmt::print("  cpp-scaffold create my-project --git-workflow gitflow --license mit --doxygen\n");
+  fmt::print("  cpp-scaffold create my-lib --doc-formats markdown,html --doc-types readme,api,user\n");
 }
 
 // 显示版本信息
 void CliParser::showVersion() { fmt::print("CPP-Scaffold Version 1.1.0\n"); }
+
+// 显示可用模板
+void CliParser::showAvailableTemplates() {
+  std::cout << TerminalUtils::colorize("**Available Project Templates**", utils::Color::BrightCyan) << "\n\n";
+
+  std::vector<std::pair<std::string, std::string>> templates = {
+    {"console", "Console application with basic I/O"},
+    {"lib", "Static/shared library with headers"},
+    {"gui", "GUI application using Qt or similar"},
+    {"network", "Network application with socket programming"},
+    {"webservice", "Web service with REST API (disabled)"},
+    {"embedded", "Embedded systems project (disabled)"},
+    {"gameengine", "Game engine project (planned)"}
+  };
+
+  for (const auto& [name, description] : templates) {
+    if (name == "webservice" || name == "embedded") {
+      std::cout << TerminalUtils::colorize("  " + name, utils::Color::BrightBlack)
+                << " - " << TerminalUtils::colorize(description, utils::Color::BrightBlack) << "\n";
+    } else if (name == "gameengine") {
+      std::cout << TerminalUtils::colorize("  " + name, utils::Color::Yellow)
+                << " - " << TerminalUtils::colorize(description, utils::Color::Yellow) << "\n";
+    } else {
+      std::cout << TerminalUtils::colorize("  " + name, utils::Color::BrightGreen)
+                << " - " << description << "\n";
+    }
+  }
+
+  std::cout << "\n" << TerminalUtils::colorize("Usage:", utils::Color::BrightYellow) << "\n";
+  std::cout << "  cpp-scaffold create <project-name> --template <template-name>\n\n";
+}
+
+// 验证项目结构
+void CliParser::validateProject(const std::string& projectPath) {
+  std::cout << TerminalUtils::colorize("**Validating Project: " + projectPath + "**", utils::Color::BrightCyan) << "\n\n";
+
+  bool isValid = true;
+  std::vector<std::string> issues;
+
+  // Check if directory exists
+  if (!utils::FileUtils::directoryExists(projectPath)) {
+    issues.push_back("Project directory does not exist");
+    isValid = false;
+  } else {
+    // Check for essential files
+    std::vector<std::string> requiredFiles = {"CMakeLists.txt", "README.md"};
+    std::vector<std::string> requiredDirs = {"src", "include"};
+
+    for (const auto& file : requiredFiles) {
+      std::string filePath = utils::FileUtils::combinePath(projectPath, file);
+      if (!utils::FileUtils::fileExists(filePath)) {
+        issues.push_back("Missing required file: " + file);
+        isValid = false;
+      } else {
+        std::cout << TerminalUtils::colorize("✓", utils::Color::BrightGreen) << " Found: " << file << "\n";
+      }
+    }
+
+    for (const auto& dir : requiredDirs) {
+      std::string dirPath = utils::FileUtils::combinePath(projectPath, dir);
+      if (!utils::FileUtils::directoryExists(dirPath)) {
+        issues.push_back("Missing required directory: " + dir);
+        isValid = false;
+      } else {
+        std::cout << TerminalUtils::colorize("✓", utils::Color::BrightGreen) << " Found: " << dir << "/\n";
+      }
+    }
+  }
+
+  std::cout << "\n";
+
+  if (isValid) {
+    std::cout << TerminalUtils::colorize("✅ Project structure is valid!", utils::Color::BrightGreen) << "\n";
+  } else {
+    std::cout << TerminalUtils::colorize("❌ Project validation failed:", utils::Color::BrightRed) << "\n";
+    for (const auto& issue : issues) {
+      std::cout << TerminalUtils::colorize("  • " + issue, utils::Color::Red) << "\n";
+    }
+  }
+  std::cout << "\n";
+}
+
+// 显示可用项目配置文件
+void CliParser::showAvailableProfiles() {
+  std::cout << TerminalUtils::colorize("**Available Project Profiles**", utils::Color::BrightCyan) << "\n\n";
+
+  auto& profileManager = config::ProjectProfileManager::getInstance();
+  profileManager.loadBuiltInProfiles();
+
+  auto profileInfos = profileManager.getProfileInfos();
+
+  // Group profiles by category
+  std::map<std::string, std::vector<config::ProfileInfo>> categorizedProfiles;
+  for (const auto& info : profileInfos) {
+    categorizedProfiles[info.category].push_back(info);
+  }
+
+  for (const auto& [category, profiles] : categorizedProfiles) {
+    std::cout << TerminalUtils::colorize("📁 " + category, utils::Color::BrightYellow) << "\n";
+
+    for (const auto& profile : profiles) {
+      std::cout << TerminalUtils::colorize("  " + profile.name, utils::Color::BrightGreen)
+                << " - " << profile.description << "\n";
+
+      if (!profile.tags.empty()) {
+        std::cout << "    Tags: " << TerminalUtils::colorize(
+          utils::StringUtils::join(profile.tags, ", "), utils::Color::Cyan) << "\n";
+      }
+    }
+    std::cout << "\n";
+  }
+
+  std::cout << TerminalUtils::colorize("Usage:", utils::Color::BrightYellow) << "\n";
+  std::cout << "  cpp-scaffold create <project-name> --profile <profile-name>\n";
+  std::cout << "  cpp-scaffold show-profile <profile-name>  # Show detailed profile info\n\n";
+}
+
+// 显示特定配置文件信息
+void CliParser::showProfileInfo(const std::string& profileName) {
+  auto& profileManager = config::ProjectProfileManager::getInstance();
+  profileManager.loadBuiltInProfiles();
+
+  auto profile = profileManager.getProfile(profileName);
+  if (!profile) {
+    std::cout << TerminalUtils::colorize("❌ Profile '" + profileName + "' not found", utils::Color::BrightRed) << "\n";
+    std::cout << "Use 'cpp-scaffold list-profiles' to see available profiles.\n";
+    return;
+  }
+
+  std::cout << TerminalUtils::colorize("📋 Profile: " + profile->info.name, utils::Color::BrightCyan) << "\n\n";
+
+  std::cout << TerminalUtils::colorize("Description:", utils::Color::BrightYellow) << " " << profile->info.description << "\n";
+  std::cout << TerminalUtils::colorize("Category:", utils::Color::BrightYellow) << " " << profile->info.category << "\n";
+  std::cout << TerminalUtils::colorize("Version:", utils::Color::BrightYellow) << " " << profile->info.version << "\n";
+  std::cout << TerminalUtils::colorize("Author:", utils::Color::BrightYellow) << " " << profile->info.author << "\n";
+
+  if (!profile->info.tags.empty()) {
+    std::cout << TerminalUtils::colorize("Tags:", utils::Color::BrightYellow) << " "
+              << utils::StringUtils::join(profile->info.tags, ", ") << "\n";
+  }
+
+  std::cout << "\n" << TerminalUtils::colorize("Configuration:", utils::Color::BrightYellow) << "\n";
+  std::cout << "  Template: " << enums::to_string(profile->options.templateType) << "\n";
+  std::cout << "  Build System: " << enums::to_string(profile->options.buildSystem) << "\n";
+  std::cout << "  Package Manager: " << enums::to_string(profile->options.packageManager) << "\n";
+  std::cout << "  Tests: " << (profile->options.includeTests ? "Yes" : "No") << "\n";
+  std::cout << "  Documentation: " << (profile->options.includeDocumentation ? "Yes" : "No") << "\n";
+
+  if (!profile->recommendedDependencies.empty()) {
+    std::cout << "\n" << TerminalUtils::colorize("Recommended Dependencies:", utils::Color::BrightYellow) << "\n";
+    for (const auto& dep : profile->recommendedDependencies) {
+      std::cout << "  • " << dep << "\n";
+    }
+  }
+
+  if (!profile->setupInstructions.empty()) {
+    std::cout << "\n" << TerminalUtils::colorize("Setup Instructions:", utils::Color::BrightYellow) << "\n";
+    std::cout << profile->setupInstructions << "\n";
+  }
+
+  std::cout << "\n";
+}
+
+// 验证配置
+void CliParser::validateConfiguration(const CliOptions& options) {
+  std::cout << TerminalUtils::colorize("🔍 Validating Configuration...", utils::Color::BrightCyan) << "\n\n";
+
+  auto& validator = config::ConfigValidator::getInstance();
+  auto result = validator.validateConfiguration(options);
+
+  config::validation_utils::printValidationResult(result);
+
+  if (result.isValid) {
+    std::cout << "\n" << TerminalUtils::colorize("✅ Configuration is valid!", utils::Color::BrightGreen) << "\n";
+  } else {
+    std::cout << "\n" << TerminalUtils::colorize("❌ Configuration has errors that need to be fixed.", utils::Color::BrightRed) << "\n";
+  }
+}
 
 // 交互式提示获取选项
 CliOptions CliParser::promptUserForOptions(const CliOptions &defaultOptions) {

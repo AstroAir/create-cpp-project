@@ -1,6 +1,7 @@
 #pragma once
 #include "../cli/cli_parser.h"
 #include "template_base.h"
+#include "../utils/framework_integration.h"
 #include <functional>
 #include <map>
 #include <memory>
@@ -20,4 +21,7 @@ private:
 
   // 模板工厂映射
   std::map<std::string, TemplateFactory> templateFactories_;
+
+  // Framework template creation
+  static std::unique_ptr<TemplateBase> createFrameworkTemplate(const CliOptions& options, utils::FrameworkIntegration::Framework framework);
 };

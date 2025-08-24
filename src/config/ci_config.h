@@ -12,7 +12,7 @@ public:
 
   // 创建所有指定的CI/CD配置
   static bool createCIConfigs(const std::string &projectPath,
-                              const std::vector<std::string> &ciTypes,
+                              const std::vector<CiSystem> &ciTypes,
                               const CliOptions &options);
 
 private:

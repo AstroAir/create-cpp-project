@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-class EditorConfig {
+class EditorConfigManager {
 public:
   // 为指定的编辑器创建配置文件
   static bool createEditorConfig(const std::string &projectPath,
@@ -15,7 +15,7 @@ public:
 
   // 创建所有指定的编辑器配置
   static bool createEditorConfigs(const std::string &projectPath,
-                                  const std::vector<std::string> &editorTypes,
+                                  const std::vector<EditorConfig> &editorTypes,
                                   const CliOptions &options);
 
 private:

@@ -5,7 +5,7 @@
 
 using namespace utils;
 
-bool EditorConfig::createEditorConfig(const std::string &projectPath,
+bool EditorConfigManager::createEditorConfig(const std::string &projectPath,
                                       const std::string &editorType,
                                       const CliOptions &options) {
 
@@ -23,13 +23,13 @@ bool EditorConfig::createEditorConfig(const std::string &projectPath,
   }
 }
 
-bool EditorConfig::createEditorConfigs(
-    const std::string &projectPath, const std::vector<std::string> &editorTypes,
+bool EditorConfigManager::createEditorConfigs(
+    const std::string &projectPath, const std::vector<EditorConfig> &editorTypes,
     const CliOptions &options) {
   bool success = true;
 
   for (const auto &editorType : editorTypes) {
-    if (!createEditorConfig(projectPath, editorType, options)) {
+    if (!createEditorConfig(projectPath, std::string(enums::to_string(editorType)), options)) {
       success = false;
     }
   }
@@ -37,7 +37,7 @@ bool EditorConfig::createEditorConfigs(
   return success;
 }
 
-bool EditorConfig::createVSCodeConfig(const std::string &projectPath,
+bool EditorConfigManager::createVSCodeConfig(const std::string &projectPath,
                                       const CliOptions &options) {
 
   // Create .vscode directory
@@ -85,11 +85,11 @@ bool EditorConfig::createVSCodeConfig(const std::string &projectPath,
   return true;
 }
 
-bool EditorConfig::createCLionConfig(const std::string &projectPath,
+bool EditorConfigManager::createCLionConfig(const std::string &projectPath,
                                      const CliOptions &options) {
 
   // For CMake projects, create CMakePresets.json
-  if (options.buildSystem == "cmake") {
+  if (options.buildSystem == BuildSystem::CMake) {
     std::string cmakePresetsJsonPath =
         FileUtils::combinePath(projectPath, "CMakePresets.json");
     if (!FileUtils::writeToFile(cmakePresetsJsonPath,
@@ -118,7 +118,7 @@ bool EditorConfig::createCLionConfig(const std::string &projectPath,
   return true;
 }
 
-bool EditorConfig::createVisualStudioConfig(const std::string &projectPath,
+bool EditorConfigManager::createVisualStudioConfig(const std::string &projectPath,
                                             const CliOptions &options) {
 
   // Create .vsconfig
@@ -143,23 +143,23 @@ bool EditorConfig::createVisualStudioConfig(const std::string &projectPath,
 }
 
 std::string
-EditorConfig::getVSCodeLaunchJsonContent(const CliOptions &options) {
+EditorConfigManager::getVSCodeLaunchJsonContent(const CliOptions &options) {
   std::string buildDir;
   std::string exePath;
 
-  if (options.buildSystem == "cmake") {
+  if (options.buildSystem == BuildSystem::CMake) {
     buildDir = "build";
     exePath = "${workspaceFolder}/build/" + options.projectName;
-  } else if (options.buildSystem == "meson") {
+  } else if (options.buildSystem == BuildSystem::Meson) {
     buildDir = "build";
     exePath = "${workspaceFolder}/build/" + options.projectName;
-  } else if (options.buildSystem == "bazel") {
+  } else if (options.buildSystem == BuildSystem::Bazel) {
     buildDir = "bazel-bin";
     exePath = "${workspaceFolder}/bazel-bin/" + options.projectName;
-  } else if (options.buildSystem == "xmake") {
+  } else if (options.buildSystem == BuildSystem::XMake) {
     buildDir = "build";
     exePath = "${workspaceFolder}/build/" + options.projectName;
-  } else if (options.buildSystem == "premake") {
+  } else if (options.buildSystem == BuildSystem::Premake) {
     buildDir = "bin/Debug";
     exePath = "${workspaceFolder}/bin/Debug/" + options.projectName;
   }
@@ -194,32 +194,32 @@ EditorConfig::getVSCodeLaunchJsonContent(const CliOptions &options) {
 )";
 }
 
-std::string EditorConfig::getVSCodeTasksJsonContent(const CliOptions &options) {
+std::string EditorConfigManager::getVSCodeTasksJsonContent(const CliOptions &options) {
   std::string buildCommand;
 
-  if (options.buildSystem == "cmake") {
+  if (options.buildSystem == BuildSystem::CMake) {
     buildCommand = "cmake --build build";
-  } else if (options.buildSystem == "meson") {
+  } else if (options.buildSystem == BuildSystem::Meson) {
     buildCommand = "cd build && meson compile";
-  } else if (options.buildSystem == "bazel") {
+  } else if (options.buildSystem == BuildSystem::Bazel) {
     buildCommand = "bazel build //...";
-  } else if (options.buildSystem == "xmake") {
+  } else if (options.buildSystem == BuildSystem::XMake) {
     buildCommand = "xmake";
-  } else if (options.buildSystem == "premake") {
+  } else if (options.buildSystem == BuildSystem::Premake) {
     buildCommand = "make";
   }
 
   std::string testCommand;
   if (options.includeTests) {
-    if (options.buildSystem == "cmake") {
+    if (options.buildSystem == BuildSystem::CMake) {
       testCommand = "cd build && ctest";
-    } else if (options.buildSystem == "meson") {
+    } else if (options.buildSystem == BuildSystem::Meson) {
       testCommand = "cd build && meson test";
-    } else if (options.buildSystem == "bazel") {
+    } else if (options.buildSystem == BuildSystem::Bazel) {
       testCommand = "bazel test //...";
-    } else if (options.buildSystem == "xmake") {
+    } else if (options.buildSystem == BuildSystem::XMake) {
       testCommand = "xmake test";
-    } else if (options.buildSystem == "premake") {
+    } else if (options.buildSystem == BuildSystem::Premake) {
       testCommand = "bin/Debug/" + options.projectName + "_tests";
     }
   }
@@ -264,15 +264,15 @@ std::string EditorConfig::getVSCodeTasksJsonContent(const CliOptions &options) {
 
   // Add clean task
   std::string cleanCommand;
-  if (options.buildSystem == "cmake") {
+  if (options.buildSystem == BuildSystem::CMake) {
     cleanCommand = "rm -rf build";
-  } else if (options.buildSystem == "meson") {
+  } else if (options.buildSystem == BuildSystem::Meson) {
     cleanCommand = "rm -rf build";
-  } else if (options.buildSystem == "bazel") {
+  } else if (options.buildSystem == BuildSystem::Bazel) {
     cleanCommand = "bazel clean";
-  } else if (options.buildSystem == "xmake") {
+  } else if (options.buildSystem == BuildSystem::XMake) {
     cleanCommand = "xmake clean";
-  } else if (options.buildSystem == "premake") {
+  } else if (options.buildSystem == BuildSystem::Premake) {
     cleanCommand = "make clean";
   }
 
@@ -294,7 +294,8 @@ std::string EditorConfig::getVSCodeTasksJsonContent(const CliOptions &options) {
 }
 
 std::string
-EditorConfig::getVSCodeSettingsJsonContent(const CliOptions &options) {
+EditorConfigManager::getVSCodeSettingsJsonContent(const CliOptions &options) {
+  (void)options; // TODO: Use options to customize VS Code settings
   return R"({
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "C_Cpp.default.includePath": [
@@ -315,7 +316,8 @@ EditorConfig::getVSCodeSettingsJsonContent(const CliOptions &options) {
 }
 
 std::string
-EditorConfig::getVSCodeCppPropertiesJsonContent(const CliOptions &options) {
+EditorConfigManager::getVSCodeCppPropertiesJsonContent(const CliOptions &options) {
+  (void)options; // TODO: Use options to customize C++ properties
   return R"({
     "configurations": [
         {
@@ -366,7 +368,8 @@ EditorConfig::getVSCodeCppPropertiesJsonContent(const CliOptions &options) {
 }
 
 std::string
-EditorConfig::getCLionCMakePresetsJsonContent(const CliOptions &options) {
+EditorConfigManager::getCLionCMakePresetsJsonContent(const CliOptions &options) {
+  (void)options; // TODO: Use options to customize CMake presets
   return R"({
     "version": 3,
     "configurePresets": [
@@ -440,7 +443,8 @@ EditorConfig::getCLionCMakePresetsJsonContent(const CliOptions &options) {
 }
 
 std::string
-EditorConfig::getVisualStudioConfigContent(const CliOptions &options) {
+EditorConfigManager::getVisualStudioConfigContent(const CliOptions &options) {
+  (void)options; // TODO: Use options to customize Visual Studio configuration
   return R"({
   "version": "1.0",
   "components": [
@@ -468,7 +472,8 @@ EditorConfig::getVisualStudioConfigContent(const CliOptions &options) {
 }
 
 std::string
-EditorConfig::getVisualStudioPropsContent(const CliOptions &options) {
+EditorConfigManager::getVisualStudioPropsContent(const CliOptions &options) {
+  (void)options; // TODO: Use options to customize Visual Studio props
   return R"(<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">

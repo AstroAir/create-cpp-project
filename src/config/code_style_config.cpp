@@ -3,11 +3,9 @@
 
 #include <spdlog/spdlog.h>
 
-using namespace utils;
-
 bool CodeStyleConfig::createCodeStyleConfig(const std::string &projectPath,
                                             const CliOptions &options) {
-
+  (void)options; // TODO: Use options to customize code style configuration
   bool success = true;
 
   // Create clang-format config
@@ -38,19 +36,19 @@ bool CodeStyleConfig::createCodeStyleConfig(const std::string &projectPath,
 }
 
 bool CodeStyleConfig::createClangFormatConfig(const std::string &projectPath) {
-  std::string formatPath = FileUtils::combinePath(projectPath, ".clang-format");
-  return FileUtils::writeToFile(formatPath, getClangFormatContent());
+  std::string formatPath = utils::FileUtils::combinePath(projectPath, ".clang-format");
+  return utils::FileUtils::writeToFile(formatPath, getClangFormatContent());
 }
 
 bool CodeStyleConfig::createClangTidyConfig(const std::string &projectPath) {
-  std::string tidyPath = FileUtils::combinePath(projectPath, ".clang-tidy");
-  return FileUtils::writeToFile(tidyPath, getClangTidyContent());
+  std::string tidyPath = utils::FileUtils::combinePath(projectPath, ".clang-tidy");
+  return utils::FileUtils::writeToFile(tidyPath, getClangTidyContent());
 }
 
 bool CodeStyleConfig::createEditorConfig(const std::string &projectPath) {
   std::string editorConfigPath =
-      FileUtils::combinePath(projectPath, ".editorconfig");
-  return FileUtils::writeToFile(editorConfigPath, getEditorConfigContent());
+      utils::FileUtils::combinePath(projectPath, ".editorconfig");
+  return utils::FileUtils::writeToFile(editorConfigPath, getEditorConfigContent());
 }
 
 std::string CodeStyleConfig::getClangFormatContent() {

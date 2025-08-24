@@ -172,9 +172,41 @@ public:
   // 处理终端大小变化
   static void handleTerminalResize(std::function<void()> redrawFunc);
 
+  // Enhanced Next.js-style features
+  static void showBrandedHeader(const std::string &title, const std::string &subtitle = "");
+  static void showStepIndicator(int currentStep, int totalSteps, const std::string &stepName);
+  static void showAnimatedLogo();
+  static void showGradientText(const std::string &text, Color startColor, Color endColor);
+  static void showTypingAnimation(const std::string &text, int delayMs = 50);
+  static void showPulsingText(const std::string &text, Color color, int pulses = 3);
+  static void showSlideInText(const std::string &text, bool fromLeft = true);
+
+  // Enhanced progress indicators
+  static void showModernProgressBar(int percent, const std::string &label = "", Color color = Color::BrightGreen);
+  static void showCircularProgress(int percent, int radius = 3);
+  static void showDotSpinner(const std::string &message = "", int durationMs = 2000);
+  static void showBounceSpinner(const std::string &message = "", int durationMs = 2000);
+
+  // Interactive elements
+  static int showInteractiveMenu(const std::vector<std::string> &options,
+                                const std::string &prompt = "",
+                                int defaultSelection = 0);
+  static bool showConfirmDialog(const std::string &message, bool defaultValue = true);
+  static std::string showInputDialog(const std::string &prompt,
+                                   const std::string &placeholder = "",
+                                   const std::string &defaultValue = "");
+
+  // Layout helpers
+  static void showCard(const std::string &title, const std::vector<std::string> &content,
+                      Color borderColor = Color::BrightCyan);
+  static void showTwoColumnLayout(const std::vector<std::pair<std::string, std::string>> &items);
+  static void showFeatureList(const std::vector<std::pair<std::string, std::string>> &features);
+
 private:
   static bool lastWasNewline;
   static std::string getAnsiColorCode(Color color, bool isBackground = false);
   static std::string getAnsiStyleCode(TextStyle style);
+  static void printCharWithDelay(char c, int delayMs);
+  static std::string generateGradient(const std::string &text, Color startColor, Color endColor);
 };
 } // namespace utils
