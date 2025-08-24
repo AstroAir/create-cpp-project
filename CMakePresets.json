@@ -1,0 +1,143 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 20,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "default",
+            "displayName": "Default Configuration",
+            "description": "Default build configuration with optimizations",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "ENABLE_PRECOMPILED_HEADERS": "ON",
+                "ENABLE_CCACHE": "ON"
+            }
+        },
+        {
+            "name": "debug",
+            "displayName": "Debug Configuration",
+            "description": "Debug build with all warnings and sanitizers",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "ENABLE_PRECOMPILED_HEADERS": "ON",
+                "ENABLE_CCACHE": "ON",
+                "BUILD_TESTING": "ON"
+            }
+        },
+        {
+            "name": "release",
+            "displayName": "Release Configuration",
+            "description": "Optimized release build",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "ENABLE_PRECOMPILED_HEADERS": "ON",
+                "ENABLE_UNITY_BUILD": "ON",
+                "ENABLE_CCACHE": "ON",
+                "BUILD_TESTING": "OFF"
+            }
+        },
+        {
+            "name": "fast-build",
+            "displayName": "Fast Build Configuration",
+            "description": "Maximum build speed configuration",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-fast",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "ENABLE_PRECOMPILED_HEADERS": "ON",
+                "ENABLE_UNITY_BUILD": "ON",
+                "ENABLE_CCACHE": "ON",
+                "BUILD_TESTING": "OFF"
+            }
+        },
+        {
+            "name": "minimal",
+            "displayName": "Minimal Configuration",
+            "description": "Minimal build without optimizations",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-minimal",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "ENABLE_PRECOMPILED_HEADERS": "OFF",
+                "ENABLE_UNITY_BUILD": "OFF",
+                "ENABLE_CCACHE": "OFF",
+                "BUILD_TESTING": "ON"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "default",
+            "configurePreset": "default",
+            "displayName": "Default Build",
+            "description": "Build with default configuration"
+        },
+        {
+            "name": "debug",
+            "configurePreset": "debug",
+            "displayName": "Debug Build",
+            "description": "Build debug configuration"
+        },
+        {
+            "name": "release",
+            "configurePreset": "release",
+            "displayName": "Release Build",
+            "description": "Build release configuration"
+        },
+        {
+            "name": "fast-build",
+            "configurePreset": "fast-build",
+            "displayName": "Fast Build",
+            "description": "Build with maximum speed optimizations"
+        },
+        {
+            "name": "minimal",
+            "configurePreset": "minimal",
+            "displayName": "Minimal Build",
+            "description": "Build minimal configuration"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "default",
+            "configurePreset": "debug",
+            "displayName": "Default Tests",
+            "description": "Run all tests with default configuration",
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false
+            }
+        },
+        {
+            "name": "parallel",
+            "configurePreset": "debug",
+            "displayName": "Parallel Tests",
+            "description": "Run tests in parallel",
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false,
+                "jobs": 0
+            }
+        }
+    ]
+}

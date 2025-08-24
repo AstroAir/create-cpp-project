@@ -67,7 +67,7 @@ struct ScaffoldingConfig {
   std::vector<FileTemplate> fileTemplates;
   BestPracticesConfig bestPractices;
   std::map<std::string, std::string> globalPlaceholders;
-  
+
   // Advanced options
   bool createExamples = true;
   bool createBenchmarks = false;
@@ -77,7 +77,7 @@ struct ScaffoldingConfig {
   bool createTests = true;
   bool createAssets = false;
   bool createConfigs = true;
-  
+
   // Language and framework specific
   std::vector<std::string> additionalLanguages; // Python scripts, shell scripts, etc.
   std::vector<std::string> frameworks;
@@ -88,30 +88,30 @@ struct ScaffoldingConfig {
 class ProjectScaffolding {
 public:
   static ProjectScaffolding& getInstance();
-  
+
   // Main scaffolding operations
   bool createProjectStructure(const CliOptions& options, const ScaffoldingConfig& config);
   bool createProjectStructure(const CliOptions& options, ProjectLayout layout = ProjectLayout::Standard);
-  
+
   // Configuration management
   ScaffoldingConfig createDefaultConfig(TemplateType templateType, ProjectLayout layout);
   ScaffoldingConfig configureInteractively(const CliOptions& options);
-  
+
   // Layout management
   DirectoryStructure getLayoutStructure(ProjectLayout layout, TemplateType templateType);
   std::vector<FileTemplate> getLayoutTemplates(ProjectLayout layout, TemplateType templateType);
-  
+
   // Interactive configuration
   ProjectLayout selectProjectLayout(ProjectLayout defaultLayout = ProjectLayout::Standard);
   BestPracticesConfig configureBestPractices(const BestPracticesConfig& defaults);
-  
+
   // Directory structure operations
   bool createDirectoryStructure(const std::string& basePath, const DirectoryStructure& structure);
   bool createFileFromTemplate(const std::string& filePath, const FileTemplate& fileTemplate,
                              const std::map<std::string, std::string>& placeholders);
-  
+
   // Best practices setup
-  bool setupBestPractices(const std::string& projectPath, const BestPracticesConfig& config, 
+  bool setupBestPractices(const std::string& projectPath, const BestPracticesConfig& config,
                          const CliOptions& options);
   bool setupClangFormat(const std::string& projectPath);
   bool setupClangTidy(const std::string& projectPath);
@@ -125,38 +125,38 @@ public:
   bool setupCodeOfConduct(const std::string& projectPath);
   bool setupContributing(const std::string& projectPath);
   bool setupChangelog(const std::string& projectPath);
-  
+
   // Template management
   std::vector<FileTemplate> getCommonFileTemplates();
   std::vector<FileTemplate> getTemplateSpecificFiles(TemplateType templateType);
   std::vector<FileTemplate> getBestPracticeFiles(const BestPracticesConfig& config);
-  
+
   // Validation and analysis
   bool validateProjectStructure(const std::string& projectPath, const ScaffoldingConfig& config);
   std::vector<std::string> analyzeProjectStructure(const std::string& projectPath);
   std::vector<std::string> suggestImprovements(const std::string& projectPath);
-  
+
   // Import/Export functionality
   bool exportScaffoldingConfig(const ScaffoldingConfig& config, const std::string& filePath);
   std::optional<ScaffoldingConfig> importScaffoldingConfig(const std::string& filePath);
-  
+
   // Preset management
   std::map<std::string, ScaffoldingConfig> getPresetConfigs();
   bool savePresetConfig(const std::string& name, const ScaffoldingConfig& config);
   bool loadPresetConfig(const std::string& name, ScaffoldingConfig& config);
-  
+
   // Project migration and updates
   bool migrateProjectStructure(const std::string& projectPath, ProjectLayout fromLayout, ProjectLayout toLayout);
   bool updateProjectStructure(const std::string& projectPath, const ScaffoldingConfig& newConfig);
-  
+
 private:
   ProjectScaffolding() = default;
-  
+
   // Internal structure definitions
   void initializeLayoutStructures();
   void initializeFileTemplates();
   void initializeBestPracticesTemplates();
-  
+
   // Layout structure definitions
   DirectoryStructure createMinimalLayout();
   DirectoryStructure createStandardLayout();
@@ -164,7 +164,7 @@ private:
   DirectoryStructure createMonorepoLayout();
   DirectoryStructure createHeaderOnlyLayout();
   DirectoryStructure createModernLayout();
-  
+
   // Template content generators
   std::string generateReadmeContent(const CliOptions& options);
   std::string generateCMakeListsContent(const CliOptions& options);
@@ -180,13 +180,13 @@ private:
   std::string generateDoxyfileContent(const CliOptions& options);
   std::string generatePreCommitHookContent();
   std::string generateCIWorkflowContent(const CliOptions& options);
-  
+
   // Utility methods
-  std::string processTemplate(const std::string& templateContent, 
+  std::string processTemplate(const std::string& templateContent,
                              const std::map<std::string, std::string>& placeholders);
   std::map<std::string, std::string> createGlobalPlaceholders(const CliOptions& options);
   bool createGitkeepFile(const std::string& directoryPath);
-  
+
   // Internal data
   std::map<ProjectLayout, DirectoryStructure> layoutStructures_;
   std::map<ProjectLayout, std::vector<FileTemplate>> layoutTemplates_;
@@ -200,21 +200,21 @@ namespace scaffolding_utils {
   std::string toString(ProjectLayout layout);
   ProjectLayout parseProjectLayout(const std::string& str);
   bool isValidProjectLayout(const std::string& str);
-  
+
   // Directory utilities
   std::vector<std::string> getAllDirectories(const DirectoryStructure& structure);
   std::vector<std::string> getAllFiles(const DirectoryStructure& structure);
   bool isDirectoryEmpty(const std::string& path);
-  
+
   // Template utilities
   std::vector<std::string> extractPlaceholders(const std::string& content);
-  bool validateTemplate(const FileTemplate& template);
-  
+  bool validateTemplate(const FileTemplate& fileTemplate);
+
   // Display utilities
   void printDirectoryStructure(const DirectoryStructure& structure, int indent = 0);
   void printScaffoldingConfig(const ScaffoldingConfig& config);
   void printBestPracticesConfig(const BestPracticesConfig& config);
-  
+
   // Analysis utilities
   std::map<std::string, int> analyzeDirectoryStructure(const std::string& projectPath);
   std::vector<std::string> findMissingBestPractices(const std::string& projectPath);

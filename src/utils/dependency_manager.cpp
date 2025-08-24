@@ -7,6 +7,38 @@
 
 namespace utils {
 
+// Helper function to create a properly initialized Dependency
+static Dependency createDependency(const std::string& name, const std::string& version,
+                                  const std::string& description, const std::vector<std::string>& features,
+                                  bool required, bool headerOnly, const std::string& repository,
+                                  const std::string& license, const std::string& category = "") {
+    Dependency dep;
+    dep.name = name;
+    dep.version = version;
+    dep.description = description;
+    dep.features = features;
+    dep.required = required;
+    dep.headerOnly = headerOnly;
+    dep.repository = repository;
+    dep.license = license;
+    dep.category = category;
+    // Initialize all other fields with defaults
+    dep.platforms = {};
+    dep.compilers = {};
+    dep.minCppStandard = "";
+    dep.conflicts = {};
+    dep.alternatives = {};
+    dep.metadata = {};
+    dep.minVersion = "";
+    dep.maxVersion = "";
+    dep.allowPrerelease = false;
+    dep.buildOptions = {};
+    dep.cmakeOptions = {};
+    dep.installationNotes = "";
+    dep.postInstallSteps = {};
+    return dep;
+}
+
 DependencyManager& DependencyManager::getInstance() {
   static DependencyManager instance;
   return instance;
@@ -74,90 +106,90 @@ bool DependencyManager::installDependencies(const CliOptions& options) {
   ::std::vector<Dependency> deps;
 
   // Common dependencies for all projects
-  deps.push_back({"fmt", "9.1.0", "Modern formatting library", {}, true, true,
-                  "https://github.com/fmtlib/fmt", "MIT"});
-  deps.push_back({"spdlog", "1.11.0", "Fast C++ logging library", {}, true, true,
-                  "https://github.com/gabime/spdlog", "MIT"});
+  deps.push_back(createDependency("fmt", "9.1.0", "Modern formatting library", {}, true, true,
+                  "https://github.com/fmtlib/fmt", "MIT", "Utility"));
+  deps.push_back(createDependency("spdlog", "1.11.0", "Fast C++ logging library", {}, true, true,
+                  "https://github.com/gabime/spdlog", "MIT", "Logging"));
 
   switch (templateType) {
     case TemplateType::Console:
-      deps.push_back({"cli11", "2.3.2", "Command line parser", {}, false, true,
-                      "https://github.com/CLIUtils/CLI11", "BSD-3-Clause"});
+      deps.push_back(createDependency("cli11", "2.3.2", "Command line parser", {}, false, true,
+                      "https://github.com/CLIUtils/CLI11", "BSD-3-Clause", "CLI"));
       break;
 
     case TemplateType::Lib:
-      deps.push_back({"benchmark", "1.7.1", "Microbenchmark library", {}, false, false,
-                      "https://github.com/google/benchmark", "Apache-2.0"});
+      deps.push_back(createDependency("benchmark", "1.7.1", "Microbenchmark library", {}, false, false,
+                      "https://github.com/google/benchmark", "Apache-2.0", "Testing"));
       break;
 
     case TemplateType::Network:
-      deps.push_back({"asio", "1.24.0", "Asynchronous I/O library", {}, true, true,
-                      "https://github.com/chriskohlhoff/asio", "BSL-1.0"});
-      deps.push_back({"nlohmann-json", "3.11.2", "JSON library", {}, true, true,
-                      "https://github.com/nlohmann/json", "MIT"});
+      deps.push_back(createDependency("asio", "1.24.0", "Asynchronous I/O library", {}, true, true,
+                      "https://github.com/chriskohlhoff/asio", "BSL-1.0", "Network"));
+      deps.push_back(createDependency("nlohmann-json", "3.11.2", "JSON library", {}, true, true,
+                      "https://github.com/nlohmann/json", "MIT", "Utility"));
       break;
 
     case TemplateType::WebService:
-      deps.push_back({"httplib", "0.14.0", "HTTP/HTTPS server and client library", {}, true, true,
-                      "https://github.com/yhirose/cpp-httplib", "MIT"});
-      deps.push_back({"nlohmann-json", "3.11.2", "JSON library", {}, true, true,
-                      "https://github.com/nlohmann/json", "MIT"});
-      deps.push_back({"sqlite3", "3.41.2", "SQLite database", {}, false, false,
-                      "https://www.sqlite.org/", "Public Domain"});
+      deps.push_back(createDependency("httplib", "0.14.0", "HTTP/HTTPS server and client library", {}, true, true,
+                      "https://github.com/yhirose/cpp-httplib", "MIT", "Network"));
+      deps.push_back(createDependency("nlohmann-json", "3.11.2", "JSON library", {}, true, true,
+                      "https://github.com/nlohmann/json", "MIT", "Utility"));
+      deps.push_back(createDependency("sqlite3", "3.41.2", "SQLite database", {}, false, false,
+                      "https://www.sqlite.org/", "Public Domain", "Database"));
       break;
 
     case TemplateType::Gui:
-      deps.push_back({"qt5", "5.15.8", "Cross-platform GUI toolkit", {"widgets", "network"}, true, false,
-                      "https://www.qt.io/", "LGPL-3.0"});
+      deps.push_back(createDependency("qt5", "5.15.8", "Cross-platform GUI toolkit", {"widgets", "network"}, true, false,
+                      "https://www.qt.io/", "LGPL-3.0", "GUI"));
       break;
 
     case TemplateType::Embedded:
       // Embedded projects typically use vendor-specific libraries
-      deps.push_back({"freertos", "10.4.6", "Real-time operating system", {}, false, false,
-                      "https://www.freertos.org/", "MIT"});
+      deps.push_back(createDependency("freertos", "10.4.6", "Real-time operating system", {}, false, false,
+                      "https://www.freertos.org/", "MIT", "RTOS"));
       break;
 
     case TemplateType::GameEngine:
-      deps.push_back({"glfw3", "3.3.8", "OpenGL framework", {}, true, false,
-                      "https://www.glfw.org/", "Zlib"});
-      deps.push_back({"glm", "0.9.9.8", "OpenGL Mathematics", {}, true, true,
-                      "https://github.com/g-truc/glm", "MIT"});
+      deps.push_back(createDependency("glfw3", "3.3.8", "OpenGL framework", {}, true, false,
+                      "https://www.glfw.org/", "Zlib", "Graphics"));
+      deps.push_back(createDependency("glm", "0.9.9.8", "OpenGL Mathematics", {}, true, true,
+                      "https://github.com/g-truc/glm", "MIT", "Math"));
       break;
 
     case TemplateType::HeaderOnlyLib:
       // Header-only libraries typically have minimal dependencies
-      deps.push_back({"catch2", "3.3.2", "Testing framework", {}, false, true,
-                      "https://github.com/catchorg/Catch2", "BSL-1.0"});
+      deps.push_back(createDependency("catch2", "3.3.2", "Testing framework", {}, false, true,
+                      "https://github.com/catchorg/Catch2", "BSL-1.0", "Testing"));
       break;
 
     case TemplateType::MultiExecutable:
       // Multi-executable projects might need shared utilities
-      deps.push_back({"cli11", "2.3.2", "Command line parser", {}, false, true,
-                      "https://github.com/CLIUtils/CLI11", "BSD-3-Clause"});
-      deps.push_back({"toml11", "3.7.1", "TOML configuration parser", {}, false, true,
-                      "https://github.com/ToruNiina/toml11", "MIT"});
+      deps.push_back(createDependency("cli11", "2.3.2", "Command line parser", {}, false, true,
+                      "https://github.com/CLIUtils/CLI11", "BSD-3-Clause", "CLI"));
+      deps.push_back(createDependency("toml11", "3.7.1", "TOML configuration parser", {}, false, true,
+                      "https://github.com/ToruNiina/toml11", "MIT", "Config"));
       break;
 
     case TemplateType::QtApp:
-      deps.push_back({"qt6", "6.5.0", "Cross-platform GUI toolkit", {"widgets", "network", "core"}, true, false,
-                      "https://www.qt.io/", "LGPL-3.0"});
+      deps.push_back(createDependency("qt6", "6.5.0", "Cross-platform GUI toolkit", {"widgets", "network", "core"}, true, false,
+                      "https://www.qt.io/", "LGPL-3.0", "GUI"));
       break;
 
     case TemplateType::SfmlApp:
-      deps.push_back({"sfml", "2.6.0", "Simple and Fast Multimedia Library", {"graphics", "window", "system"}, true, false,
-                      "https://www.sfml-dev.org/", "Zlib"});
+      deps.push_back(createDependency("sfml", "2.6.0", "Simple and Fast Multimedia Library", {"graphics", "window", "system"}, true, false,
+                      "https://www.sfml-dev.org/", "Zlib", "Graphics"));
       break;
 
     case TemplateType::BoostApp:
-      deps.push_back({"boost", "1.82.0", "Boost C++ Libraries", {"system", "filesystem", "thread"}, true, false,
-                      "https://www.boost.org/", "BSL-1.0"});
+      deps.push_back(createDependency("boost", "1.82.0", "Boost C++ Libraries", {"system", "filesystem", "thread"}, true, false,
+                      "https://www.boost.org/", "BSL-1.0", "Utility"));
       break;
 
     case TemplateType::TestProject:
-      deps.push_back({"gtest", "1.13.0", "Google Test framework", {}, true, false,
-                      "https://github.com/google/googletest", "BSD-3-Clause"});
-      deps.push_back({"gmock", "1.13.0", "Google Mock framework", {}, false, false,
-                      "https://github.com/google/googletest", "BSD-3-Clause"});
+      deps.push_back(createDependency("gtest", "1.13.0", "Google Test framework", {}, true, false,
+                      "https://github.com/google/googletest", "BSD-3-Clause", "Testing"));
+      deps.push_back(createDependency("gmock", "1.13.0", "Google Mock framework", {}, false, false,
+                      "https://github.com/google/googletest", "BSD-3-Clause", "Testing"));
       break;
   }
 
@@ -169,20 +201,20 @@ bool DependencyManager::installDependencies(const CliOptions& options) {
 
   switch (framework) {
     case TestFramework::GTest:
-      deps.push_back({"gtest", "1.13.0", "Google Test framework", {"gmock"}, true, false,
-                      "https://github.com/google/googletest", "BSD-3-Clause"});
+      deps.push_back(createDependency("gtest", "1.13.0", "Google Test framework", {"gmock"}, true, false,
+                      "https://github.com/google/googletest", "BSD-3-Clause", "Testing"));
       break;
     case TestFramework::Catch2:
-      deps.push_back({"catch2", "3.3.2", "Modern C++ test framework", {}, true, true,
-                      "https://github.com/catchorg/Catch2", "BSL-1.0"});
+      deps.push_back(createDependency("catch2", "3.3.2", "Modern C++ test framework", {}, true, true,
+                      "https://github.com/catchorg/Catch2", "BSL-1.0", "Testing"));
       break;
     case TestFramework::Doctest:
-      deps.push_back({"doctest", "2.4.9", "Lightweight C++ test framework", {}, true, true,
-                      "https://github.com/doctest/doctest", "MIT"});
+      deps.push_back(createDependency("doctest", "2.4.9", "Lightweight C++ test framework", {}, true, true,
+                      "https://github.com/doctest/doctest", "MIT", "Testing"));
       break;
     case TestFramework::Boost:
-      deps.push_back({"boost-test", "1.81.0", "Boost Test library", {}, true, false,
-                      "https://www.boost.org/", "BSL-1.0"});
+      deps.push_back(createDependency("boost-test", "1.81.0", "Boost Test library", {}, true, false,
+                      "https://www.boost.org/", "BSL-1.0", "Testing"));
       break;
     default:
       break;
@@ -202,6 +234,9 @@ bool DependencyManager::setupVcpkg(const ::std::string& projectPath) {
     return false;
   }
 
+  // TODO: Use projectPath for project-specific vcpkg setup
+  (void)projectPath; // Suppress unused parameter warning
+
   TerminalUtils::showSuccess("vcpkg found and ready to use");
   return true;
 }
@@ -219,6 +254,9 @@ bool DependencyManager::setupConan(const ::std::string& projectPath) {
 
   // Initialize Conan profile if needed
   executeCommand("conan profile detect --force");
+
+  // TODO: Use projectPath for project-specific conan setup
+  (void)projectPath; // Suppress unused parameter warning
 
   TerminalUtils::showSuccess("Conan found and configured");
   return true;
@@ -284,6 +322,8 @@ bool DependencyManager::generateConanfile(const ::std::string& projectPath,
 
 ::std::string DependencyManager::executeCommand(const ::std::string& command) {
   // Simple command execution - in a real implementation, this would be more robust
+  // TODO: Implement actual command execution
+  (void)command; // Suppress unused parameter warning
   return ""; // Placeholder
 }
 
@@ -295,6 +335,9 @@ bool DependencyManager::writeConfigFile(const ::std::string& path, const ::std::
 DependencyResolution DependencyManager::resolveDependencies(const std::vector<Dependency>& requested, const CliOptions& options) {
   DependencyResolution result;
   result.success = true;
+
+  // TODO: Use options for dependency resolution configuration
+  (void)options; // Suppress unused parameter warning
 
   // Start with requested dependencies
   result.resolved = requested;

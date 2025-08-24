@@ -1,0 +1,91 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 20,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "optimized",
+            "displayName": "Highly Optimized Configuration",
+            "description": "Maximum performance build with all optimizations",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-optimized",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "ENABLE_PRECOMPILED_HEADERS": "ON",
+                "ENABLE_UNITY_BUILD": "ON",
+                "ENABLE_CCACHE": "ON",
+                "ENABLE_LTO": "ON",
+                "BUILD_TESTING": "OFF"
+            }
+        },
+        {
+            "name": "debug-sanitized",
+            "displayName": "Debug with Sanitizers",
+            "description": "Debug build with address and undefined behavior sanitizers",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-debug-sanitized",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "ENABLE_PRECOMPILED_HEADERS": "ON",
+                "ENABLE_CCACHE": "ON",
+                "ENABLE_SANITIZERS": "ON",
+                "BUILD_TESTING": "ON"
+            }
+        },
+        {
+            "name": "profiling",
+            "displayName": "Build Time Profiling",
+            "description": "Debug build with build time profiling enabled",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-profiling",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "ENABLE_PRECOMPILED_HEADERS": "ON",
+                "ENABLE_CCACHE": "OFF",
+                "ENABLE_BUILD_PROFILING": "ON",
+                "BUILD_TESTING": "OFF"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "optimized",
+            "configurePreset": "optimized",
+            "displayName": "Optimized Build",
+            "description": "Build with maximum optimizations"
+        },
+        {
+            "name": "debug-sanitized",
+            "configurePreset": "debug-sanitized",
+            "displayName": "Debug Sanitized Build",
+            "description": "Build debug configuration with sanitizers"
+        },
+        {
+            "name": "profiling",
+            "configurePreset": "profiling",
+            "displayName": "Profiling Build",
+            "description": "Build with build time profiling"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "sanitized",
+            "configurePreset": "debug-sanitized",
+            "displayName": "Sanitized Tests",
+            "description": "Run tests with sanitizers enabled",
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false
+            }
+        }
+    ]
+}
