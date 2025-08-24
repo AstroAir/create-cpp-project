@@ -1037,4 +1037,525 @@ void TerminalUtils::showFeatureList(const std::vector<std::pair<std::string, std
     }
 }
 
+// NPM-style CLI enhancements
+void TerminalUtils::showNpmStyleHeader(const std::string& toolName, const std::string& version) {
+    if (!supportsAnsi()) {
+        std::cout << toolName;
+        if (!version.empty()) {
+            std::cout << " v" << version;
+        }
+        std::cout << std::endl;
+        return;
+    }
+
+    clearScreen();
+    std::cout << "\n";
+
+    // Create npm-style header with gradient effect
+    std::string header = "  " + toolName;
+    if (!version.empty()) {
+        header += " v" + version;
+    }
+
+    std::cout << colorize(header, Color::BrightCyan) << "\n";
+    std::cout << colorize("  " + std::string(header.length() - 2, '-'), Color::Cyan) << "\n\n";
+}
+
+void TerminalUtils::showNpmStyleCommand(const std::string& command, const std::string& description) {
+    if (!supportsAnsi()) {
+        std::cout << command;
+        if (!description.empty()) {
+            std::cout << " - " << description;
+        }
+        std::cout << std::endl;
+        return;
+    }
+
+    std::cout << colorize("  $ ", Color::BrightGreen)
+              << colorize(command, Color::BrightWhite);
+
+    if (!description.empty()) {
+        std::cout << colorize(" # " + description, Color::BrightBlack);
+    }
+    std::cout << "\n";
+}
+
+void TerminalUtils::showNpmStyleProgress(const std::string& operation, int percent, const std::string& currentFile) {
+    if (!supportsAnsi()) {
+        std::cout << operation << ": " << percent << "%";
+        if (!currentFile.empty()) {
+            std::cout << " (" << currentFile << ")";
+        }
+        std::cout << std::endl;
+        return;
+    }
+
+    clearLine();
+
+    // Create progress bar
+    const int barWidth = 30;
+    int filled = (barWidth * percent) / 100;
+
+    std::string bar = "[";
+    for (int i = 0; i < barWidth; ++i) {
+        if (i < filled) {
+            bar += colorize("█", Color::BrightGreen);
+        } else {
+            bar += colorize("░", Color::BrightBlack);
+        }
+    }
+    bar += "]";
+
+    std::cout << colorize("  ⚡ ", Color::BrightYellow)
+              << colorize(operation, Color::BrightWhite)
+              << " " << bar
+              << colorize(" " + std::to_string(percent) + "%", Color::BrightCyan);
+
+    if (!currentFile.empty()) {
+        std::cout << colorize(" " + currentFile, Color::BrightBlack);
+    }
+
+    std::cout << std::flush;
+}
+
+void TerminalUtils::showNpmStyleSuccess(const std::string& message, const std::string& details) {
+    if (!supportsAnsi()) {
+        std::cout << "✓ " << message;
+        if (!details.empty()) {
+            std::cout << " (" << details << ")";
+        }
+        std::cout << std::endl;
+        return;
+    }
+
+    std::cout << "\n" << colorize("  ✓ ", Color::BrightGreen)
+              << colorize(message, Color::BrightWhite);
+
+    if (!details.empty()) {
+        std::cout << colorize(" " + details, Color::BrightBlack);
+    }
+    std::cout << "\n";
+}
+
+void TerminalUtils::showNpmStyleError(const std::string& message, const std::string& suggestion) {
+    if (!supportsAnsi()) {
+        std::cout << "✗ " << message;
+        if (!suggestion.empty()) {
+            std::cout << "\n  Suggestion: " << suggestion;
+        }
+        std::cout << std::endl;
+        return;
+    }
+
+    std::cout << "\n" << colorize("  ✗ ", Color::BrightRed)
+              << colorize(message, Color::BrightWhite) << "\n";
+
+    if (!suggestion.empty()) {
+        std::cout << colorize("    💡 ", Color::BrightYellow)
+                  << colorize(suggestion, Color::BrightCyan) << "\n";
+    }
+}
+
+void TerminalUtils::showNpmStyleWarning(const std::string& message, const std::string& details) {
+    if (!supportsAnsi()) {
+        std::cout << "⚠ " << message;
+        if (!details.empty()) {
+            std::cout << " (" << details << ")";
+        }
+        std::cout << std::endl;
+        return;
+    }
+
+    std::cout << "\n" << colorize("  ⚠ ", Color::BrightYellow)
+              << colorize(message, Color::BrightWhite);
+
+    if (!details.empty()) {
+        std::cout << colorize(" " + details, Color::BrightBlack);
+    }
+    std::cout << "\n";
+}
+
+// Enhanced confirmation dialogs
+bool TerminalUtils::showDestructiveConfirmDialog(const std::string& action, const std::string& target, const std::string& consequence) {
+    if (!supportsAnsi()) {
+        std::cout << "WARNING: " << action << " " << target;
+        if (!consequence.empty()) {
+            std::cout << "\nThis will " << consequence;
+        }
+        std::cout << "\nAre you sure? (y/N): ";
+
+        std::string input;
+        std::getline(std::cin, input);
+        return !input.empty() && (input[0] == 'y' || input[0] == 'Y');
+    }
+
+    std::cout << "\n" << colorize("  ⚠️  WARNING", Color::BrightRed) << "\n\n";
+    std::cout << "  " << colorize("Action:", Color::BrightWhite) << " " << action << "\n";
+    std::cout << "  " << colorize("Target:", Color::BrightWhite) << " " << colorize(target, Color::BrightYellow) << "\n";
+
+    if (!consequence.empty()) {
+        std::cout << "  " << colorize("Result:", Color::BrightWhite) << " " << colorize(consequence, Color::BrightRed) << "\n";
+    }
+
+    std::cout << "\n" << colorize("  This action cannot be undone!", Color::BrightRed) << "\n\n";
+    std::cout << "  Type " << colorize("yes", Color::BrightGreen) << " to confirm: ";
+
+    std::string input;
+    std::getline(std::cin, input);
+    return input == "yes";
+}
+
+bool TerminalUtils::showAdvancedConfirmDialog(const std::string& title, const std::string& message,
+                                             const std::vector<std::string>& options, int defaultOption) {
+    if (!supportsAnsi()) {
+        std::cout << title << "\n" << message << "\n";
+        for (size_t i = 0; i < options.size(); ++i) {
+            std::cout << (i + 1) << ". " << options[i];
+            if (static_cast<int>(i) == defaultOption) {
+                std::cout << " (default)";
+            }
+            std::cout << "\n";
+        }
+        std::cout << "Choice: ";
+
+        std::string input;
+        std::getline(std::cin, input);
+        if (input.empty()) return defaultOption == 0;
+
+        try {
+            int choice = std::stoi(input) - 1;
+            return choice == 0;
+        } catch (...) {
+            return defaultOption == 0;
+        }
+    }
+
+    std::cout << "\n" << colorize("  " + title, Color::BrightCyan) << "\n\n";
+    std::cout << "  " << message << "\n\n";
+
+    for (size_t i = 0; i < options.size(); ++i) {
+        std::string prefix = "  " + std::to_string(i + 1) + ". ";
+        Color optionColor = (static_cast<int>(i) == defaultOption) ? Color::BrightGreen : Color::BrightWhite;
+
+        std::cout << colorize(prefix, Color::BrightBlack)
+                  << colorize(options[i], optionColor);
+
+        if (static_cast<int>(i) == defaultOption) {
+            std::cout << colorize(" (default)", Color::BrightBlack);
+        }
+        std::cout << "\n";
+    }
+
+    std::cout << "\n  Choice [" << (defaultOption + 1) << "]: ";
+
+    std::string input;
+    std::getline(std::cin, input);
+    if (input.empty()) return defaultOption == 0;
+
+    try {
+        int choice = std::stoi(input) - 1;
+        return choice == 0;
+    } catch (...) {
+        return defaultOption == 0;
+    }
+}
+
+// Multi-step wizards
+void TerminalUtils::showWizardHeader(const std::string& title, int currentStep, int totalSteps) {
+    if (!supportsAnsi()) {
+        std::cout << title << " (Step " << currentStep << " of " << totalSteps << ")\n";
+        return;
+    }
+
+    clearScreen();
+    std::cout << "\n";
+
+    // Title
+    std::cout << colorize("  " + title, Color::BrightCyan) << "\n";
+
+    // Step indicator
+    std::string stepIndicator = "  Step " + std::to_string(currentStep) + " of " + std::to_string(totalSteps);
+    std::cout << colorize(stepIndicator, Color::BrightBlack) << "\n\n";
+
+    // Progress dots
+    std::cout << "  ";
+    for (int i = 1; i <= totalSteps; ++i) {
+        if (i < currentStep) {
+            std::cout << colorize("●", Color::BrightGreen);
+        } else if (i == currentStep) {
+            std::cout << colorize("●", Color::BrightCyan);
+        } else {
+            std::cout << colorize("○", Color::BrightBlack);
+        }
+        if (i < totalSteps) {
+            std::cout << colorize("─", Color::BrightBlack);
+        }
+    }
+    std::cout << "\n\n";
+}
+
+void TerminalUtils::showWizardProgress(int currentStep, int totalSteps, const std::string& stepName) {
+    if (!supportsAnsi()) {
+        std::cout << "Step " << currentStep << "/" << totalSteps << ": " << stepName << "\n";
+        return;
+    }
+
+    int percent = (currentStep * 100) / totalSteps;
+
+    std::cout << colorize("  " + stepName, Color::BrightWhite) << "\n";
+    showModernProgressBar(percent, "Progress", Color::BrightGreen);
+    std::cout << "\n";
+}
+
+void TerminalUtils::showWizardSummary(const std::vector<std::pair<std::string, std::string>>& summary) {
+    if (!supportsAnsi()) {
+        std::cout << "Configuration Summary:\n";
+        for (const auto& [key, value] : summary) {
+            std::cout << "  " << key << ": " << value << "\n";
+        }
+        return;
+    }
+
+    std::cout << colorize("  📋 Configuration Summary", Color::BrightCyan) << "\n\n";
+
+    for (const auto& [key, value] : summary) {
+        std::cout << "  " << colorize(key + ":", Color::BrightWhite)
+                  << " " << colorize(value, Color::BrightGreen) << "\n";
+    }
+    std::cout << "\n";
+}
+
+// Enhanced input dialogs
+std::string TerminalUtils::showValidatedInput(const std::string& prompt,
+                                             std::function<bool(const std::string&)> validator,
+                                             const std::string& errorMessage,
+                                             const std::string& placeholder) {
+    std::string input;
+    bool isValid = false;
+
+    while (!isValid) {
+        if (!supportsAnsi()) {
+            std::cout << prompt;
+            if (!placeholder.empty()) {
+                std::cout << " (" << placeholder << ")";
+            }
+            std::cout << ": ";
+        } else {
+            std::cout << "  " << colorize(prompt, Color::BrightWhite);
+            if (!placeholder.empty()) {
+                std::cout << colorize(" (" + placeholder + ")", Color::BrightBlack);
+            }
+            std::cout << "\n  " << colorize("❯ ", Color::BrightCyan);
+        }
+
+        std::getline(std::cin, input);
+
+        if (input.empty() && !placeholder.empty()) {
+            input = placeholder;
+        }
+
+        if (validator(input)) {
+            isValid = true;
+        } else {
+            if (!supportsAnsi()) {
+                std::cout << "Error: " << errorMessage << "\n";
+            } else {
+                std::cout << colorize("  ✗ " + errorMessage, Color::BrightRed) << "\n\n";
+            }
+        }
+    }
+
+    return input;
+}
+
+std::vector<std::string> TerminalUtils::showMultiSelectDialog(const std::string& prompt,
+                                                              const std::vector<std::string>& options,
+                                                              const std::vector<bool>& defaultSelected) {
+    std::vector<bool> selected = defaultSelected;
+    if (selected.size() != options.size()) {
+        selected.resize(options.size(), false);
+    }
+
+    if (!supportsAnsi()) {
+        std::cout << prompt << "\n";
+        for (size_t i = 0; i < options.size(); ++i) {
+            std::cout << (i + 1) << ". " << options[i]
+                      << (selected[i] ? " [selected]" : "") << "\n";
+        }
+        std::cout << "Enter numbers separated by spaces (e.g., 1 3 5): ";
+
+        std::string input;
+        std::getline(std::cin, input);
+
+        std::vector<std::string> result;
+        std::istringstream iss(input);
+        std::string token;
+        while (iss >> token) {
+            try {
+                int index = std::stoi(token) - 1;
+                if (index >= 0 && index < static_cast<int>(options.size())) {
+                    result.push_back(options[index]);
+                }
+            } catch (...) {
+                // Ignore invalid input
+            }
+        }
+        return result;
+    }
+
+    std::cout << "\n" << colorize("  " + prompt, Color::BrightCyan) << "\n";
+    std::cout << colorize("  Use space to toggle, Enter to confirm", Color::BrightBlack) << "\n\n";
+
+    for (size_t i = 0; i < options.size(); ++i) {
+        std::string checkbox = selected[i] ? "☑" : "☐";
+        std::cout << "  " << colorize(checkbox, selected[i] ? Color::BrightGreen : Color::BrightBlack)
+                  << " " << colorize(options[i], Color::BrightWhite) << "\n";
+    }
+
+    std::cout << "\n  Enter numbers to toggle (e.g., 1 3 5) or press Enter to confirm: ";
+
+    std::string input;
+    std::getline(std::cin, input);
+
+    if (!input.empty()) {
+        std::istringstream iss(input);
+        std::string token;
+        while (iss >> token) {
+            try {
+                int index = std::stoi(token) - 1;
+                if (index >= 0 && index < static_cast<int>(options.size())) {
+                    selected[index] = !selected[index];
+                }
+            } catch (...) {
+                // Ignore invalid input
+            }
+        }
+    }
+
+    std::vector<std::string> result;
+    for (size_t i = 0; i < options.size(); ++i) {
+        if (selected[i]) {
+            result.push_back(options[i]);
+        }
+    }
+
+    return result;
+}
+
+// Status indicators
+void TerminalUtils::showStatusLine(const std::string& status, Color statusColor) {
+    if (!supportsAnsi()) {
+        std::cout << "Status: " << status << std::endl;
+        return;
+    }
+
+    clearLine();
+    std::cout << colorize("  ● ", statusColor)
+              << colorize(status, Color::BrightWhite)
+              << std::flush;
+}
+
+void TerminalUtils::updateStatusLine(const std::string& status, Color statusColor) {
+    showStatusLine(status, statusColor);
+}
+
+void TerminalUtils::clearStatusLine() {
+    if (supportsAnsi()) {
+        clearLine();
+    }
+}
+
+// Loading animations
+void TerminalUtils::showLoadingDots(const std::string& message, int durationMs) {
+    if (!supportsAnsi()) {
+        std::cout << message << "..." << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(durationMs));
+        return;
+    }
+
+    const std::vector<std::string> dots = {"", ".", "..", "..."};
+    const int frameTime = 500; // 500ms per frame
+    const int totalFrames = durationMs / frameTime;
+
+    hideCursor();
+
+    for (int frame = 0; frame < totalFrames; ++frame) {
+        clearLine();
+        std::cout << colorize("  " + message, Color::BrightWhite)
+                  << colorize(dots[frame % dots.size()], Color::BrightCyan)
+                  << std::flush;
+        std::this_thread::sleep_for(std::chrono::milliseconds(frameTime));
+    }
+
+    clearLine();
+    showCursor();
+}
+
+void TerminalUtils::showLoadingBar(const std::string& message, int durationMs) {
+    if (!supportsAnsi()) {
+        std::cout << message << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(durationMs));
+        return;
+    }
+
+    const int barWidth = 30;
+    const int frameTime = 100; // 100ms per frame
+    const int totalFrames = durationMs / frameTime;
+
+    hideCursor();
+
+    for (int frame = 0; frame < totalFrames; ++frame) {
+        clearLine();
+
+        int progress = (frame * 100) / totalFrames;
+        int filled = (barWidth * progress) / 100;
+
+        std::string bar = "[";
+        for (int i = 0; i < barWidth; ++i) {
+            if (i < filled) {
+                bar += colorize("█", Color::BrightGreen);
+            } else {
+                bar += colorize("░", Color::BrightBlack);
+            }
+        }
+        bar += "]";
+
+        std::cout << colorize("  " + message + " ", Color::BrightWhite)
+                  << bar
+                  << colorize(" " + std::to_string(progress) + "%", Color::BrightCyan)
+                  << std::flush;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(frameTime));
+    }
+
+    clearLine();
+    showCursor();
+}
+
+void TerminalUtils::showPulseAnimation(const std::string& message, int durationMs) {
+    if (!supportsAnsi()) {
+        std::cout << message << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(durationMs));
+        return;
+    }
+
+    const std::vector<Color> pulseColors = {
+        Color::BrightBlack, Color::Cyan, Color::BrightCyan, Color::Cyan
+    };
+    const int frameTime = 200; // 200ms per frame
+    const int totalFrames = durationMs / frameTime;
+
+    hideCursor();
+
+    for (int frame = 0; frame < totalFrames; ++frame) {
+        clearLine();
+        Color currentColor = pulseColors[frame % pulseColors.size()];
+        std::cout << colorize("  ● " + message, currentColor) << std::flush;
+        std::this_thread::sleep_for(std::chrono::milliseconds(frameTime));
+    }
+
+    clearLine();
+    showCursor();
+}
+
 } // namespace utils

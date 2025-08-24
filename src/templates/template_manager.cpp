@@ -9,6 +9,7 @@
 #include "custom_template.h"
 #include "webservice_template.h"
 #include "embedded_template.h"
+#include "gameengine_template.h"
 #include "../utils/framework_integration.h"
 
 #include <iostream>
@@ -63,6 +64,10 @@ TemplateManager::TemplateManager() {
 
   templateFactories_["embedded"] = [](const CliOptions &options) {
     return std::make_unique<EmbeddedTemplate>(options);
+  };
+
+  templateFactories_["gameengine"] = [](const CliOptions &options) {
+    return std::make_unique<GameEngineTemplate>(options);
   };
 }
 

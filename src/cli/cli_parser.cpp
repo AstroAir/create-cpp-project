@@ -16,6 +16,7 @@
 #include "../config/config_validator.h"
 #include <fmt/color.h>
 #include <fmt/core.h>
+#include <fmt/format.h>
 #include <spdlog/spdlog.h>
 
 using namespace utils;
@@ -61,7 +62,9 @@ std::string_view to_string(PackageManager manager) {
       {PackageManager::Conan, "conan"},
       {PackageManager::None, "none"},
       {PackageManager::Spack, "spack"},
-      {PackageManager::Hunter, "hunter"}};
+      {PackageManager::Hunter, "hunter"},
+      {PackageManager::CPM, "cpm"},
+      {PackageManager::FetchContent, "fetchcontent"}};
   return map.at(manager);
 }
 
@@ -165,7 +168,8 @@ std::optional<PackageManager> to_package_manager(std::string_view str) {
   static const std::unordered_map<std::string_view, PackageManager> map = {
       {"vcpkg", PackageManager::Vcpkg}, {"conan", PackageManager::Conan},
       {"none", PackageManager::None}, {"spack", PackageManager::Spack},
-      {"hunter", PackageManager::Hunter}};
+      {"hunter", PackageManager::Hunter}, {"cpm", PackageManager::CPM},
+      {"fetchcontent", PackageManager::FetchContent}};
 
   auto it = map.find(str);
   if (it != map.end()) {

@@ -88,6 +88,7 @@ endif()
 set(CORE_SOURCES
     src/main.cpp
     src/cli/cli_parser.cpp
+    src/cli/enhanced_cli_parser.cpp
     src/cli/project_wizard.cpp
     src/templates/template_manager.cpp
     src/templates/template_base.cpp
@@ -100,6 +101,8 @@ set(CORE_SOURCES
     src/templates/custom_template.cpp
     src/templates/webservice_template.cpp
     src/templates/embedded_template.cpp
+    src/templates/gameengine_template.cpp
+    src/templates/template_discovery.cpp
     src/utils/file_utils.cpp
     src/utils/string_utils.cpp
     src/utils/terminal_utils.cpp
@@ -107,7 +110,10 @@ set(CORE_SOURCES
     src/utils/framework_integration.cpp
     src/utils/progress_indicator.cpp
     src/utils/interactive_menu.cpp
-    # src/utils/dependency_manager.cpp
+    src/utils/dependency_manager.cpp
+    src/utils/build_system_config.cpp
+    src/utils/project_scaffolding.cpp
+    src/utils/user_experience.cpp
     # src/utils/post_creation_actions.cpp
 )
 
@@ -118,6 +124,7 @@ set(CONFIG_SOURCES
     src/config/code_style_config.cpp
     src/config/doc_config.cpp
     src/config/config_manager.cpp
+    src/config/enhanced_config_manager.cpp
     src/config/user_preferences.cpp
     src/config/interactive_config.cpp
     src/config/project_profiles.cpp

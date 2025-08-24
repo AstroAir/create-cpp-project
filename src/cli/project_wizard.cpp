@@ -1,4 +1,7 @@
 #include "../utils/terminal_utils.h"
+#include "../templates/template_discovery.h"
+#include "../utils/project_scaffolding.h"
+#include "../utils/build_system_config.h"
 #include "cli_parser.h"
 #include <chrono>
 #include <filesystem>
@@ -14,86 +17,93 @@ using namespace utils;
 CliOptions ProjectWizard::runWizard(const CliOptions &initialOptions) {
   CliOptions options = initialOptions;
 
-  // 显示增强的欢迎屏幕
-  showEnhancedWelcomeScreen();
+  // 显示NPM风格的欢迎屏幕
+  showNpmStyleWelcomeScreen();
 
   // 设置总步骤数
   const int totalSteps = 6;
 
   // 第1步：配置项目名称和路径
-  TerminalUtils::showStepIndicator(1, totalSteps, "Project Details");
+  TerminalUtils::showWizardHeader("C++ Project Scaffold", 1, totalSteps);
+  TerminalUtils::showWizardProgress(1, totalSteps, "Project Details");
   if (!configureProjectDetails(options)) {
-    TerminalUtils::showError("取消项目创建。");
+    TerminalUtils::showNpmStyleError("Project creation cancelled", "User cancelled during project details configuration");
     return initialOptions;
   }
 
   // 第2步：构建系统和包管理器
-  TerminalUtils::showStepIndicator(2, totalSteps, "Build System & Package Manager");
+  TerminalUtils::showWizardHeader("C++ Project Scaffold", 2, totalSteps);
+  TerminalUtils::showWizardProgress(2, totalSteps, "Build System & Package Manager");
   if (!configureBuildSystem(options)) {
-    TerminalUtils::showError("取消项目创建。");
+    TerminalUtils::showNpmStyleError("Project creation cancelled", "User cancelled during build system configuration");
     return initialOptions;
   }
 
   // 第3步：测试框架
-  TerminalUtils::showStepIndicator(3, totalSteps, "Testing Framework");
+  TerminalUtils::showWizardHeader("C++ Project Scaffold", 3, totalSteps);
+  TerminalUtils::showWizardProgress(3, totalSteps, "Testing Framework");
   if (!configureTestFramework(options)) {
-    TerminalUtils::showError("取消项目创建。");
+    TerminalUtils::showNpmStyleError("Project creation cancelled", "User cancelled during testing framework configuration");
     return initialOptions;
   }
 
   // 第4步：编辑器和开发工具
-  TerminalUtils::showStepIndicator(4, totalSteps, "Development Tools");
+  TerminalUtils::showWizardHeader("C++ Project Scaffold", 4, totalSteps);
+  TerminalUtils::showWizardProgress(4, totalSteps, "Development Tools");
   if (!configureDevTools(options)) {
-    TerminalUtils::showError("取消项目创建。");
+    TerminalUtils::showNpmStyleError("Project creation cancelled", "User cancelled during development tools configuration");
     return initialOptions;
   }
 
   // 第5步：CI/CD系统
-  TerminalUtils::showStepIndicator(5, totalSteps, "CI/CD Configuration");
+  TerminalUtils::showWizardHeader("C++ Project Scaffold", 5, totalSteps);
+  TerminalUtils::showWizardProgress(5, totalSteps, "CI/CD Configuration");
   if (!configureCiCd(options)) {
-    TerminalUtils::showError("取消项目创建。");
+    TerminalUtils::showNpmStyleError("Project creation cancelled", "User cancelled during CI/CD configuration");
     return initialOptions;
   }
 
   // 第6步：最终确认
-  TerminalUtils::showStepIndicator(6, totalSteps, "Final Review");
+  TerminalUtils::showWizardHeader("C++ Project Scaffold", 6, totalSteps);
+  TerminalUtils::showWizardProgress(6, totalSteps, "Final Review");
 
   // 显示摘要并确认
   if (!showSummaryAndConfirm(options)) {
-    TerminalUtils::showError("取消项目创建。");
+    TerminalUtils::showNpmStyleError("Project creation cancelled", "User cancelled during final review");
     return initialOptions;
   }
 
   // 询问是否保存作为默认值
-  bool saveAsDefault =
-      UserInput::readConfirmation("是否将这些设置保存为默认配置？", false);
+  bool saveAsDefault = TerminalUtils::showConfirmDialog("Save these settings as default configuration?", false);
 
   if (saveAsDefault) {
     // 显示保存中动画
-    TerminalUtils::runSpinner(1000, "正在保存默认配置...", 10);
+    TerminalUtils::showLoadingDots("Saving default configuration", 1000);
 
     if (ConfigManager::saveOptionsAsDefaults(options)) {
-      TerminalUtils::showSuccess("已保存默认配置。");
+      TerminalUtils::showNpmStyleSuccess("Default configuration saved");
     } else {
-      TerminalUtils::showError("保存默认配置失败。");
+      TerminalUtils::showNpmStyleError("Failed to save default configuration", "Check file permissions and try again");
     }
   }
 
   // 询问是否保存为模板
-  bool saveAsTemplateOption =
-      UserInput::readConfirmation("是否将这些设置保存为项目模板？", false);
+  bool saveAsTemplateOption = TerminalUtils::showConfirmDialog("Save these settings as a project template?", false);
 
   if (saveAsTemplateOption) {
-    std::string templateName = UserInput::readWithHighlight(
-        "请输入模板名称", "my-template", utils::Color::BrightCyan);
+    std::string templateName = TerminalUtils::showValidatedInput(
+        "Template name",
+        [](const std::string& name) { return !name.empty() && name.length() <= 50; },
+        "Template name must be non-empty and less than 50 characters",
+        "my-template");
 
     // 显示保存中动画
-    TerminalUtils::runSpinner(1500, "正在保存项目模板...", 10);
+    TerminalUtils::showLoadingDots("Saving project template", 1500);
 
     if (saveAsTemplate(options, templateName)) {
-      TerminalUtils::showSuccess("已保存项目模板：" + templateName);
+      TerminalUtils::showNpmStyleSuccess("Project template saved", templateName);
     } else {
-      TerminalUtils::showError("保存项目模板失败。");
+      TerminalUtils::showNpmStyleError("Failed to save project template", "Check file permissions and try again");
     }
   }
 
@@ -210,93 +220,98 @@ CliOptions ProjectWizard::runQuickStartWizard() {
 
 // 实现项目详情配置
 bool ProjectWizard::configureProjectDetails(CliOptions &options) {
-  // Enhanced project details configuration
-  std::cout << "\n";
-  TerminalUtils::showTypingAnimation("Let's start with the basics...", 40);
   std::cout << "\n";
 
-  // Project name with enhanced input
+  // Project name with validation
   std::string defaultName = options.projectName.empty() ? "my-awesome-project" : options.projectName;
-  std::string projectName = TerminalUtils::showInputDialog(
-      "What's your project name?",
-      "Enter a descriptive name for your project",
+
+  auto projectNameValidator = [](const std::string& name) {
+    if (name.empty()) return false;
+    if (name.length() > 100) return false;
+    // Check for valid characters (alphanumeric, hyphens, underscores)
+    for (char c : name) {
+      if (!std::isalnum(c) && c != '-' && c != '_') {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  std::string projectName = TerminalUtils::showValidatedInput(
+      "Project name",
+      projectNameValidator,
+      "Project name must be non-empty, under 100 characters, and contain only letters, numbers, hyphens, and underscores",
       defaultName);
 
-  if (projectName.empty()) {
-    TerminalUtils::showError("Project name cannot be empty!");
-    return false;
-  }
   options.projectName = projectName;
+  TerminalUtils::showNpmStyleSuccess("Project name set", projectName);
 
-  // Project path with enhanced input (for display purposes)
+  // Project path with validation
   std::string defaultPath = std::filesystem::current_path().string();
-  std::string projectPath = TerminalUtils::showInputDialog(
-      "Where should we create your project?",
-      "Path to create the project directory",
+
+  auto pathValidator = [](const std::string& path) {
+    try {
+      std::filesystem::path p(path);
+      return std::filesystem::exists(p.parent_path()) || std::filesystem::exists(p);
+    } catch (...) {
+      return false;
+    }
+  };
+
+  std::string projectPath = TerminalUtils::showValidatedInput(
+      "Project directory",
+      pathValidator,
+      "Path must be valid and accessible",
       defaultPath);
-  // Note: Project path is handled by the template manager during creation
+
+  TerminalUtils::showNpmStyleSuccess("Project path set", projectPath);
 
   // Enhanced template selection
   std::cout << "\n";
-  TerminalUtils::showTypingAnimation("Now, let's choose your project type...", 40);
+  TerminalUtils::showNpmStyleCommand("cpp-scaffold create", "Choose your project template");
   std::cout << "\n";
 
-  // 项目类型，使用带颜色的表格展示选项
-  std::vector<std::vector<TableCell>> templateTable;
+  // Modern template selection
+  std::cout << TerminalUtils::colorize("  📋 Available project templates:", Color::BrightCyan) << "\n\n";
 
-  // 表头
-  std::vector<TableCell> header;
-  TableCell optionHeader("选项", Color::BrightWhite, {TextStyle::Bold});
-  optionHeader.centered = true;
-  TableCell descHeader("描述", Color::BrightWhite, {TextStyle::Bold});
-  descHeader.centered = false;
-  header.push_back(optionHeader);
-  header.push_back(descHeader);
-  templateTable.push_back(header);
+  // Show template options with descriptions
+  std::vector<std::pair<std::string, std::string>> templateOptions = {
+    {"console", "Console application - Perfect for command-line tools"},
+    {"lib", "Library project - Create reusable components"},
+    {"header-only-lib", "Header-only library - Lightweight template library"},
+    {"gui", "GUI application - Modern graphical interface"},
+    {"network", "Network application - Client/server communication"},
+    {"webservice", "Web service - REST API and web backend"},
+    {"embedded", "Embedded project - Microcontroller and IoT"},
+    {"gameengine", "Game engine - Game development framework"}
+  };
 
-  // 添加项目类型选项
-  std::vector<TableCell> consoleRow;
-  TableCell consoleCell("console", Color::BrightGreen);
-  consoleCell.centered = true;
-  consoleRow.push_back(consoleCell);
-  consoleRow.push_back(TableCell("控制台应用程序，适合命令行工具"));
-  templateTable.push_back(consoleRow);
+  for (size_t i = 0; i < templateOptions.size(); ++i) {
+    const auto& [type, desc] = templateOptions[i];
+    std::cout << "  " << TerminalUtils::colorize(std::to_string(i + 1) + ".", Color::BrightBlack)
+              << " " << TerminalUtils::colorize(type, Color::BrightGreen)
+              << " - " << TerminalUtils::colorize(desc, Color::BrightWhite) << "\n";
+  }
 
-  std::vector<TableCell> libRow;
-  TableCell libCell("lib", Color::BrightYellow);
-  libCell.centered = true;
-  libRow.push_back(libCell);
-  libRow.push_back(TableCell("库项目，适合开发可重用组件"));
-  templateTable.push_back(libRow);
-
-  std::vector<TableCell> guiRow;
-  TableCell guiCell("gui", Color::BrightBlue);
-  guiCell.centered = true;
-  guiRow.push_back(guiCell);
-  guiRow.push_back(TableCell("图形界面应用，使用现代GUI框架"));
-  templateTable.push_back(guiRow);
-
-  std::vector<TableCell> networkRow;
-  TableCell networkCell("network", Color::BrightCyan);
-  networkCell.centered = true;
-  networkRow.push_back(networkCell);
-  networkRow.push_back(TableCell("网络应用，包含网络通信基础架构"));
-  templateTable.push_back(networkRow);
-
-  // 显示选项表格
-  std::cout << "可用项目类型：\n";
-  TerminalUtils::showTable(templateTable, true, BorderStyle::Rounded,
-                           Color::BrightMagenta);
   std::cout << "\n";
 
-  // 项目类型
-  std::string templateTypeStr = UserInput::readChoiceWithStyle(
-      "选择项目类型", enums::all_template_types(),
-      enums::to_string(options.templateType), utils::Color::BrightGreen);
+  // Get user choice
+  int choice = TerminalUtils::showInteractiveMenu(
+    {"console", "lib", "header-only-lib", "gui", "network", "webservice", "embedded", "gameengine"},
+    "Select project template",
+    0
+  );
 
-  auto templateType = enums::to_template_type(templateTypeStr);
-  if (templateType) {
-    options.templateType = *templateType;
+  if (choice >= 0 && choice < static_cast<int>(templateOptions.size())) {
+    std::string selectedTemplate = templateOptions[choice].first;
+    auto templateType = enums::to_template_type(selectedTemplate);
+    if (templateType) {
+      options.templateType = *templateType;
+      TerminalUtils::showNpmStyleSuccess("Template selected", selectedTemplate);
+    }
+  } else {
+    TerminalUtils::showNpmStyleError("Invalid template selection");
+    return false;
   }
 
   // 如果是网络项目，询问网络库
@@ -937,6 +952,37 @@ void ProjectWizard::showEnhancedWelcomeScreen() {
   // Wait for user to continue
   std::cout << "\n" << TerminalUtils::colorize("Press Enter to continue...", Color::BrightYellow);
   std::cin.get();
+}
+
+// NPM-style welcome screen
+void ProjectWizard::showNpmStyleWelcomeScreen() {
+  // Show NPM-style header
+  TerminalUtils::showNpmStyleHeader("cpp-scaffold", "1.2.0");
+
+  // Show welcome message
+  std::cout << TerminalUtils::colorize("  Welcome to C++ Project Scaffold!", Color::BrightWhite) << "\n";
+  std::cout << TerminalUtils::colorize("  The modern way to create C++ projects", Color::BrightBlack) << "\n\n";
+
+  // Show what we'll create
+  std::cout << TerminalUtils::colorize("  This wizard will help you:", Color::BrightCyan) << "\n";
+  std::cout << TerminalUtils::colorize("  ✓", Color::BrightGreen) << " Choose a project template\n";
+  std::cout << TerminalUtils::colorize("  ✓", Color::BrightGreen) << " Configure build system\n";
+  std::cout << TerminalUtils::colorize("  ✓", Color::BrightGreen) << " Set up package management\n";
+  std::cout << TerminalUtils::colorize("  ✓", Color::BrightGreen) << " Add testing framework\n";
+  std::cout << TerminalUtils::colorize("  ✓", Color::BrightGreen) << " Configure development tools\n";
+  std::cout << TerminalUtils::colorize("  ✓", Color::BrightGreen) << " Set up CI/CD pipeline\n\n";
+
+  // Show loading animation
+  TerminalUtils::showLoadingDots("Initializing project wizard", 2000);
+
+  std::cout << "\n";
+  TerminalUtils::showNpmStyleSuccess("Ready to create your project!");
+
+  // Confirmation to continue
+  if (!TerminalUtils::showConfirmDialog("Continue with project creation?", true)) {
+    TerminalUtils::showNpmStyleWarning("Project creation cancelled");
+    exit(0);
+  }
 }
 
 // 显示向导进度

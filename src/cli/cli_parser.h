@@ -27,7 +27,7 @@ enum class TemplateType {
   TestProject
 };
 enum class BuildSystem { CMake, Meson, Bazel, XMake, Premake, Make, Ninja };
-enum class PackageManager { Vcpkg, Conan, None, Spack, Hunter };
+enum class PackageManager { Vcpkg, Conan, None, Spack, Hunter, CPM, FetchContent };
 enum class TestFramework { GTest, Catch2, Doctest, Boost, None };
 enum class EditorConfig { VSCode, CLion, VS, Vim, Emacs, Sublime };
 enum class CiSystem { GitHub, GitLab, Travis, AppVeyor, AzureDevOps, CircleCI };
@@ -263,6 +263,7 @@ private:
   // 显示向导欢迎界面
   static void showWelcomeScreen();
   static void showEnhancedWelcomeScreen();
+  static void showNpmStyleWelcomeScreen();
 
   // 显示步骤进度
   static void showWizardProgress(int currentStep, int totalSteps,

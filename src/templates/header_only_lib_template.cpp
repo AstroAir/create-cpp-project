@@ -337,7 +337,75 @@ int main() {{
 }
 
 bool HeaderOnlyLibTemplate::setupDocumentation() {
-  // Implementation will be added in next chunk
+  std::string projectPath = options_.projectName;
+  std::string docsPath = FileUtils::combinePath(projectPath, "docs");
+
+  // Create documentation directory
+  if (!FileUtils::createDirectory(docsPath)) {
+    spdlog::error("Failed to create documentation directory");
+    return false;
+  }
+
+  // Create Doxygen configuration
+  std::string doxyfilePath = FileUtils::combinePath(projectPath, "Doxyfile");
+  if (!FileUtils::writeToFile(doxyfilePath, getDoxygenContent())) {
+    spdlog::error("Failed to create Doxygen configuration");
+    return false;
+  }
+
+  // Create README for documentation
+  std::string docReadmePath = FileUtils::combinePath(docsPath, "README.md");
+  if (!FileUtils::writeToFile(docReadmePath, getDocumentationReadme())) {
+    spdlog::error("Failed to create documentation README");
+    return false;
+  }
+
+  // Create API documentation template
+  std::string apiDocsPath = FileUtils::combinePath(docsPath, "api");
+  if (!FileUtils::createDirectory(apiDocsPath)) {
+    spdlog::error("Failed to create API documentation directory");
+    return false;
+  }
+
+  std::string apiIndexPath = FileUtils::combinePath(apiDocsPath, "index.md");
+  if (!FileUtils::writeToFile(apiIndexPath, getAPIDocumentationTemplate())) {
+    spdlog::error("Failed to create API documentation template");
+    return false;
+  }
+
+  // Create examples documentation
+  std::string examplesDocsPath = FileUtils::combinePath(docsPath, "examples");
+  if (!FileUtils::createDirectory(examplesDocsPath)) {
+    spdlog::error("Failed to create examples documentation directory");
+    return false;
+  }
+
+  std::string examplesIndexPath = FileUtils::combinePath(examplesDocsPath, "index.md");
+  if (!FileUtils::writeToFile(examplesIndexPath, getExamplesDocumentationTemplate())) {
+    spdlog::error("Failed to create examples documentation template");
+    return false;
+  }
+
+  // Create documentation generation script
+  std::string scriptName = "generate_docs";
+#ifdef _WIN32
+  scriptName += ".bat";
+#else
+  scriptName += ".sh";
+#endif
+
+  std::string scriptPath = FileUtils::combinePath(docsPath, scriptName);
+  if (!FileUtils::writeToFile(scriptPath, getDocumentationScript())) {
+    spdlog::error("Failed to create documentation generation script");
+    return false;
+  }
+
+  // Make script executable on Unix-like systems
+#ifndef _WIN32
+  system(("chmod +x \"" + scriptPath + "\"").c_str());
+#endif
+
+  spdlog::info("Documentation setup completed successfully");
   return true;
 }
 
@@ -1156,4 +1224,444 @@ def main():
 if __name__ == "__main__":
     main()
 )", options_.projectName);
+}
+
+std::string HeaderOnlyLibTemplate::getDocumentationReadme() {
+  return fmt::format(R"(# {} Documentation
+
+This directory contains the documentation for the {} header-only library.
+
+## Documentation Structure
+
+- `api/` - API reference documentation
+- `examples/` - Usage examples and tutorials
+- `Doxyfile` - Doxygen configuration file (in project root)
+
+## Building Documentation
+
+### Using Doxygen
+
+To generate HTML documentation using Doxygen:
+
+```bash
+# From project root
+doxygen Doxyfile
+```
+
+The generated documentation will be available in `docs/html/index.html`.
+
+### Using the Generation Script
+
+You can also use the provided script:
+
+```bash
+# On Unix-like systems
+./docs/generate_docs.sh
+
+# On Windows
+docs\generate_docs.bat
+```
+
+## Documentation Guidelines
+
+When documenting your code:
+
+1. Use Doxygen-style comments for all public APIs
+2. Include usage examples in your documentation
+3. Document parameters, return values, and exceptions
+4. Use `@brief` for short descriptions
+5. Use `@param` for parameter documentation
+6. Use `@return` for return value documentation
+7. Use `@throws` or `@exception` for exception documentation
+
+## Example Documentation
+
+```cpp
+/**
+ * @brief Adds two integers together
+ * @param a First integer
+ * @param b Second integer
+ * @return Sum of a and b
+ * @throws std::overflow_error if the result would overflow
+ */
+int add(int a, int b);
+```
+
+## Online Documentation
+
+If you're hosting your documentation online, consider using:
+
+- GitHub Pages (free for public repositories)
+- Read the Docs (free for open source projects)
+- GitLab Pages (free with GitLab)
+
+## Contributing to Documentation
+
+Please ensure all new features and public APIs are properly documented before submitting pull requests.
+)", options_.projectName, options_.projectName);
+}
+
+std::string HeaderOnlyLibTemplate::getAPIDocumentationTemplate() {
+  return fmt::format(R"(# {} API Reference
+
+This document provides a comprehensive reference for the {} library API.
+
+## Core Classes
+
+### Example Class
+
+The main class for demonstrating library functionality.
+
+```cpp
+#include <{}.h>
+
+{}::Example example(42);
+int value = example.getValue();
+```
+
+#### Constructor
+
+```cpp
+Example(int value)
+```
+
+Creates a new Example instance with the specified value.
+
+**Parameters:**
+- `value`: Initial value for the example
+
+#### Methods
+
+##### getValue()
+
+```cpp
+int getValue() const noexcept
+```
+
+Returns the current value stored in the Example instance.
+
+**Returns:** The current value as an integer
+
+##### setValue()
+
+```cpp
+void setValue(int newValue)
+```
+
+Sets a new value for the Example instance.
+
+**Parameters:**
+- `newValue`: The new value to set
+
+**Throws:** `std::invalid_argument` if newValue is negative
+
+## Utility Functions
+
+### add()
+
+```cpp
+int add(int a, int b)
+```
+
+Adds two integers together.
+
+**Parameters:**
+- `a`: First integer
+- `b`: Second integer
+
+**Returns:** Sum of a and b
+
+**Example:**
+```cpp
+int result = {}::add(3, 4); // result = 7
+```
+
+## Constants
+
+### VERSION
+
+```cpp
+constexpr const char* VERSION
+```
+
+The version string of the library.
+
+## Error Handling
+
+The library uses standard C++ exceptions for error handling:
+
+- `std::invalid_argument`: For invalid input parameters
+- `std::runtime_error`: For runtime errors
+- `std::logic_error`: For logic errors in usage
+
+## Thread Safety
+
+All functions in this library are thread-safe unless otherwise noted.
+
+## Memory Management
+
+This is a header-only library with minimal memory allocation. All classes use RAII principles.
+)", options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName);
+}
+
+std::string HeaderOnlyLibTemplate::getExamplesDocumentationTemplate() {
+  return fmt::format(R"(# {} Examples
+
+This document provides practical examples of using the {} library.
+
+## Basic Usage
+
+### Simple Example
+
+```cpp
+#include <{}.h>
+#include <iostream>
+
+int main() {{
+    // Create an example instance
+    {}::Example example(42);
+
+    // Get the value
+    std::cout << "Value: " << example.getValue() << std::endl;
+
+    // Use utility function
+    int sum = {}::add(10, 20);
+    std::cout << "Sum: " << sum << std::endl;
+
+    return 0;
+}}
+```
+
+### Error Handling
+
+```cpp
+#include <{}.h>
+#include <iostream>
+#include <stdexcept>
+
+int main() {{
+    try {{
+        {}::Example example(42);
+        example.setValue(-1); // This will throw
+    }} catch (const std::invalid_argument& e) {{
+        std::cerr << "Error: " << e.what() << std::endl;
+    }}
+
+    return 0;
+}}
+```
+
+## Advanced Usage
+
+### Custom Configuration
+
+```cpp
+#include <{}.h>
+
+int main() {{
+    // Use library configuration
+    if ({}::config::ENABLE_VALIDATION) {{
+        std::cout << "Validation is enabled" << std::endl;
+    }}
+
+    // Check version
+    std::cout << "Library version: " << {}::VERSION << std::endl;
+
+    return 0;
+}}
+```
+
+### Integration with STL
+
+```cpp
+#include <{}.h>
+#include <vector>
+#include <algorithm>
+
+int main() {{
+    std::vector<{}::Example> examples;
+
+    // Create multiple examples
+    for (int i = 0; i < 5; ++i) {{
+        examples.emplace_back(i * 10);
+    }}
+
+    // Use with STL algorithms
+    auto it = std::find_if(examples.begin(), examples.end(),
+        [](const {}::Example& ex) {{
+            return ex.getValue() > 20;
+        }});
+
+    if (it != examples.end()) {{
+        std::cout << "Found example with value: " << it->getValue() << std::endl;
+    }}
+
+    return 0;
+}}
+```
+
+## Building Examples
+
+### Using CMake
+
+```bash
+mkdir build && cd build
+cmake ..
+make examples
+```
+
+### Manual Compilation
+
+```bash
+# Simple compilation
+g++ -std=c++17 -I../include example.cpp -o example
+
+# With optimizations
+g++ -std=c++17 -O3 -I../include example.cpp -o example
+```
+
+## Performance Examples
+
+### Benchmarking
+
+```cpp
+#include <{}.h>
+#include <chrono>
+#include <iostream>
+
+int main() {{
+    const int iterations = 1000000;
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    for (int i = 0; i < iterations; ++i) {{
+        {}::add(i, i + 1);
+    }}
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+    std::cout << "Time for " << iterations << " operations: "
+              << duration.count() << " microseconds" << std::endl;
+
+    return 0;
+}}
+```
+
+## Common Patterns
+
+### RAII Usage
+
+```cpp
+#include <{}.h>
+
+class ResourceManager {{
+private:
+    {}::Example resource_;
+
+public:
+    ResourceManager(int value) : resource_(value) {{
+        // Resource acquired in constructor
+    }}
+
+    ~ResourceManager() {{
+        // Resource automatically cleaned up
+    }}
+
+    int getValue() const {{
+        return resource_.getValue();
+    }}
+}};
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Compilation Errors**: Ensure you're using C++17 or later
+2. **Linking Issues**: This is a header-only library, no linking required
+3. **Include Path**: Make sure the include directory is in your compiler's search path
+
+### Debug Mode
+
+```cpp
+#define {}_DEBUG
+#include <{}.h>
+
+// Debug information will be available
+```
+)",
+    options_.projectName, options_.projectName, options_.projectName, options_.projectName,
+    options_.projectName, options_.projectName, options_.projectName, options_.projectName,
+    options_.projectName, options_.projectName, options_.projectName, options_.projectName,
+    options_.projectName, options_.projectName, options_.projectName, options_.projectName,
+    options_.projectName, StringUtils::toUpper(options_.projectName), options_.projectName);
+}
+
+std::string HeaderOnlyLibTemplate::getDocumentationScript() {
+#ifdef _WIN32
+  return fmt::format(R"(@echo off
+REM Documentation generation script for {}
+
+echo Generating documentation for {}...
+
+REM Check if Doxygen is installed
+where doxygen >nul 2>&1
+if %ERRORLEVEL% neq 0 (
+    echo Error: Doxygen is not installed or not in PATH
+    echo Please install Doxygen from: https://www.doxygen.nl/download.html
+    exit /b 1
+)
+
+REM Change to project root directory
+cd %~dp0..
+
+REM Generate documentation
+echo Running Doxygen...
+doxygen Doxyfile
+
+if %ERRORLEVEL% neq 0 (
+    echo Error: Documentation generation failed!
+    exit /b 1
+)
+
+echo.
+echo Documentation generated successfully!
+echo Open docs\html\index.html in your browser to view the documentation.
+echo.
+)", options_.projectName, options_.projectName);
+#else
+  return fmt::format(R"(#!/bin/bash
+# Documentation generation script for {}
+
+echo "Generating documentation for {}..."
+
+# Change to project root directory
+cd "$(dirname "$0")/.."
+
+# Check if Doxygen is installed
+if ! command -v doxygen &> /dev/null; then
+    echo "Error: Doxygen is not installed or not in PATH"
+    echo "Please install Doxygen:"
+    echo "  Ubuntu/Debian: sudo apt-get install doxygen"
+    echo "  macOS: brew install doxygen"
+    echo "  Or download from: https://www.doxygen.nl/download.html"
+    exit 1
+fi
+
+# Generate documentation
+echo "Running Doxygen..."
+doxygen Doxyfile
+
+if [ $? -ne 0 ]; then
+    echo "Error: Documentation generation failed!"
+    exit 1
+fi
+
+echo
+echo "Documentation generated successfully!"
+echo "Open docs/html/index.html in your browser to view the documentation."
+echo
+)", options_.projectName, options_.projectName);
+#endif
 }

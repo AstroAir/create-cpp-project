@@ -24,4 +24,11 @@ private:
 
   // 获取文档生成脚本内容
   static std::string getDocGenScriptContent(const CliOptions &options);
+
+  // Sphinx configuration content generators
+  static std::string getSphinxConfContent(const CliOptions &options);
+  static std::string getSphinxIndexContent(const CliOptions &options);
+  static std::string getSphinxRequirementsContent();
+  static std::string getSphinxMakefileContent();
+  static std::string getSphinxMakeBatContent();
 };

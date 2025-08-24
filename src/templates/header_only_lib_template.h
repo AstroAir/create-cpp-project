@@ -40,6 +40,12 @@ private:
   std::string getGitLabCIContent();
   std::string getClangFormatContent();
   std::string getClangTidyContent();
+
+  // Documentation content generators
+  std::string getDocumentationReadme();
+  std::string getAPIDocumentationTemplate();
+  std::string getExamplesDocumentationTemplate();
+  std::string getDocumentationScript();
   std::string getEditorConfigContent();
   std::string getPkgConfigContent();
   std::string getCMakeConfigContent();

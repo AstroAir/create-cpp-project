@@ -202,6 +202,45 @@ public:
   static void showTwoColumnLayout(const std::vector<std::pair<std::string, std::string>> &items);
   static void showFeatureList(const std::vector<std::pair<std::string, std::string>> &features);
 
+  // NPM-style CLI enhancements
+  static void showNpmStyleHeader(const std::string &toolName, const std::string &version = "");
+  static void showNpmStyleCommand(const std::string &command, const std::string &description = "");
+  static void showNpmStyleProgress(const std::string &operation, int percent, const std::string &currentFile = "");
+  static void showNpmStyleSuccess(const std::string &message, const std::string &details = "");
+  static void showNpmStyleError(const std::string &message, const std::string &suggestion = "");
+  static void showNpmStyleWarning(const std::string &message, const std::string &details = "");
+
+  // Enhanced confirmation dialogs
+  static bool showDestructiveConfirmDialog(const std::string &action, const std::string &target,
+                                          const std::string &consequence = "");
+  static bool showAdvancedConfirmDialog(const std::string &title, const std::string &message,
+                                       const std::vector<std::string> &options = {"Yes", "No"},
+                                       int defaultOption = 0);
+
+  // Multi-step wizards
+  static void showWizardHeader(const std::string &title, int currentStep, int totalSteps);
+  static void showWizardProgress(int currentStep, int totalSteps, const std::string &stepName);
+  static void showWizardSummary(const std::vector<std::pair<std::string, std::string>> &summary);
+
+  // Enhanced input dialogs
+  static std::string showValidatedInput(const std::string &prompt,
+                                       std::function<bool(const std::string&)> validator,
+                                       const std::string &errorMessage = "Invalid input",
+                                       const std::string &placeholder = "");
+  static std::vector<std::string> showMultiSelectDialog(const std::string &prompt,
+                                                        const std::vector<std::string> &options,
+                                                        const std::vector<bool> &defaultSelected = {});
+
+  // Status indicators
+  static void showStatusLine(const std::string &status, Color statusColor = Color::BrightGreen);
+  static void updateStatusLine(const std::string &status, Color statusColor = Color::BrightGreen);
+  static void clearStatusLine();
+
+  // Loading animations
+  static void showLoadingDots(const std::string &message, int durationMs = 3000);
+  static void showLoadingBar(const std::string &message, int durationMs = 3000);
+  static void showPulseAnimation(const std::string &message, int durationMs = 2000);
+
 private:
   static bool lastWasNewline;
   static std::string getAnsiColorCode(Color color, bool isBackground = false);

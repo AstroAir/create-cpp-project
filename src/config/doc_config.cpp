@@ -54,10 +54,63 @@ bool DocConfig::createDoxygenConfig(const std::string &projectPath,
 
 bool DocConfig::createSphinxConfig(const std::string &projectPath,
                                    const CliOptions &options) {
-  // This method would create Sphinx configuration if needed
-  // Currently not implemented
-  (void)projectPath; // TODO: Implement Sphinx configuration
-  (void)options;     // TODO: Use options for Sphinx configuration
+  // Create Sphinx documentation directory structure
+  std::string sphinxDir = FileUtils::combinePath(projectPath, "docs/sphinx");
+  if (!FileUtils::createDirectory(sphinxDir)) {
+    spdlog::error("Failed to create Sphinx directory");
+    return false;
+  }
+
+  // Create source directory for Sphinx
+  std::string sourceDir = FileUtils::combinePath(sphinxDir, "source");
+  if (!FileUtils::createDirectory(sourceDir)) {
+    spdlog::error("Failed to create Sphinx source directory");
+    return false;
+  }
+
+  // Create build directory for Sphinx
+  std::string buildDir = FileUtils::combinePath(sphinxDir, "build");
+  if (!FileUtils::createDirectory(buildDir)) {
+    spdlog::error("Failed to create Sphinx build directory");
+    return false;
+  }
+
+  // Create conf.py configuration file
+  std::string confPyPath = FileUtils::combinePath(sourceDir, "conf.py");
+  if (!FileUtils::writeToFile(confPyPath, getSphinxConfContent(options))) {
+    spdlog::error("Failed to create Sphinx conf.py");
+    return false;
+  }
+
+  // Create index.rst file
+  std::string indexRstPath = FileUtils::combinePath(sourceDir, "index.rst");
+  if (!FileUtils::writeToFile(indexRstPath, getSphinxIndexContent(options))) {
+    spdlog::error("Failed to create Sphinx index.rst");
+    return false;
+  }
+
+  // Create requirements.txt for Sphinx dependencies
+  std::string requirementsPath = FileUtils::combinePath(sphinxDir, "requirements.txt");
+  if (!FileUtils::writeToFile(requirementsPath, getSphinxRequirementsContent())) {
+    spdlog::error("Failed to create Sphinx requirements.txt");
+    return false;
+  }
+
+  // Create Makefile for building documentation
+  std::string makefilePath = FileUtils::combinePath(sphinxDir, "Makefile");
+  if (!FileUtils::writeToFile(makefilePath, getSphinxMakefileContent())) {
+    spdlog::error("Failed to create Sphinx Makefile");
+    return false;
+  }
+
+  // Create make.bat for Windows
+  std::string makeBatPath = FileUtils::combinePath(sphinxDir, "make.bat");
+  if (!FileUtils::writeToFile(makeBatPath, getSphinxMakeBatContent())) {
+    spdlog::error("Failed to create Sphinx make.bat");
+    return false;
+  }
+
+  spdlog::info("Sphinx configuration created successfully");
   return true;
 }
 
@@ -347,4 +400,173 @@ echo "Documentation generated successfully."
 echo "Open docs/generated/html/index.html in your browser to view it."
 )";
 #endif
+}
+
+std::string DocConfig::getSphinxConfContent(const CliOptions &options) {
+  return R"(# Configuration file for the Sphinx documentation builder.
+#
+# For the full list of built-in configuration values, see the documentation:
+# https://www.sphinx-doc.org/en/master/usage/configuration.html
+
+# -- Project information -----------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+
+project = ')" + options.projectName + R"('
+copyright = '2024, )" + options.projectName + R"( Team'
+author = ')" + options.projectName + R"( Team'
+release = '1.0.0'
+
+# -- General configuration ---------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
+
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.todo',
+    'sphinx.ext.coverage',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.ifconfig',
+    'sphinx.ext.githubpages',
+    'breathe',
+    'myst_parser',
+]
+
+templates_path = ['_templates']
+exclude_patterns = []
+
+# -- Options for HTML output -------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
+
+html_theme = 'sphinx_rtd_theme'
+html_static_path = ['_static']
+
+# -- Breathe configuration ---------------------------------------------------
+# For C++ API documentation integration with Doxygen
+
+breathe_projects = {
+    ")" + options.projectName + R"(": "../doxygen/xml"
+}
+breathe_default_project = ")" + options.projectName + R"("
+
+# -- Napoleon settings -------------------------------------------------------
+napoleon_google_docstring = True
+napoleon_numpy_docstring = True
+napoleon_include_init_with_doc = False
+napoleon_include_private_with_doc = False
+napoleon_include_special_with_doc = True
+napoleon_use_admonition_for_examples = False
+napoleon_use_admonition_for_notes = False
+napoleon_use_admonition_for_references = False
+napoleon_use_ivar = False
+napoleon_use_param = True
+napoleon_use_rtype = True
+
+# -- Intersphinx mapping -----------------------------------------------------
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'cpp': ('https://en.cppreference.com/w/', None),
+}
+
+# -- Todo extension settings -------------------------------------------------
+todo_include_todos = True
+)";
+}
+
+std::string DocConfig::getSphinxIndexContent(const CliOptions &options) {
+  return R"(.. )" + options.projectName + R"( documentation master file, created by
+   cpp-scaffold. You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+Welcome to )" + options.projectName + R"('s documentation!
+)" + std::string(options.projectName.length() + 30, '=') + R"(
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   getting_started
+   api_reference
+   examples
+   contributing
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+)";
+}
+
+std::string DocConfig::getSphinxRequirementsContent() {
+  return R"(sphinx>=5.0.0
+sphinx-rtd-theme>=1.0.0
+breathe>=4.34.0
+myst-parser>=0.18.0
+)";
+}
+
+std::string DocConfig::getSphinxMakefileContent() {
+  return R"MAKEFILE(# Minimal makefile for Sphinx documentation
+#
+
+# You can set these variables from the command line, and also
+# from the environment for the first two.
+SPHINXOPTS    ?=
+SPHINXBUILD   ?= sphinx-build
+SOURCEDIR     = source
+BUILDDIR      = build
+
+# Put it first so that "make" without argument is like "make help".
+help:
+	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+.PHONY: help Makefile
+
+# Catch-all target: route all unknown targets to Sphinx using the new
+# "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
+%: Makefile
+	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+)MAKEFILE";
+}
+
+std::string DocConfig::getSphinxMakeBatContent() {
+  return R"(@ECHO OFF
+
+pushd %~dp0
+
+REM Command file for Sphinx documentation
+
+if "%SPHINXBUILD%" == "" (
+	set SPHINXBUILD=sphinx-build
+)
+set SOURCEDIR=source
+set BUILDDIR=build
+
+if "%1" == "" goto help
+
+%SPHINXBUILD% >NUL 2>NUL
+if errorlevel 9009 (
+	echo.
+	echo.The 'sphinx-build' command was not found. Make sure you have Sphinx
+	echo.installed, then set the SPHINXBUILD environment variable to point
+	echo.to the full path of the 'sphinx-build' executable. Alternatively you
+	echo.may add the Sphinx directory to PATH.
+	echo.
+	echo.If you don't have Sphinx installed, grab it from
+	echo.https://sphinx-doc.org/
+	exit /b 1
+)
+
+%SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O%
+goto end
+
+:help
+%SPHINXBUILD% -M help %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O%
+
+:end
+popd
+)";
 }
