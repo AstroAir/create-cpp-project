@@ -1,6 +1,6 @@
 #include "interactive_dependency_manager.h"
 #include "terminal_utils.h"
-#include "user_input.h"
+#include "../cli/input/user_input.h"
 #include "file_utils.h"
 #include <iostream>
 #include <algorithm>

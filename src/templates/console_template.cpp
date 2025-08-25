@@ -28,21 +28,21 @@ bool ConsoleTemplate::create() {
     spdlog::error("Failed to create project structure");
     return false;
   }
-  spdlog::info("âœ?Project structure created");
+  spdlog::info("ï¿½?Project structure created");
 
   // Create build system
   if (!createBuildSystem()) {
     spdlog::error("Failed to configure build system");
     return false;
   }
-  spdlog::info("âœ?Build system configured");
+  spdlog::info("ï¿½?Build system configured");
 
   // Setup package manager
   if (!setupPackageManager()) {
     spdlog::error("Failed to setup package manager");
     return false;
   }
-  spdlog::info("âœ?Package manager setup");
+  spdlog::info("ï¿½?Package manager setup");
 
   // Setup test framework
   if (options_.includeTests) {
@@ -50,7 +50,7 @@ bool ConsoleTemplate::create() {
       spdlog::error("Failed to setup test framework");
       return false;
     }
-    spdlog::info("âœ?Test framework configured");
+    spdlog::info("ï¿½?Test framework configured");
   }
 
   // Initialize Git
@@ -59,7 +59,7 @@ bool ConsoleTemplate::create() {
       spdlog::error("Failed to initialize Git repository");
       return false;
     }
-    spdlog::info("âœ?Git repository initialized");
+    spdlog::info("ï¿½?Git repository initialized");
   }
 
   // Setup code style tools if enabled
@@ -68,7 +68,7 @@ bool ConsoleTemplate::create() {
       spdlog::error("Failed to setup code style tools");
       return false;
     }
-    spdlog::info("âœ?Code style tools configured");
+    spdlog::info("ï¿½?Code style tools configured");
   }
 
   spdlog::info("\nYour project is ready!\n");
@@ -151,6 +151,18 @@ bool ConsoleTemplate::createBuildSystem() {
 
     if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "BUILD"),
                                 getBazelContent())) {
+      return false;
+    }
+  } else if (options_.buildSystem == BuildSystem::XMake) {
+    if (!FileUtils::writeToFile(
+            FileUtils::combinePath(projectPath, "xmake.lua"),
+            getXMakeContent())) {
+      return false;
+    }
+  } else if (options_.buildSystem == BuildSystem::Premake) {
+    if (!FileUtils::writeToFile(
+            FileUtils::combinePath(projectPath, "premake5.lua"),
+            getPremakeContent())) {
       return false;
     }
   }
@@ -929,4 +941,96 @@ TEST_CASE("Parameterized tests") {
     }
 }
 )";
+}
+
+std::string ConsoleTemplate::getXMakeContent() {
+  std::string testSection;
+  if (options_.includeTests) {
+    std::string testFramework;
+    if (to_string(options_.testFramework) == "gtest") {
+      testFramework = "gtest";
+    } else if (to_string(options_.testFramework) == "catch2") {
+      testFramework = "catch2";
+    } else if (to_string(options_.testFramework) == "doctest") {
+      testFramework = "doctest";
+    }
+
+    if (!testFramework.empty()) {
+      testSection = fmt::format(R"(
+add_requires("{}")
+
+target("{}_tests")
+    set_kind("binary")
+    add_files("tests/test_main.cpp")
+    add_packages("{}")
+    add_deps("{}")
+)", testFramework, options_.projectName, testFramework, options_.projectName);
+    }
+  }
+
+  return fmt::format(R"(set_project("{}")
+set_version("1.0.0")
+
+set_languages("cxx17")
+
+add_requires("spdlog")
+
+target("{}")
+    set_kind("binary")
+    add_files("src/main.cpp")
+    add_packages("spdlog")
+{})", options_.projectName, options_.projectName, testSection);
+}
+
+std::string ConsoleTemplate::getPremakeContent() {
+  std::string testSection;
+  if (options_.includeTests) {
+    testSection = fmt::format(R"(
+project "{}_tests"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++17"
+    targetdir "bin/%{{cfg.buildcfg}}"
+
+    files {{
+        "tests/**.cpp",
+        "tests/**.h"
+    }}
+
+    includedirs {{
+        "src",
+        "tests"
+    }}
+
+    links {{ "{}" }}
+)", options_.projectName, options_.projectName);
+  }
+
+  return fmt::format(R"(workspace "{}"
+    configurations {{ "Debug", "Release" }}
+    platforms {{ "x64" }}
+
+project "{}"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++17"
+    targetdir "bin/%{{cfg.buildcfg}}"
+
+    files {{
+        "src/**.cpp",
+        "src/**.h"
+    }}
+
+    includedirs {{
+        "src"
+    }}
+
+    filter "configurations:Debug"
+        defines {{ "DEBUG" }}
+        symbols "On"
+
+    filter "configurations:Release"
+        defines {{ "NDEBUG" }}
+        optimize "On"
+{})", options_.projectName, options_.projectName, testSection);
 }

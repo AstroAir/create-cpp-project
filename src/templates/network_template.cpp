@@ -1408,7 +1408,7 @@ void Client::connect(const std::string& host, int port) {{
             read_messages();
         }});
 
-        spdlog::info("Connected to server {}:{}", host, port);
+        spdlog::info("Connected to server {{}}:{{}}", host, port);
     }} catch (const Poco::Exception& e) {{
         spdlog::error("Connection error: {{}}", e.displayText());
         throw std::runtime_error(e.displayText());

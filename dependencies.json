@@ -1,0 +1,29 @@
+{
+  "dependencies": {
+    "spdlog": {
+      "version": "1.12.0",
+      "git_repository": "https://github.com/gabime/spdlog.git",
+      "git_tag": "v1.12.0",
+      "vcpkg_name": "spdlog",
+      "conan_name": "spdlog",
+      "system_first": true
+    },
+    "nlohmann_json": {
+      "version": "3.11.3",
+      "git_repository": "https://github.com/nlohmann/json.git",
+      "git_tag": "v3.11.3",
+      "vcpkg_name": "nlohmann-json",
+      "conan_name": "nlohmann_json",
+      "system_first": true
+    },
+    "googletest": {
+      "version": "1.14.0",
+      "git_repository": "https://github.com/google/googletest.git",
+      "git_tag": "v1.14.0",
+      "vcpkg_name": "gtest",
+      "conan_name": "gtest",
+      "system_first": false,
+      "test_only": true
+    }
+  }
+}

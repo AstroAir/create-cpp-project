@@ -19,6 +19,8 @@ private:
   std::string getCMakeContent();
   std::string getMesonContent();
   std::string getBazelContent();
+  std::string getXMakeContent();
+  std::string getPremakeContent();
   std::string getVcpkgJsonContent();
   std::string getConanfileContent();
   std::string getGTestContent();

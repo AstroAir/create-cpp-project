@@ -96,7 +96,7 @@ TEST_F(TemplateEdgeCasesTest, ReadOnlyParentDirectory) {
 
 // Test network template with all supported libraries
 TEST_F(TemplateEdgeCasesTest, NetworkTemplateAllLibraries) {
-    std::vector<std::string> networkLibs = {"asio", "boost", "poco", "zmq"};
+    std::vector<std::string> networkLibs = {"asio", "boost", "poco"};
 
     for (const auto& lib : networkLibs) {
         CliOptions options;

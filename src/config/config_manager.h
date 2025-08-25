@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../cli/cli_parser.h"
+#include "../cli/types/cli_options.h"
 #include <filesystem>
 #include <map>
 #include <memory>

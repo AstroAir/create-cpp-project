@@ -19,7 +19,7 @@ bool FileUtils::createDirectory(const std::string &path) {
 bool FileUtils::writeToFile(const std::string &path,
                             const std::string &content) {
   try {
-    std::ofstream file(path);
+    std::ofstream file(path, std::ios::binary);
     if (!file.is_open()) {
       spdlog::error("Could not open file: {}", path);
       return false;
@@ -34,7 +34,7 @@ bool FileUtils::writeToFile(const std::string &path,
 
 std::string FileUtils::readFromFile(const std::string &path) {
   try {
-    std::ifstream file(path);
+    std::ifstream file(path, std::ios::binary);
     if (!file.is_open()) {
       throw std::runtime_error("Could not open file: " + path);
     }
