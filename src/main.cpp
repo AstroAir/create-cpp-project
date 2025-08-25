@@ -1,4 +1,5 @@
-#include "cli/cli_parser.h"
+#include "cli/parsing/argument_parser.h"
+#include "cli/commands/command_handlers.h"
 #include "templates/template_manager.h"
 #include "utils/progress_indicator.h"
 #include "utils/interactive_menu.h"
@@ -117,7 +118,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Parse command line arguments
-    CliOptions options = CliParser::parse(argc, argv);
+    CliOptions options = argument_parser::parseArguments(argc, argv);
 
     // Reconfigure logging level if verbose mode is enabled
     if (options.verbose) {
@@ -130,14 +131,14 @@ int main(int argc, char *argv[]) {
     // Show help
     if (options.showHelp) {
       spdlog::debug("User requested help information");
-      CliParser::showHelp();
+      cli_commands::showHelp();
       return 0;
     }
 
     // Show version
     if (options.version) {
       spdlog::debug("User requested version information");
-      CliParser::showVersion();
+      cli_commands::showVersion();
       return 0;
     }
 
@@ -145,7 +146,7 @@ int main(int argc, char *argv[]) {
     spdlog::info("Creating project: {}", options.projectName);
     spdlog::debug(
         "Project configuration: Type={}, Build System={}, Package Manager={}",
-        enums::to_string(options.templateType), enums::to_string(options.buildSystem), enums::to_string(options.packageManager));
+        cli_enums::to_string(options.templateType), cli_enums::to_string(options.buildSystem), cli_enums::to_string(options.packageManager));
 
     TemplateManager templateManager;
     spdlog::debug("Template manager initialized");

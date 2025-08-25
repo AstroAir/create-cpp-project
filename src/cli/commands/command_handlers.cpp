@@ -78,6 +78,19 @@ void showHelp(Language lang) {
   fmt::print("  -h, --help                   Show this help information\n");
   fmt::print("  -v, --version                Show version information\n\n");
 
+  std::cout << TerminalUtils::colorize("**Remote Source Options:**", utils::Color::BrightYellow) << "\n";
+  fmt::print("  --from-git <url>             Create project from Git repository\n");
+  fmt::print("  --from-archive <path/url>    Create project from archive file or URL\n");
+  fmt::print("  --branch <name>              Git branch to checkout (default: main/master)\n");
+  fmt::print("  --tag <name>                 Git tag to checkout\n");
+  fmt::print("  --commit <hash>              Git commit to checkout\n");
+  fmt::print("  --shallow                    Use shallow clone (default, faster)\n");
+  fmt::print("  --no-shallow                 Use full clone (slower, complete history)\n");
+  fmt::print("  --preserve-git               Keep .git directory after cloning\n");
+  fmt::print("  --git-username <name>        Git authentication username\n");
+  fmt::print("  --git-password <token>       Git authentication password/token\n");
+  fmt::print("  --ssh-key <path>             SSH key path for Git authentication\n\n");
+
   fmt::print("**Examples:**\n");
   fmt::print("  cpp-scaffold create my-app --template console --build cmake "
              "--package vcpkg --tests\n");
@@ -89,6 +102,9 @@ void showHelp(Language lang) {
   fmt::print("  cpp-scaffold create my-game --template gui --gui-frameworks sdl2,opengl --include-shaders\n");
   fmt::print("  cpp-scaffold create my-project --git-workflow gitflow --license mit --doxygen\n");
   fmt::print("  cpp-scaffold create my-lib --doc-formats markdown,html --doc-types readme,api,user\n");
+  fmt::print("  cpp-scaffold create my-project --from-git https://github.com/user/template.git --branch develop\n");
+  fmt::print("  cpp-scaffold create my-app --from-archive https://example.com/template.zip\n");
+  fmt::print("  cpp-scaffold create my-lib --from-git git@github.com:user/template.git --tag v1.0.0 --ssh-key ~/.ssh/id_rsa\n");
 }
 
 // Show version information
@@ -352,6 +368,19 @@ CliOptions getSystemSuggestedDefaults() {
   defaults.language = Language::English;
 
   return defaults;
+}
+
+// Run interactive mode
+CliOptions runInteractiveMode() {
+  showCliHeader();
+
+  std::cout << TerminalUtils::colorize("Welcome to Interactive Mode!", utils::Color::BrightGreen) << "\n\n";
+
+  // Use the interactive configuration system
+  config::InteractiveConfigWizard::runConfigurationWizard();
+
+  // Return default options for now
+  return getSystemSuggestedDefaults();
 }
 
 } // namespace cli_commands

@@ -1,4 +1,4 @@
-#include "config_manager.h"
+﻿#include "config_manager.h"
 #include "../utils/file_utils.h"
 #include "../utils/string_utils.h"
 #include <spdlog/spdlog.h>
@@ -9,6 +9,7 @@
 #include <cstdlib>
 
 using namespace utils;
+using namespace cli_enums;
 using json = nlohmann::json;
 
 namespace config {
@@ -520,7 +521,7 @@ CliOptions ConfigManager::jsonToCliOptions(const nlohmann::json& json) {
 
         if (json.contains("templateType")) {
             std::string templateStr = json["templateType"].get<std::string>();
-            auto templateType = enums::to_template_type(templateStr);
+            auto templateType = to_template_type(templateStr);
             if (templateType) {
                 options.templateType = *templateType;
             }
@@ -528,7 +529,7 @@ CliOptions ConfigManager::jsonToCliOptions(const nlohmann::json& json) {
 
         if (json.contains("buildSystem")) {
             std::string buildStr = json["buildSystem"].get<std::string>();
-            auto buildSystem = enums::to_build_system(buildStr);
+            auto buildSystem = to_build_system(buildStr);
             if (buildSystem) {
                 options.buildSystem = *buildSystem;
             }
@@ -536,7 +537,7 @@ CliOptions ConfigManager::jsonToCliOptions(const nlohmann::json& json) {
 
         if (json.contains("packageManager")) {
             std::string packageStr = json["packageManager"].get<std::string>();
-            auto packageManager = enums::to_package_manager(packageStr);
+            auto packageManager = to_package_manager(packageStr);
             if (packageManager) {
                 options.packageManager = *packageManager;
             }
@@ -548,7 +549,7 @@ CliOptions ConfigManager::jsonToCliOptions(const nlohmann::json& json) {
 
         if (json.contains("testFramework")) {
             std::string testStr = json["testFramework"].get<std::string>();
-            auto testFramework = enums::to_test_framework(testStr);
+            auto testFramework = to_test_framework(testStr);
             if (testFramework) {
                 options.testFramework = *testFramework;
             }
@@ -572,7 +573,7 @@ CliOptions ConfigManager::jsonToCliOptions(const nlohmann::json& json) {
 
         if (json.contains("language")) {
             std::string langStr = json["language"].get<std::string>();
-            auto language = enums::to_language(langStr);
+            auto language = to_language(langStr);
             if (language) {
                 options.language = *language;
             }
@@ -585,7 +586,7 @@ CliOptions ConfigManager::jsonToCliOptions(const nlohmann::json& json) {
         // Load editor options
         if (json.contains("editorOptions")) {
             for (const auto& editorStr : json["editorOptions"]) {
-                auto editor = enums::to_editor_config(editorStr.get<std::string>());
+                auto editor = to_editor_config(editorStr.get<std::string>());
                 if (editor) {
                     options.editorOptions.push_back(*editor);
                 }
@@ -595,7 +596,7 @@ CliOptions ConfigManager::jsonToCliOptions(const nlohmann::json& json) {
         // Load CI options
         if (json.contains("ciOptions")) {
             for (const auto& ciStr : json["ciOptions"]) {
-                auto ci = enums::to_ci_system(ciStr.get<std::string>());
+                auto ci = to_ci_system(ciStr.get<std::string>());
                 if (ci) {
                     options.ciOptions.push_back(*ci);
                 }
@@ -614,28 +615,28 @@ nlohmann::json ConfigManager::cliOptionsToJson(const CliOptions& options) {
 
     try {
         result["projectName"] = options.projectName;
-        result["templateType"] = std::string(enums::to_string(options.templateType));
-        result["buildSystem"] = std::string(enums::to_string(options.buildSystem));
-        result["packageManager"] = std::string(enums::to_string(options.packageManager));
+        result["templateType"] = std::string(to_string(options.templateType));
+        result["buildSystem"] = std::string(to_string(options.buildSystem));
+        result["packageManager"] = std::string(to_string(options.packageManager));
         result["includeTests"] = options.includeTests;
-        result["testFramework"] = std::string(enums::to_string(options.testFramework));
+        result["testFramework"] = std::string(to_string(options.testFramework));
         result["includeDocumentation"] = options.includeDocumentation;
         result["includeCodeStyleTools"] = options.includeCodeStyleTools;
         result["initGit"] = options.initGit;
         result["verbose"] = options.verbose;
-        result["language"] = std::string(enums::to_string(options.language));
+        result["language"] = std::string(to_string(options.language));
         result["customTemplatePath"] = options.customTemplatePath.string();
 
         // Convert editor options
         result["editorOptions"] = json::array();
         for (const auto& editor : options.editorOptions) {
-            result["editorOptions"].push_back(std::string(enums::to_string(editor)));
+            result["editorOptions"].push_back(std::string(to_string(editor)));
         }
 
         // Convert CI options
         result["ciOptions"] = json::array();
         for (const auto& ci : options.ciOptions) {
-            result["ciOptions"].push_back(std::string(enums::to_string(ci)));
+            result["ciOptions"].push_back(std::string(to_string(ci)));
         }
 
     } catch (const std::exception& e) {

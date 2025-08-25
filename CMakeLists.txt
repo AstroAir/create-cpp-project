@@ -81,6 +81,7 @@ option(ENABLE_CCACHE "Enable ccache for faster rebuilds" ON)
 option(ENABLE_LTO "Enable Link Time Optimization" OFF)
 option(ENABLE_BUILD_PROFILING "Enable build time profiling" OFF)
 option(ENABLE_SANITIZERS "Enable sanitizers in debug builds" OFF)
+option(ENABLE_FAT_LTO_OBJECTS "Enable -ffat-lto-objects flag (GCC only)" ON)
 
 # Advanced build optimizations
 if(ENABLE_CCACHE)
@@ -205,6 +206,9 @@ endif()
 set(CORE_SOURCES
     src/main.cpp
     src/cli/cli_parser.cpp
+    src/cli/types/cli_enums.cpp
+    src/cli/parsing/argument_parser.cpp
+    src/cli/commands/command_handlers.cpp
     src/cli/project_wizard.cpp
     src/templates/template_manager.cpp
     src/templates/template_base.cpp
@@ -218,6 +222,8 @@ set(CORE_SOURCES
     src/templates/webservice_template.cpp
     src/templates/embedded_template.cpp
     src/templates/gameengine_template.cpp
+    src/templates/git_repository_template.cpp
+    src/templates/archive_template.cpp
     src/templates/template_discovery.cpp
     src/utils/file_utils.cpp
     src/utils/string_utils.cpp
@@ -230,6 +236,8 @@ set(CORE_SOURCES
     src/utils/build_system_config.cpp
     src/utils/project_scaffolding.cpp
     src/utils/user_experience.cpp
+    src/utils/http_client.cpp
+    src/utils/archive_utils.cpp
     # src/utils/post_creation_actions.cpp
 )
 
@@ -342,17 +350,52 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
         ERROR_QUIET
     )
 
+    # More robust compiler detection
+    execute_process(
+        COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
+        OUTPUT_VARIABLE COMPILER_VERSION_NUMBER
+        ERROR_QUIET
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    # Check if compiler supports -ffat-lto-objects flag
+    # Use appropriate null device for the platform
+    if(WIN32)
+        set(NULL_DEVICE "NUL")
+    else()
+        set(NULL_DEVICE "/dev/null")
+    endif()
+
+    execute_process(
+        COMMAND ${CMAKE_CXX_COMPILER} -ffat-lto-objects -E -x c++ ${NULL_DEVICE}
+        OUTPUT_QUIET
+        ERROR_QUIET
+        RESULT_VARIABLE FAT_LTO_OBJECTS_SUPPORTED
+    )
+
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" AND NOT COMPILER_VERSION_OUTPUT MATCHES "clang")
         # True GCC compiler
-        target_compile_options(cpp-scaffold PRIVATE
+        set(GCC_OPTIMIZATION_FLAGS
             -O3
             -march=native
             -mtune=native
             -flto=auto
             -fuse-linker-plugin
-            -ffat-lto-objects
         )
-        message(STATUS "Using GCC-specific optimizations with LTO")
+
+        # Only add -ffat-lto-objects if enabled and supported (GCC-specific and not on all targets)
+        if(ENABLE_FAT_LTO_OBJECTS AND FAT_LTO_OBJECTS_SUPPORTED EQUAL 0)
+            list(APPEND GCC_OPTIMIZATION_FLAGS -ffat-lto-objects)
+            message(STATUS "Using GCC-specific optimizations with LTO and fat objects")
+        elseif(NOT ENABLE_FAT_LTO_OBJECTS)
+            message(STATUS "Using GCC-specific optimizations with LTO (fat objects disabled by option)")
+        else()
+            message(STATUS "Using GCC-specific optimizations with LTO (fat objects not supported on this target)")
+            message(STATUS "Note: If you're seeing clang errors about -ffat-lto-objects, disable with -DENABLE_FAT_LTO_OBJECTS=OFF")
+        endif()
+
+        target_compile_options(cpp-scaffold PRIVATE ${GCC_OPTIMIZATION_FLAGS})
+
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR COMPILER_VERSION_OUTPUT MATCHES "clang")
         # Clang compiler (including when masquerading as GCC)
         target_compile_options(cpp-scaffold PRIVATE

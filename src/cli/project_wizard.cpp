@@ -1,4 +1,4 @@
-#include "../utils/terminal_utils.h"
+﻿#include "../utils/terminal_utils.h"
 #include "../templates/template_discovery.h"
 #include "../utils/project_scaffolding.h"
 #include "../utils/build_system_config.h"
@@ -10,6 +10,7 @@
 #include <thread>
 
 using namespace utils;
+using namespace cli_enums;
 
 // 实现 ProjectWizard 类的静态方法
 
@@ -174,30 +175,30 @@ CliOptions ProjectWizard::runQuickStartWizard() {
 
   // 询问项目类型
   std::string templateTypeStr = UserInput::readChoiceWithStyle(
-      "选择项目类型", enums::all_template_types(), "console",
+      "选择项目类型", all_template_types(), "console",
       utils::Color::BrightGreen);
 
-  auto templateType = enums::to_template_type(templateTypeStr);
+  auto templateType = to_template_type(templateTypeStr);
   if (templateType) {
     options.templateType = *templateType;
   }
 
   // 询问构建系统
   std::string buildSystemStr =
-      UserInput::readChoiceWithStyle("选择构建系统", enums::all_build_systems(),
+      UserInput::readChoiceWithStyle("选择构建系统", all_build_systems(),
                                      "cmake", utils::Color::BrightGreen);
 
-  auto buildSystem = enums::to_build_system(buildSystemStr);
+  auto buildSystem = to_build_system(buildSystemStr);
   if (buildSystem) {
     options.buildSystem = *buildSystem;
   }
 
   // 询问包管理器
   std::string packageManagerStr = UserInput::readChoiceWithStyle(
-      "选择包管理器", enums::all_package_managers(), "vcpkg",
+      "选择包管理器", all_package_managers(), "vcpkg",
       utils::Color::BrightGreen);
 
-  auto packageManager = enums::to_package_manager(packageManagerStr);
+  auto packageManager = to_package_manager(packageManagerStr);
   if (packageManager) {
     options.packageManager = *packageManager;
   }
@@ -304,7 +305,7 @@ bool ProjectWizard::configureProjectDetails(CliOptions &options) {
 
   if (choice >= 0 && choice < static_cast<int>(templateOptions.size())) {
     std::string selectedTemplate = templateOptions[choice].first;
-    auto templateType = enums::to_template_type(selectedTemplate);
+    auto templateType = to_template_type(selectedTemplate);
     if (templateType) {
       options.templateType = *templateType;
       TerminalUtils::showNpmStyleSuccess("Template selected", selectedTemplate);
@@ -387,10 +388,10 @@ bool ProjectWizard::configureBuildSystem(CliOptions &options) {
 
   // 构建系统
   std::string buildSystemStr = UserInput::readChoiceWithStyle(
-      "选择构建系统", enums::all_build_systems(),
-      enums::to_string(options.buildSystem), utils::Color::BrightGreen);
+      "选择构建系统", all_build_systems(),
+      to_string(options.buildSystem), utils::Color::BrightGreen);
 
-  auto buildSystem = enums::to_build_system(buildSystemStr);
+  auto buildSystem = to_build_system(buildSystemStr);
   if (buildSystem) {
     options.buildSystem = *buildSystem;
   }
@@ -406,10 +407,10 @@ bool ProjectWizard::configureBuildSystem(CliOptions &options) {
 
   // 包管理器
   std::string packageManagerStr = UserInput::readChoiceWithStyle(
-      "选择包管理器", enums::all_package_managers(),
-      enums::to_string(options.packageManager), utils::Color::BrightGreen);
+      "选择包管理器", all_package_managers(),
+      to_string(options.packageManager), utils::Color::BrightGreen);
 
-  auto packageManager = enums::to_package_manager(packageManagerStr);
+  auto packageManager = to_package_manager(packageManagerStr);
   if (packageManager) {
     options.packageManager = *packageManager;
   }
@@ -489,10 +490,10 @@ bool ProjectWizard::configureTestFramework(CliOptions &options) {
 
     // 测试框架
     std::string testFrameworkStr = UserInput::readChoiceWithStyle(
-        "选择测试框架", enums::all_test_frameworks(),
-        enums::to_string(options.testFramework), utils::Color::BrightGreen);
+        "选择测试框架", all_test_frameworks(),
+        to_string(options.testFramework), utils::Color::BrightGreen);
 
-    auto testFramework = enums::to_test_framework(testFrameworkStr);
+    auto testFramework = to_test_framework(testFrameworkStr);
     if (testFramework) {
       options.testFramework = *testFramework;
     }
@@ -547,12 +548,12 @@ bool ProjectWizard::configureDevTools(CliOptions &options) {
   std::cout << " - VS: 解决方案和项目文件\n\n";
 
   // 编辑器配置
-  std::vector<std::string_view> editorOptions = enums::all_editor_configs();
+  std::vector<std::string_view> editorOptions = all_editor_configs();
 
   // 转换现有的编辑器选项为字符串
   std::vector<std::string_view> defaultEditors;
   for (const auto &editor : options.editorOptions) {
-    defaultEditors.push_back(enums::to_string(editor));
+    defaultEditors.push_back(to_string(editor));
   }
 
   std::vector<std::string> selectedEditors = UserInput::readMultiChoice(
@@ -561,7 +562,7 @@ bool ProjectWizard::configureDevTools(CliOptions &options) {
   // 清空现有选项并添加新选择
   options.editorOptions.clear();
   for (const auto &editor : selectedEditors) {
-    auto editorConfig = enums::to_editor_config(editor);
+    auto editorConfig = to_editor_config(editor);
     if (editorConfig) {
       options.editorOptions.push_back(*editorConfig);
     }
@@ -608,12 +609,12 @@ bool ProjectWizard::configureCiCd(CliOptions &options) {
     std::cout << " - 创建初始提交\n\n";
 
     // CI/CD系统
-    std::vector<std::string_view> ciOptions = enums::all_ci_systems();
+    std::vector<std::string_view> ciOptions = all_ci_systems();
 
     // 转换现有的CI选项为字符串
     std::vector<std::string_view> defaultCi;
     for (const auto &ci : options.ciOptions) {
-      defaultCi.push_back(enums::to_string(ci));
+      defaultCi.push_back(to_string(ci));
     }
 
     // CI/CD系统比较表格
@@ -664,7 +665,7 @@ bool ProjectWizard::configureCiCd(CliOptions &options) {
     // 清空现有选项并添加新选择
     options.ciOptions.clear();
     for (const auto &ci : selectedCi) {
-      auto ciSystem = enums::to_ci_system(ci);
+      auto ciSystem = to_ci_system(ci);
       if (ciSystem) {
         options.ciOptions.push_back(*ciSystem);
       }
@@ -713,7 +714,7 @@ bool ProjectWizard::showSummaryAndConfirm(const CliOptions &options) {
   templateTypeRow.push_back(templateTypeTitle);
 
   TableCell templateTypeValue(
-      std::string(enums::to_string(options.templateType)), Color::BrightGreen);
+      std::string(to_string(options.templateType)), Color::BrightGreen);
   templateTypeRow.push_back(templateTypeValue);
   summaryTable.push_back(templateTypeRow);
 
@@ -722,7 +723,7 @@ bool ProjectWizard::showSummaryAndConfirm(const CliOptions &options) {
   buildSystemTitle.centered = true;
   buildSystemRow.push_back(buildSystemTitle);
 
-  TableCell buildSystemValue(std::string(enums::to_string(options.buildSystem)),
+  TableCell buildSystemValue(std::string(to_string(options.buildSystem)),
                              Color::BrightGreen);
   buildSystemRow.push_back(buildSystemValue);
   summaryTable.push_back(buildSystemRow);
@@ -733,7 +734,7 @@ bool ProjectWizard::showSummaryAndConfirm(const CliOptions &options) {
   packageManagerRow.push_back(packageManagerTitle);
 
   TableCell packageManagerValue(
-      std::string(enums::to_string(options.packageManager)),
+      std::string(to_string(options.packageManager)),
       Color::BrightGreen);
   packageManagerRow.push_back(packageManagerValue);
   summaryTable.push_back(packageManagerRow);
@@ -752,7 +753,7 @@ bool ProjectWizard::showSummaryAndConfirm(const CliOptions &options) {
     testFrameworkRow.push_back(testFrameworkTitle);
 
     TableCell testFrameworkValue(
-        std::string(enums::to_string(options.testFramework)),
+        std::string(to_string(options.testFramework)),
         Color::BrightGreen);
     testFrameworkRow.push_back(testFrameworkValue);
     summaryTable.push_back(testFrameworkRow);
@@ -785,7 +786,7 @@ bool ProjectWizard::showSummaryAndConfirm(const CliOptions &options) {
     for (size_t i = 0; i < options.editorOptions.size(); ++i) {
       if (i > 0)
         editors += ", ";
-      editors += std::string(enums::to_string(options.editorOptions[i]));
+      editors += std::string(to_string(options.editorOptions[i]));
     }
 
     std::vector<TableCell> editorRow;
@@ -813,7 +814,7 @@ bool ProjectWizard::showSummaryAndConfirm(const CliOptions &options) {
     for (size_t i = 0; i < options.ciOptions.size(); ++i) {
       if (i > 0)
         ciSystems += ", ";
-      ciSystems += std::string(enums::to_string(options.ciOptions[i]));
+      ciSystems += std::string(to_string(options.ciOptions[i]));
     }
 
     std::vector<TableCell> ciRow;
@@ -831,7 +832,7 @@ bool ProjectWizard::showSummaryAndConfirm(const CliOptions &options) {
     for (size_t i = 0; i < options.ciOptions.size(); ++i) {
       if (i > 0)
         ciSystems += ", ";
-      ciSystems += std::string(enums::to_string(options.ciOptions[i]));
+      ciSystems += std::string(to_string(options.ciOptions[i]));
     }
 
     std::vector<TableCell> ciRow;
@@ -853,7 +854,7 @@ bool ProjectWizard::showSummaryAndConfirm(const CliOptions &options) {
   std::vector<std::string> projectPreview;
   projectPreview.push_back("项目" + options.projectName + "将包含：");
   projectPreview.push_back(
-      " - " + std::string(enums::to_string(options.buildSystem)) + "构建配置");
+      " - " + std::string(to_string(options.buildSystem)) + "构建配置");
   projectPreview.push_back(" - src/目录包含源代码架构");
   projectPreview.push_back(" - include/目录包含头文件");
 

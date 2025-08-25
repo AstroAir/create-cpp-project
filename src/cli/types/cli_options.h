@@ -73,6 +73,20 @@ struct CliOptions {
   bool validateConfig = true;
   bool strictValidation = false;
 
+  // Remote source options
+  SourceType sourceType = SourceType::Template;   // Source type for project creation
+  std::optional<std::string> gitRepositoryUrl;    // Git repository URL for cloning
+  std::optional<std::string> archiveUrl;          // Archive URL for downloading
+  std::optional<std::string> archiveFilePath;     // Local archive file path
+  std::optional<std::string> gitBranch;           // Specific branch to checkout
+  std::optional<std::string> gitTag;              // Specific tag to checkout
+  std::optional<std::string> gitCommit;           // Specific commit to checkout
+  bool useShallowClone = true;                    // Use shallow clone for faster downloads
+  bool preserveGitHistory = false;                // Keep .git directory after cloning
+  std::optional<std::string> gitUsername;         // Git authentication username
+  std::optional<std::string> gitPassword;         // Git authentication password/token
+  std::optional<std::string> sshKeyPath;          // SSH key path for Git authentication
+
   // Additional options for advanced use cases
   std::unordered_map<std::string, std::string> additionalOptions;
 };

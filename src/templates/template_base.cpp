@@ -1,4 +1,4 @@
-#include "template_base.h"
+﻿#include "template_base.h"
 #include "../utils/file_utils.h"
 #include "../utils/git_utils.h"
 #include "../utils/progress_indicator.h"
@@ -8,6 +8,8 @@
 #include "../config/doc_config.h"
 // #include "../utils/post_creation_actions.h"
 #include <iostream>
+
+using namespace cli_enums;
 
 bool TemplateBase::initializeGit(const std::string &projectPath) {
   if (!options_.initGit) {
@@ -26,9 +28,9 @@ bool TemplateBase::initializeGit(const std::string &projectPath) {
   }
 
   // Create comprehensive .gitignore
-  std::string templateType = std::string(enums::to_string(options_.templateType));
-  std::string buildSystem = std::string(enums::to_string(options_.buildSystem));
-  std::string packageManager = std::string(enums::to_string(options_.packageManager));
+  std::string templateType = std::string(to_string(options_.templateType));
+  std::string buildSystem = std::string(to_string(options_.buildSystem));
+  std::string packageManager = std::string(to_string(options_.packageManager));
 
   if (!utils::GitUtils::createGitignore(projectDir, templateType, buildSystem, packageManager)) {
     std::cerr << "❌ 创建.gitignore文件失败\n";
@@ -42,8 +44,8 @@ bool TemplateBase::initializeGit(const std::string &projectPath) {
   }
 
   // Enhanced repository configuration
-  std::string gitWorkflow = std::string(enums::to_string(options_.gitWorkflow));
-  std::string licenseType = std::string(enums::to_string(options_.licenseType));
+  std::string gitWorkflow = std::string(to_string(options_.gitWorkflow));
+  std::string licenseType = std::string(to_string(options_.licenseType));
 
   if (!utils::GitUtils::configureRepositoryAdvanced(projectDir,
                                                    options_.gitUserName,
@@ -61,7 +63,7 @@ bool TemplateBase::initializeGit(const std::string &projectPath) {
   }
 
   // Create branches based on strategy
-  std::string branchStrategy = std::string(enums::to_string(options_.gitBranchStrategy));
+  std::string branchStrategy = std::string(to_string(options_.gitBranchStrategy));
   if (!utils::GitUtils::createBranchesFromStrategy(projectDir, branchStrategy, options_.gitBranches)) {
     std::cerr << "❌ Git分支创建失败\n";
   }
@@ -341,19 +343,19 @@ void TemplateBase::printUsageGuide() {
   std::cout << "   cd " << options_.projectName << "\n\n";
 
   std::cout << "2. 构建项目:\n";
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (to_string(options_.buildSystem) == "cmake") {
     std::cout << "   mkdir build && cd build\n";
     std::cout << "   cmake ..\n";
     std::cout << "   cmake --build .\n";
-  } else if (enums::to_string(options_.buildSystem) == "meson") {
+  } else if (to_string(options_.buildSystem) == "meson") {
     std::cout << "   meson setup build\n";
     std::cout << "   cd build\n";
     std::cout << "   meson compile\n";
-  } else if (enums::to_string(options_.buildSystem) == "bazel") {
+  } else if (to_string(options_.buildSystem) == "bazel") {
     std::cout << "   bazel build //...\n";
-  } else if (enums::to_string(options_.buildSystem) == "xmake") {
+  } else if (to_string(options_.buildSystem) == "xmake") {
     std::cout << "   xmake\n";
-  } else if (enums::to_string(options_.buildSystem) == "premake") {
+  } else if (to_string(options_.buildSystem) == "premake") {
     std::cout << "   premake5 gmake\n";
     std::cout << "   make\n";
   }
@@ -361,27 +363,27 @@ void TemplateBase::printUsageGuide() {
 
   if (options_.includeTests) {
     std::cout << "3. 运行测试:\n";
-    if (enums::to_string(options_.buildSystem) == "cmake") {
+    if (to_string(options_.buildSystem) == "cmake") {
       std::cout << "   cd build\n";
       std::cout << "   ctest\n";
-    } else if (enums::to_string(options_.buildSystem) == "meson") {
+    } else if (to_string(options_.buildSystem) == "meson") {
       std::cout << "   cd build\n";
       std::cout << "   meson test\n";
-    } else if (enums::to_string(options_.buildSystem) == "bazel") {
+    } else if (to_string(options_.buildSystem) == "bazel") {
       std::cout << "   bazel test //...\n";
-    } else if (enums::to_string(options_.buildSystem) == "xmake") {
+    } else if (to_string(options_.buildSystem) == "xmake") {
       std::cout << "   xmake test\n";
-    } else if (enums::to_string(options_.buildSystem) == "premake") {
+    } else if (to_string(options_.buildSystem) == "premake") {
       std::cout << "   bin/Debug/" << options_.projectName << "_tests\n";
     }
     std::cout << "\n";
   }
 
-  if (enums::to_string(options_.packageManager) != "none") {
+  if (to_string(options_.packageManager) != "none") {
     std::cout << "4. 包管理: \n";
-    if (enums::to_string(options_.packageManager) == "vcpkg") {
+    if (to_string(options_.packageManager) == "vcpkg") {
       std::cout << "   vcpkg安装依赖已在vcpkg.json中配置\n";
-    } else if (enums::to_string(options_.packageManager) == "conan") {
+    } else if (to_string(options_.packageManager) == "conan") {
       std::cout << "   在构建项目前运行:\n";
       std::cout << "   conan install . --build=missing\n";
     }
@@ -392,7 +394,7 @@ void TemplateBase::printUsageGuide() {
     std::cout << "5. CI/CD配置: \n";
     std::cout << "   已为以下CI/CD系统创建配置:\n";
     for (const auto& ci : options_.ciOptions) {
-      std::cout << "   - " << enums::to_string(ci) << "\n";
+      std::cout << "   - " << to_string(ci) << "\n";
     }
     std::cout << "\n";
   }

@@ -42,6 +42,31 @@ public:
                          const std::string& remoteUrl);
     static std::vector<std::pair<std::string, std::string>> listRemotes(const std::filesystem::path& projectPath);
 
+    // Repository cloning and remote source management
+    static bool cloneRepository(const std::string& repositoryUrl,
+                               const std::filesystem::path& targetPath,
+                               bool shallow = true,
+                               const std::optional<std::string>& branch = std::nullopt,
+                               const std::optional<std::string>& tag = std::nullopt,
+                               const std::optional<std::string>& commit = std::nullopt);
+
+    static bool cloneRepositoryWithAuth(const std::string& repositoryUrl,
+                                       const std::filesystem::path& targetPath,
+                                       const std::optional<std::string>& username = std::nullopt,
+                                       const std::optional<std::string>& password = std::nullopt,
+                                       const std::optional<std::string>& sshKeyPath = std::nullopt,
+                                       bool shallow = true,
+                                       const std::optional<std::string>& branch = std::nullopt,
+                                       const std::optional<std::string>& tag = std::nullopt,
+                                       const std::optional<std::string>& commit = std::nullopt);
+
+    static bool checkoutBranch(const std::filesystem::path& repositoryPath, const std::string& branchName);
+    static bool checkoutTag(const std::filesystem::path& repositoryPath, const std::string& tagName);
+    static bool checkoutCommit(const std::filesystem::path& repositoryPath, const std::string& commitHash);
+    static bool removeGitDirectory(const std::filesystem::path& repositoryPath);
+    static bool isValidGitUrl(const std::string& url);
+    static std::string extractRepositoryName(const std::string& repositoryUrl);
+
     // Git hooks
     static bool installGitHooks(const std::filesystem::path& projectPath,
                                const std::vector<std::string>& hookTypes);

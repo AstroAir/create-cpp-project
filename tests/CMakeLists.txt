@@ -12,6 +12,12 @@ endif()
 # Create test library with all source files except main.cpp
 set(TEST_SOURCES
     ../src/cli/cli_parser.cpp
+    ../src/cli/types/cli_enums.cpp
+    ../src/cli/parsing/argument_parser.cpp
+    ../src/cli/commands/command_handlers.cpp
+    ../src/cli/localization/localization.cpp
+    ../src/cli/input/user_input.cpp
+    ../src/cli/validation/cli_validator.cpp
     ../src/cli/project_wizard.cpp
     ../src/templates/template_manager.cpp
     ../src/templates/template_base.cpp
@@ -25,6 +31,8 @@ set(TEST_SOURCES
     ../src/templates/webservice_template.cpp
     ../src/templates/embedded_template.cpp
     ../src/templates/gameengine_template.cpp
+    ../src/templates/archive_template.cpp
+    ../src/templates/git_repository_template.cpp
     ../src/templates/template_discovery.cpp
     ../src/utils/file_utils.cpp
     ../src/utils/string_utils.cpp
@@ -34,6 +42,8 @@ set(TEST_SOURCES
     ../src/utils/progress_indicator.cpp
     ../src/utils/interactive_menu.cpp
     ../src/utils/dependency_manager.cpp
+    ../src/utils/http_client.cpp
+    ../src/utils/archive_utils.cpp
     # ../src/utils/post_creation_actions.cpp
     ../src/config/editor_config.cpp
     ../src/config/ci_config.cpp

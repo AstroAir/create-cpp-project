@@ -1,4 +1,4 @@
-#include "interactive_config.h"
+﻿#include "interactive_config.h"
 #include "../utils/terminal_utils.h"
 #include <spdlog/spdlog.h>
 #include <iostream>
@@ -6,6 +6,7 @@
 #include <algorithm>
 
 using namespace utils;
+using namespace cli_enums;
 
 namespace config {
 
@@ -280,27 +281,27 @@ bool InteractiveConfigWizard::createNewProfile() {
 
         // Template type
         std::vector<std::string> templates = {"console", "lib", "header-only-lib", "multi-executable", "gui", "network"};
-        std::string templateStr = std::string(enums::to_string(options.templateType));
+        std::string templateStr = std::string(to_string(options.templateType));
         templateStr = promptForChoice("Template type:", templates, templateStr);
-        auto templateType = enums::to_template_type(templateStr);
+        auto templateType = to_template_type(templateStr);
         if (templateType) {
             options.templateType = *templateType;
         }
 
         // Build system
         std::vector<std::string> buildSystems = {"cmake", "meson", "bazel", "xmake", "premake"};
-        std::string buildStr = std::string(enums::to_string(options.buildSystem));
+        std::string buildStr = std::string(to_string(options.buildSystem));
         buildStr = promptForChoice("Build system:", buildSystems, buildStr);
-        auto buildSystem = enums::to_build_system(buildStr);
+        auto buildSystem = to_build_system(buildStr);
         if (buildSystem) {
             options.buildSystem = *buildSystem;
         }
 
         // Package manager
         std::vector<std::string> packageManagers = {"vcpkg", "conan", "none"};
-        std::string packageStr = std::string(enums::to_string(options.packageManager));
+        std::string packageStr = std::string(to_string(options.packageManager));
         packageStr = promptForChoice("Package manager:", packageManagers, packageStr);
-        auto packageManager = enums::to_package_manager(packageStr);
+        auto packageManager = to_package_manager(packageStr);
         if (packageManager) {
             options.packageManager = *packageManager;
         }
@@ -309,9 +310,9 @@ bool InteractiveConfigWizard::createNewProfile() {
         options.includeTests = promptForBool("Include tests?", options.includeTests);
         if (options.includeTests) {
             std::vector<std::string> testFrameworks = {"gtest", "catch2", "doctest", "boost"};
-            std::string testStr = std::string(enums::to_string(options.testFramework));
+            std::string testStr = std::string(to_string(options.testFramework));
             testStr = promptForChoice("Test framework:", testFrameworks, testStr);
-            auto testFramework = enums::to_test_framework(testStr);
+            auto testFramework = to_test_framework(testStr);
             if (testFramework) {
                 options.testFramework = *testFramework;
             }
@@ -614,12 +615,12 @@ void InteractiveConfigWizard::showProfilesSummary() {
             const auto& options = *optionsOpt;
             std::cout << std::endl;
             std::cout << TerminalUtils::colorize("Profile: " + profileName, Color::BrightCyan) << std::endl;
-            std::cout << "  Template: " << std::string(enums::to_string(options.templateType)) << std::endl;
-            std::cout << "  Build System: " << std::string(enums::to_string(options.buildSystem)) << std::endl;
-            std::cout << "  Package Manager: " << std::string(enums::to_string(options.packageManager)) << std::endl;
+            std::cout << "  Template: " << std::string(to_string(options.templateType)) << std::endl;
+            std::cout << "  Build System: " << std::string(to_string(options.buildSystem)) << std::endl;
+            std::cout << "  Package Manager: " << std::string(to_string(options.packageManager)) << std::endl;
             std::cout << "  Tests: " << (options.includeTests ? "Yes" : "No") << std::endl;
             if (options.includeTests) {
-                std::cout << "  Test Framework: " << std::string(enums::to_string(options.testFramework)) << std::endl;
+                std::cout << "  Test Framework: " << std::string(to_string(options.testFramework)) << std::endl;
             }
             std::cout << "  Documentation: " << (options.includeDocumentation ? "Yes" : "No") << std::endl;
             std::cout << "  Code Style Tools: " << (options.includeCodeStyleTools ? "Yes" : "No") << std::endl;

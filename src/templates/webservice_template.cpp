@@ -1,10 +1,11 @@
-#include "webservice_template.h"
+﻿#include "webservice_template.h"
 #include "../utils/file_utils.h"
 #include "../utils/string_utils.h"
 #include <iostream>
 #include <fmt/format.h>
 
 using namespace utils;
+using namespace cli_enums;
 
 WebServiceTemplate::WebServiceTemplate(const CliOptions &options) : TemplateBase(options) {}
 
@@ -146,12 +147,12 @@ bool WebServiceTemplate::createBuildSystem() {
 bool WebServiceTemplate::setupPackageManager() {
   std::string projectPath = options_.projectName;
 
-  if (enums::to_string(options_.packageManager) == "vcpkg") {
+  if (to_string(options_.packageManager) == "vcpkg") {
     std::string vcpkgContent = getVcpkgJsonContent();
     if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "vcpkg.json"), vcpkgContent)) {
       return false;
     }
-  } else if (enums::to_string(options_.packageManager) == "conan") {
+  } else if (to_string(options_.packageManager) == "conan") {
     std::string conanContent = getConanfileContent();
     if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "conanfile.txt"), conanContent)) {
       return false;

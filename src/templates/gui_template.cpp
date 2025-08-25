@@ -1,10 +1,11 @@
-#include "gui_template.h"
+﻿#include "gui_template.h"
 #include "../utils/file_utils.h"
 #include "../utils/string_utils.h"
 #include <fmt/format.h>
 #include <iostream>
 
 using namespace utils;
+using namespace cli_enums;
 
 GuiTemplate::GuiTemplate(const CliOptions &options) : TemplateBase(options) {
   // 确定GUI框架类型 (默认为Qt)
@@ -104,15 +105,15 @@ bool GuiTemplate::create() {
   // 打印使用说明
   std::cout << "cd " << options_.projectName << "\n";
 
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (to_string(options_.buildSystem) == "cmake") {
     std::cout << "mkdir build && cd build\n";
     std::cout << "cmake ..\n";
     std::cout << "make\n";
-  } else if (enums::to_string(options_.buildSystem) == "meson") {
+  } else if (to_string(options_.buildSystem) == "meson") {
     std::cout << "meson setup build\n";
     std::cout << "cd build\n";
     std::cout << "meson compile\n";
-  } else if (enums::to_string(options_.buildSystem) == "bazel") {
+  } else if (to_string(options_.buildSystem) == "bazel") {
     std::cout << "bazel build //...\n";
   }
 
@@ -276,21 +277,21 @@ bool GuiTemplate::createGuiSpecificFiles() {
 bool GuiTemplate::createBuildSystem() {
   std::string projectPath = options_.projectName;
 
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (to_string(options_.buildSystem) == "cmake") {
     // 创建CMakeLists.txt
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "CMakeLists.txt"),
             getCMakeContent())) {
       return false;
     }
-  } else if (enums::to_string(options_.buildSystem) == "meson") {
+  } else if (to_string(options_.buildSystem) == "meson") {
     // 创建meson.build
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "meson.build"),
             getMesonContent())) {
       return false;
     }
-  } else if (enums::to_string(options_.buildSystem) == "bazel") {
+  } else if (to_string(options_.buildSystem) == "bazel") {
     // 创建WORKSPACE和BUILD文件
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "WORKSPACE"),
@@ -310,14 +311,14 @@ bool GuiTemplate::createBuildSystem() {
 bool GuiTemplate::setupPackageManager() {
   std::string projectPath = options_.projectName;
 
-  if (enums::to_string(options_.packageManager) == "vcpkg") {
+  if (to_string(options_.packageManager) == "vcpkg") {
     // 创建vcpkg.json
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "vcpkg.json"),
             getVcpkgJsonContent())) {
       return false;
     }
-  } else if (enums::to_string(options_.packageManager) == "conan") {
+  } else if (to_string(options_.packageManager) == "conan") {
     // 创建conanfile.txt
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "conanfile.txt"),
@@ -342,11 +343,11 @@ bool GuiTemplate::setupTestFramework() {
   }
 
   std::string testContent;
-  if (enums::to_string(options_.testFramework) == "gtest") {
+  if (to_string(options_.testFramework) == "gtest") {
     testContent = getGTestContent();
-  } else if (enums::to_string(options_.testFramework) == "catch2") {
+  } else if (to_string(options_.testFramework) == "catch2") {
     testContent = getCatch2Content();
-  } else if (enums::to_string(options_.testFramework) == "doctest") {
+  } else if (to_string(options_.testFramework) == "doctest") {
     testContent = getDocTestContent();
   }
 
@@ -356,7 +357,7 @@ bool GuiTemplate::setupTestFramework() {
   }
 
   // 更新构建系统以包含测�?
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (to_string(options_.buildSystem) == "cmake") {
     std::string cmakePath =
         FileUtils::combinePath(projectPath, "CMakeLists.txt");
     std::string cmakeContent = FileUtils::readFromFile(cmakePath);
@@ -376,7 +377,7 @@ endif()
 
     // 创建tests/CMakeLists.txt
     std::string testCmakeContent;
-    if (enums::to_string(options_.testFramework) == "gtest") {
+    if (to_string(options_.testFramework) == "gtest") {
       testCmakeContent = R"(
 find_package(GTest REQUIRED)
 add_executable(${PROJECT_NAME}_tests
@@ -390,7 +391,7 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
 )
 add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
 )";
-    } else if (enums::to_string(options_.testFramework) == "catch2") {
+    } else if (to_string(options_.testFramework) == "catch2") {
       testCmakeContent = R"(
 find_package(Catch2 REQUIRED)
 add_executable(${PROJECT_NAME}_tests
@@ -403,7 +404,7 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
 )
 add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
 )";
-    } else if (enums::to_string(options_.testFramework) == "doctest") {
+    } else if (to_string(options_.testFramework) == "doctest") {
       testCmakeContent = R"(
 find_package(doctest REQUIRED)
 add_executable(${PROJECT_NAME}_tests
@@ -1819,25 +1820,25 @@ std::string GuiTemplate::getReadmeContent() {
 
   // 包管理器信息
   std::string packageManagerInfo =
-      enums::to_string(options_.packageManager) != "none"
-          ? fmt::format("- {}包管理\n", enums::to_string(options_.packageManager))
+      to_string(options_.packageManager) != "none"
+          ? fmt::format("- {}包管理\n", to_string(options_.packageManager))
           : "";
 
   // 测试框架信息
   std::string testFrameworkInfo =
       options_.includeTests
-          ? fmt::format("- 集成{}测试框架\n", enums::to_string(options_.testFramework))
+          ? fmt::format("- 集成{}测试框架\n", to_string(options_.testFramework))
           : "";
 
   // 包管理器依赖
   std::string packageManagerDep =
-      enums::to_string(options_.packageManager) != "none"
-          ? fmt::format("- {}\n", enums::to_string(options_.packageManager))
+      to_string(options_.packageManager) != "none"
+          ? fmt::format("- {}\n", to_string(options_.packageManager))
           : "";
 
   // 构建步骤
   std::string buildSteps;
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (to_string(options_.buildSystem) == "cmake") {
     buildSteps = R"(# 创建构建目录
 mkdir build && cd build
 
@@ -1846,7 +1847,7 @@ cmake ..
 
 # 编译
 make)";
-  } else if (enums::to_string(options_.buildSystem) == "meson") {
+  } else if (to_string(options_.buildSystem) == "meson") {
     buildSteps = R"(# 配置项目
 meson setup build
 
@@ -1862,10 +1863,10 @@ bazel build //...)";
   std::string testSection = "";
   if (options_.includeTests) {
     std::string testCmd;
-    if (enums::to_string(options_.buildSystem) == "cmake") {
+    if (to_string(options_.buildSystem) == "cmake") {
       testCmd = R"(cd build
 ctest)";
-    } else if (enums::to_string(options_.buildSystem) == "meson") {
+    } else if (to_string(options_.buildSystem) == "meson") {
       testCmd = R"(cd build
 meson test)";
     } else {
@@ -1883,7 +1884,7 @@ meson test)";
 
   // 运行命令
   std::string runCmd;
-  if (enums::to_string(options_.buildSystem) == "cmake" || enums::to_string(options_.buildSystem) == "meson") {
+  if (to_string(options_.buildSystem) == "cmake" || to_string(options_.buildSystem) == "meson") {
     runCmd = fmt::format(R"(cd build
 ./{})",
                          options_.projectName);
@@ -2039,7 +2040,7 @@ add_definitions(${GTK3_CFLAGS_OTHER})
   }
 
   // vcpkg集成
-  if (enums::to_string(options_.packageManager) == "vcpkg") {
+  if (to_string(options_.packageManager) == "vcpkg") {
     content += R"(
 # vcpkg integration
 if(DEFINED ENV{VCPKG_ROOT})
@@ -2202,19 +2203,19 @@ gtk_dep = dependency('gtk+-3.0', version : '>=3.20')
 
   // 测试框架依赖
   if (options_.includeTests) {
-    if (enums::to_string(options_.testFramework) == "gtest") {
+    if (to_string(options_.testFramework) == "gtest") {
       content += R"(
 # Test dependencies
 gtest_dep = dependency('gtest', main : true)
 test_deps = [gtest_dep]
 )";
-    } else if (enums::to_string(options_.testFramework) == "catch2") {
+    } else if (to_string(options_.testFramework) == "catch2") {
       content += R"(
 # Test dependencies
 catch2_dep = dependency('catch2')
 test_deps = [catch2_dep]
 )";
-    } else if (enums::to_string(options_.testFramework) == "doctest") {
+    } else if (to_string(options_.testFramework) == "doctest") {
       content += R"(
 # Test dependencies
 doctest_dep = dependency('doctest')
@@ -2357,9 +2358,9 @@ cc_test(
         ":)" + options_.projectName +
                R"(_lib",
         "@)" +
-               (enums::to_string(options_.testFramework) == "gtest"
+               (to_string(options_.testFramework) == "gtest"
                     ? "com_google_googletest//:gtest_main"
-                : enums::to_string(options_.testFramework) == "catch2" ? "catch2//:catch2"
+                : to_string(options_.testFramework) == "catch2" ? "catch2//:catch2"
                                                      : "doctest//:doctest") +
                R"(",
     ],
@@ -2395,9 +2396,9 @@ std::string GuiTemplate::getVcpkgJsonContent() {
   // 根据测试配置添加测试框架依赖
   if (options_.includeTests) {
     std::string testFrameworkName;
-    if (enums::to_string(options_.testFramework) == "gtest") {
+    if (to_string(options_.testFramework) == "gtest") {
       testFrameworkName = "gtest";
-    } else if (enums::to_string(options_.testFramework) == "catch2") {
+    } else if (to_string(options_.testFramework) == "catch2") {
       testFrameworkName = "catch2";
     } else {
       testFrameworkName = "doctest";
@@ -2444,11 +2445,11 @@ spdlog/1.10.0
   }
 
   if (options_.includeTests) {
-    if (enums::to_string(options_.testFramework) == "gtest") {
+    if (to_string(options_.testFramework) == "gtest") {
       content += "gtest/1.12.1\n";
-    } else if (enums::to_string(options_.testFramework) == "catch2") {
+    } else if (to_string(options_.testFramework) == "catch2") {
       content += "catch2/3.1.0\n";
-    } else if (enums::to_string(options_.testFramework) == "doctest") {
+    } else if (to_string(options_.testFramework) == "doctest") {
       content += "doctest/2.4.9\n";
     }
   }
@@ -2457,9 +2458,9 @@ spdlog/1.10.0
 [generators]
 )";
 
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (to_string(options_.buildSystem) == "cmake") {
     content += "cmake\n";
-  } else if (enums::to_string(options_.buildSystem) == "meson") {
+  } else if (to_string(options_.buildSystem) == "meson") {
     content += "pkg_config\n";
   } else {
     content += "cmake_find_package\n";

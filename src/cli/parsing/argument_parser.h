@@ -20,6 +20,7 @@ bool parseDevToolOptions(CliOptions& options, const std::vector<std::string>& ar
 bool parseGitOptions(CliOptions& options, const std::vector<std::string>& args, size_t& index);
 bool parseDocumentationOptions(CliOptions& options, const std::vector<std::string>& args, size_t& index);
 bool parseAdvancedOptions(CliOptions& options, const std::vector<std::string>& args, size_t& index);
+bool parseRemoteSourceOptions(CliOptions& options, const std::vector<std::string>& args, size_t& index);
 
 // Helper functions
 bool isFlag(const std::string& arg);

@@ -1,4 +1,4 @@
-#include "cli_parser.h"
+﻿#include "cli_parser.h"
 
 #include <algorithm>
 #include <cctype>
@@ -13,6 +13,8 @@
 #include "../config/user_preferences.h"
 #include "../config/interactive_config.h"
 #include "../config/project_profiles.h"
+
+using namespace cli_enums;
 #include "../config/config_validator.h"
 #include <fmt/color.h>
 #include <fmt/core.h>
@@ -20,6 +22,7 @@
 #include <spdlog/spdlog.h>
 
 using namespace utils;
+using namespace cli_enums;
 using json = nlohmann::json;
 
 // 初始化静态成员
@@ -27,8 +30,9 @@ Language Localization::s_currentLanguage = Language::English;
 std::unordered_map<std::string, std::unordered_map<Language, std::string>>
     Localization::s_strings;
 
-// 枚举转换实现
-namespace enums {
+// 枚举转换实现已移至 cli_enums.cpp
+// namespace enums {
+/*
 std::string_view to_string(TemplateType type) {
   static const std::unordered_map<TemplateType, std::string_view> map = {
       {TemplateType::Console, "console"},
@@ -388,7 +392,8 @@ std::vector<std::string_view> all_compiler_flags() {
   return {"debug", "release", "relwithdebinfo", "minsizerel", "custom"};
 }
 
-} // namespace enums
+*/
+// } // namespace enums
 
 // 本地化实现
 void Localization::initialize() { loadLanguageStrings(); }
@@ -871,21 +876,21 @@ CliOptions CliParser::parse(int argc, char *argv[]) {
 
     if (arg == "--template" || arg == "-t") {
       if (i + 1 < argc) {
-        auto templateType = enums::to_template_type(argv[++i]);
+        auto templateType = to_template_type(argv[++i]);
         if (templateType) {
           options.templateType = *templateType;
         }
       }
     } else if (arg == "--build" || arg == "-b") {
       if (i + 1 < argc) {
-        auto buildSystem = enums::to_build_system(argv[++i]);
+        auto buildSystem = to_build_system(argv[++i]);
         if (buildSystem) {
           options.buildSystem = *buildSystem;
         }
       }
     } else if (arg == "--package" || arg == "-p") {
       if (i + 1 < argc) {
-        auto packageManager = enums::to_package_manager(argv[++i]);
+        auto packageManager = to_package_manager(argv[++i]);
         if (packageManager) {
           options.packageManager = *packageManager;
         }
@@ -897,7 +902,7 @@ CliOptions CliParser::parse(int argc, char *argv[]) {
     } else if (arg == "--tests") {
       options.includeTests = true;
       if (i + 1 < argc && argv[i + 1][0] != '-') {
-        auto testFramework = enums::to_test_framework(argv[++i]);
+        auto testFramework = to_test_framework(argv[++i]);
         if (testFramework) {
           options.testFramework = *testFramework;
         }
@@ -908,14 +913,14 @@ CliOptions CliParser::parse(int argc, char *argv[]) {
       options.includeCodeStyleTools = true;
     } else if (arg == "--editor") {
       if (i + 1 < argc) {
-        auto editor = enums::to_editor_config(argv[++i]);
+        auto editor = to_editor_config(argv[++i]);
         if (editor) {
           options.editorOptions.push_back(*editor);
         }
       }
     } else if (arg == "--ci" || arg == "--cicd") {
       if (i + 1 < argc) {
-        auto ci = enums::to_ci_system(argv[++i]);
+        auto ci = to_ci_system(argv[++i]);
         if (ci) {
           options.ciOptions.push_back(*ci);
         }
@@ -924,7 +929,7 @@ CliOptions CliParser::parse(int argc, char *argv[]) {
       options.initGit = false;
     } else if (arg == "--language" || arg == "-l") {
       if (i + 1 < argc) {
-        auto language = enums::to_language(argv[++i]);
+        auto language = to_language(argv[++i]);
         if (language) {
           options.language = *language;
           Localization::setCurrentLanguage(options.language);
@@ -946,21 +951,21 @@ CliOptions CliParser::parse(int argc, char *argv[]) {
       options.strictValidation = true;
     } else if (arg == "--git-workflow") {
       if (i + 1 < argc) {
-        auto workflow = enums::to_git_workflow(argv[++i]);
+        auto workflow = to_git_workflow(argv[++i]);
         if (workflow) {
           options.gitWorkflow = *workflow;
         }
       }
     } else if (arg == "--git-branch-strategy") {
       if (i + 1 < argc) {
-        auto strategy = enums::to_git_branch_strategy(argv[++i]);
+        auto strategy = to_git_branch_strategy(argv[++i]);
         if (strategy) {
           options.gitBranchStrategy = *strategy;
         }
       }
     } else if (arg == "--license") {
       if (i + 1 < argc) {
-        auto license = enums::to_license_type(argv[++i]);
+        auto license = to_license_type(argv[++i]);
         if (license) {
           options.licenseType = *license;
         }
@@ -1312,9 +1317,9 @@ void CliParser::showProfileInfo(const std::string& profileName) {
   }
 
   std::cout << "\n" << TerminalUtils::colorize("Configuration:", utils::Color::BrightYellow) << "\n";
-  std::cout << "  Template: " << enums::to_string(profile->options.templateType) << "\n";
-  std::cout << "  Build System: " << enums::to_string(profile->options.buildSystem) << "\n";
-  std::cout << "  Package Manager: " << enums::to_string(profile->options.packageManager) << "\n";
+  std::cout << "  Template: " << to_string(profile->options.templateType) << "\n";
+  std::cout << "  Build System: " << to_string(profile->options.buildSystem) << "\n";
+  std::cout << "  Package Manager: " << to_string(profile->options.packageManager) << "\n";
   std::cout << "  Tests: " << (profile->options.includeTests ? "Yes" : "No") << "\n";
   std::cout << "  Documentation: " << (profile->options.includeDocumentation ? "Yes" : "No") << "\n";
 
@@ -1384,10 +1389,10 @@ CliOptions CliParser::promptUserForOptions(const CliOptions &defaultOptions) {
   if (options.templateType == defaults.templateType) {
     std::string templateTypeStr = UserInput::readChoiceWithStyle(
         Localization::get("selectProjectType", lang),
-        enums::all_template_types(), enums::to_string(defaults.templateType),
+        all_template_types(), to_string(defaults.templateType),
         utils::Color::BrightGreen);
 
-    auto templateType = enums::to_template_type(templateTypeStr);
+    auto templateType = to_template_type(templateTypeStr);
     if (templateType) {
       options.templateType = *templateType;
     }
@@ -1397,10 +1402,10 @@ CliOptions CliParser::promptUserForOptions(const CliOptions &defaultOptions) {
   if (options.buildSystem == defaults.buildSystem) {
     std::string buildSystemStr = UserInput::readChoiceWithStyle(
         Localization::get("selectBuildSystem", lang),
-        enums::all_build_systems(), enums::to_string(defaults.buildSystem),
+        all_build_systems(), to_string(defaults.buildSystem),
         utils::Color::BrightGreen);
 
-    auto buildSystem = enums::to_build_system(buildSystemStr);
+    auto buildSystem = to_build_system(buildSystemStr);
     if (buildSystem) {
       options.buildSystem = *buildSystem;
     }
@@ -1413,10 +1418,10 @@ CliOptions CliParser::promptUserForOptions(const CliOptions &defaultOptions) {
   if (options.includeTests) {
     std::string testFrameworkStr = UserInput::readChoiceWithStyle(
         Localization::get("selectTestFramework", lang),
-        enums::all_test_frameworks(), enums::to_string(defaults.testFramework),
+        all_test_frameworks(), to_string(defaults.testFramework),
         utils::Color::BrightGreen);
 
-    auto testFramework = enums::to_test_framework(testFrameworkStr);
+    auto testFramework = to_test_framework(testFrameworkStr);
     if (testFramework) {
       options.testFramework = *testFramework;
     }

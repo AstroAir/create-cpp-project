@@ -1,4 +1,4 @@
-#include "network_template.h"
+﻿#include "network_template.h"
 
 #include "../utils/file_utils.h"
 #include "../utils/terminal_utils.h"
@@ -7,6 +7,7 @@
 #include <spdlog/spdlog.h>
 
 using namespace utils;
+using namespace cli_enums;
 
 NetworkTemplate::NetworkTemplate(const CliOptions &options)
     : TemplateBase(options) {}
@@ -108,31 +109,31 @@ bool NetworkTemplate::create() {
   std::vector<std::string> infoLines = {
       fmt::format("Network application project '{}' created successfully!", options_.projectName),
       "",
-      fmt::format("Build system: {}", enums::to_string(options_.buildSystem)),
-      fmt::format("Package manager: {}", enums::to_string(options_.packageManager)),
-      options_.includeTests ? fmt::format("Test framework: {}", enums::to_string(options_.testFramework))
+      fmt::format("Build system: {}", to_string(options_.buildSystem)),
+      fmt::format("Package manager: {}", to_string(options_.packageManager)),
+      options_.includeTests ? fmt::format("Test framework: {}", to_string(options_.testFramework))
                             : "No test framework included",
       "",
       "Getting started:"
   };
 
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (to_string(options_.buildSystem) == "cmake") {
     infoLines.push_back(fmt::format("cd {}", options_.projectName));
     infoLines.push_back("mkdir build && cd build");
     infoLines.push_back("cmake ..");
     infoLines.push_back("make");
-  } else if (enums::to_string(options_.buildSystem) == "meson") {
+  } else if (to_string(options_.buildSystem) == "meson") {
     infoLines.push_back(fmt::format("cd {}", options_.projectName));
     infoLines.push_back("meson setup build");
     infoLines.push_back("cd build");
     infoLines.push_back("meson compile");
-  } else if (enums::to_string(options_.buildSystem) == "bazel") {
+  } else if (to_string(options_.buildSystem) == "bazel") {
     infoLines.push_back(fmt::format("cd {}", options_.projectName));
     infoLines.push_back("bazel build //...");
-  } else if (enums::to_string(options_.buildSystem) == "xmake") {
+  } else if (to_string(options_.buildSystem) == "xmake") {
     infoLines.push_back(fmt::format("cd {}", options_.projectName));
     infoLines.push_back("xmake");
-  } else if (enums::to_string(options_.buildSystem) == "premake") {
+  } else if (to_string(options_.buildSystem) == "premake") {
     infoLines.push_back(fmt::format("cd {}", options_.projectName));
     infoLines.push_back("premake5 gmake2");
     infoLines.push_back("make");
@@ -269,7 +270,7 @@ bool NetworkTemplate::createProjectStructure() {
 bool NetworkTemplate::createBuildSystem() {
   std::string projectPath = options_.projectName;
 
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (to_string(options_.buildSystem) == "cmake") {
     // Create CMakeLists.txt
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "CMakeLists.txt"),
@@ -277,7 +278,7 @@ bool NetworkTemplate::createBuildSystem() {
       spdlog::error("Failed to write CMakeLists.txt file");
       return false;
     }
-  } else if (enums::to_string(options_.buildSystem) == "meson") {
+  } else if (to_string(options_.buildSystem) == "meson") {
     // Create meson.build
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "meson.build"),
@@ -285,7 +286,7 @@ bool NetworkTemplate::createBuildSystem() {
       spdlog::error("Failed to write meson.build file");
       return false;
     }
-  } else if (enums::to_string(options_.buildSystem) == "bazel") {
+  } else if (to_string(options_.buildSystem) == "bazel") {
     // Create WORKSPACE and BUILD files
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "WORKSPACE"),
@@ -299,7 +300,7 @@ bool NetworkTemplate::createBuildSystem() {
       spdlog::error("Failed to write BUILD file");
       return false;
     }
-  } else if (enums::to_string(options_.buildSystem) == "xmake") {
+  } else if (to_string(options_.buildSystem) == "xmake") {
     // Create xmake.lua
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "xmake.lua"),
@@ -307,7 +308,7 @@ bool NetworkTemplate::createBuildSystem() {
       spdlog::error("Failed to write xmake.lua file");
       return false;
     }
-  } else if (enums::to_string(options_.buildSystem) == "premake") {
+  } else if (to_string(options_.buildSystem) == "premake") {
     // Create premake5.lua
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "premake5.lua"),
@@ -330,7 +331,7 @@ bool NetworkTemplate::setupNetworkLibrary() {
   // Add necessary dependencies based on selected network library
   if (options_.networkLibrary == "asio") {
     // Configure Asio library
-    if (enums::to_string(options_.packageManager) == "vcpkg") {
+    if (to_string(options_.packageManager) == "vcpkg") {
       // Modify vcpkg.json to add asio dependency
       std::string vcpkgJsonPath =
           FileUtils::combinePath(projectPath, "vcpkg.json");
@@ -348,7 +349,7 @@ bool NetworkTemplate::setupNetworkLibrary() {
           }
         }
       }
-    } else if (enums::to_string(options_.packageManager) == "conan") {
+    } else if (to_string(options_.packageManager) == "conan") {
       // Modify conanfile.txt to add asio dependency
       std::string conanfilePath =
           FileUtils::combinePath(projectPath, "conanfile.txt");
@@ -368,7 +369,7 @@ bool NetworkTemplate::setupNetworkLibrary() {
     }
   } else if (options_.networkLibrary == "boost") {
     // Configure Boost library
-    if (enums::to_string(options_.packageManager) == "vcpkg") {
+    if (to_string(options_.packageManager) == "vcpkg") {
       // Modify vcpkg.json to add boost dependency
       std::string vcpkgJsonPath =
           FileUtils::combinePath(projectPath, "vcpkg.json");
@@ -387,7 +388,7 @@ bool NetworkTemplate::setupNetworkLibrary() {
           }
         }
       }
-    } else if (enums::to_string(options_.packageManager) == "conan") {
+    } else if (to_string(options_.packageManager) == "conan") {
       // Modify conanfile.txt to add boost dependency
       std::string conanfilePath =
           FileUtils::combinePath(projectPath, "conanfile.txt");
@@ -407,7 +408,7 @@ bool NetworkTemplate::setupNetworkLibrary() {
     }
   } else if (options_.networkLibrary == "poco") {
     // Configure POCO library
-    if (enums::to_string(options_.packageManager) == "vcpkg") {
+    if (to_string(options_.packageManager) == "vcpkg") {
       // Modify vcpkg.json to add poco dependency
       std::string vcpkgJsonPath =
           FileUtils::combinePath(projectPath, "vcpkg.json");
@@ -426,7 +427,7 @@ bool NetworkTemplate::setupNetworkLibrary() {
           }
         }
       }
-    } else if (enums::to_string(options_.packageManager) == "conan") {
+    } else if (to_string(options_.packageManager) == "conan") {
       // Modify conanfile.txt to add poco dependency
       std::string conanfilePath =
           FileUtils::combinePath(projectPath, "conanfile.txt");
@@ -453,7 +454,7 @@ bool NetworkTemplate::setupNetworkLibrary() {
 bool NetworkTemplate::setupPackageManager() {
   std::string projectPath = options_.projectName;
 
-  if (enums::to_string(options_.packageManager) == "vcpkg") {
+  if (to_string(options_.packageManager) == "vcpkg") {
     // Create base vcpkg.json file
     std::string vcpkgJson = fmt::format(R"({
   "name": "{}",
@@ -467,9 +468,9 @@ bool NetworkTemplate::setupPackageManager() {
       spdlog::error("Failed to write vcpkg.json file");
       return false;
     }
-  } else if (enums::to_string(options_.packageManager) == "conan") {
+  } else if (to_string(options_.packageManager) == "conan") {
     // Create conanfile.txt
-    std::string generator = (enums::to_string(options_.buildSystem) == "cmake" ? "cmake" : "");
+    std::string generator = (to_string(options_.buildSystem) == "cmake" ? "cmake" : "");
     std::string conanfile = fmt::format(R"([requires]
 
 [generators]
@@ -480,12 +481,12 @@ bool NetworkTemplate::setupPackageManager() {
       spdlog::error("Failed to write conanfile.txt file");
       return false;
     }
-  } else if (enums::to_string(options_.packageManager) != "none") {
-    spdlog::error("Unsupported package manager: {}", enums::to_string(options_.packageManager));
+  } else if (to_string(options_.packageManager) != "none") {
+    spdlog::error("Unsupported package manager: {}", to_string(options_.packageManager));
     return false;
   }
 
-  spdlog::info("Package manager ({}) configured successfully", enums::to_string(options_.packageManager));
+  spdlog::info("Package manager ({}) configured successfully", to_string(options_.packageManager));
   return true;
 }
 
@@ -511,7 +512,7 @@ bool NetworkTemplate::setupTestFramework() {
   }
 
   // Update build system to include tests
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (to_string(options_.buildSystem) == "cmake") {
     std::string cmakePath =
         FileUtils::combinePath(projectPath, "CMakeLists.txt");
     std::string cmakeContent = FileUtils::readFromFile(cmakePath);
@@ -533,7 +534,7 @@ endif()
 
     // Create tests/CMakeLists.txt
     std::string testCmakeContent;
-    if (enums::to_string(options_.testFramework) == "gtest") {
+    if (to_string(options_.testFramework) == "gtest") {
       testCmakeContent = R"(
 find_package(GTest REQUIRED)
 add_executable(${PROJECT_NAME}_tests network_test.cpp)
@@ -544,7 +545,7 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
 )
 add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
 )";
-    } else if (enums::to_string(options_.testFramework) == "catch2") {
+    } else if (to_string(options_.testFramework) == "catch2") {
       testCmakeContent = R"(
 find_package(Catch2 REQUIRED)
 add_executable(${PROJECT_NAME}_tests network_test.cpp)
@@ -554,7 +555,7 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
 )
 add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
 )";
-    } else if (enums::to_string(options_.testFramework) == "doctest") {
+    } else if (to_string(options_.testFramework) == "doctest") {
       testCmakeContent = R"(
 find_package(doctest REQUIRED)
 add_executable(${PROJECT_NAME}_tests network_test.cpp)
@@ -574,7 +575,7 @@ add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
     }
   }
 
-  spdlog::info("Test framework ({}) configured successfully", enums::to_string(options_.testFramework));
+  spdlog::info("Test framework ({}) configured successfully", to_string(options_.testFramework));
   return true;
 }
 
@@ -1550,7 +1551,7 @@ make
     options_.projectName,
     options_.projectName,
     options_.networkLibrary.value_or("Unknown"),
-    enums::to_string(options_.packageManager));
+    to_string(options_.packageManager));
 }
 
 std::string NetworkTemplate::getCMakeContent() {
@@ -1868,7 +1869,7 @@ std::string NetworkTemplate::getNetworkTestContent() {
   std::string testFrameworkInclude;
   std::string testFrameworkMacros;
 
-  if (enums::to_string(options_.testFramework) == "gtest") {
+  if (to_string(options_.testFramework) == "gtest") {
     testFrameworkInclude = "#include <gtest/gtest.h>";
     testFrameworkMacros = R"(
 TEST(NetworkTest, ServerCreation) {
@@ -1887,7 +1888,7 @@ int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 })";
-  } else if (enums::to_string(options_.testFramework) == "catch2") {
+  } else if (to_string(options_.testFramework) == "catch2") {
     testFrameworkInclude = "#include <catch2/catch_test_macros.hpp>";
     testFrameworkMacros = R"(
 TEST_CASE("Server can be created", "[network]") {
@@ -1897,7 +1898,7 @@ TEST_CASE("Server can be created", "[network]") {
 TEST_CASE("Client can be created", "[network]") {
     REQUIRE_NOTHROW()" + options_.projectName + R"(::Client{});
 })";
-  } else if (enums::to_string(options_.testFramework) == "doctest") {
+  } else if (to_string(options_.testFramework) == "doctest") {
     testFrameworkInclude = "#include <doctest/doctest.h>";
     testFrameworkMacros = R"(
 TEST_CASE("Server creation") {

@@ -130,6 +130,14 @@ enum class LicenseType {
   None
 };
 
+// Remote source types for project creation
+enum class SourceType {
+  Template,      // Use built-in template (default)
+  GitRepository, // Clone from Git repository
+  Archive,       // Extract from archive file
+  LocalPath      // Copy from local directory
+};
+
 // Enum conversion utilities namespace
 namespace cli_enums {
 
@@ -147,6 +155,7 @@ std::string_view to_string(CompilerFlags flags);
 std::string_view to_string(GitWorkflow workflow);
 std::string_view to_string(GitBranchStrategy strategy);
 std::string_view to_string(LicenseType license);
+std::string_view to_string(SourceType source);
 
 // Convert strings to enums
 std::optional<TemplateType> to_template_type(std::string_view str);
@@ -162,6 +171,7 @@ std::optional<CompilerFlags> to_compiler_flags(std::string_view str);
 std::optional<GitWorkflow> to_git_workflow(std::string_view str);
 std::optional<GitBranchStrategy> to_git_branch_strategy(std::string_view str);
 std::optional<LicenseType> to_license_type(std::string_view str);
+std::optional<SourceType> to_source_type(std::string_view str);
 
 // Get all enum values as strings
 std::vector<std::string_view> all_template_types();
@@ -177,6 +187,7 @@ std::vector<std::string_view> all_compiler_flags();
 std::vector<std::string_view> all_git_workflows();
 std::vector<std::string_view> all_git_branch_strategies();
 std::vector<std::string_view> all_license_types();
+std::vector<std::string_view> all_source_types();
 
 } // namespace cli_enums
 
@@ -206,5 +217,12 @@ template <>
 struct fmt::formatter<CiSystem> : fmt::formatter<std::string_view> {
   auto format(CiSystem ci, fmt::format_context& ctx) const {
     return fmt::formatter<std::string_view>::format(cli_enums::to_string(ci), ctx);
+  }
+};
+
+template <>
+struct fmt::formatter<SourceType> : fmt::formatter<std::string_view> {
+  auto format(SourceType source, fmt::format_context& ctx) const {
+    return fmt::formatter<std::string_view>::format(cli_enums::to_string(source), ctx);
   }
 };

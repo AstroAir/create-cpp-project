@@ -1,4 +1,7 @@
 #pragma once
+#include "types/cli_options.h"
+#include "types/cli_enums.h"
+#include "localization/localization.h"
 #include "../utils/terminal_utils.h" // 引入终端工具
 #include <filesystem>
 #include <functional>
@@ -10,38 +13,8 @@
 #include <vector>
 #include <fmt/format.h>
 
-// 使用枚举类以提高类型安全性
-enum class TemplateType {
-  Console,
-  Lib,
-  HeaderOnlyLib,
-  MultiExecutable,
-  Gui,
-  Network,
-  Embedded,
-  WebService,
-  GameEngine,
-  QtApp,
-  SfmlApp,
-  BoostApp,
-  TestProject
-};
-enum class BuildSystem { CMake, Meson, Bazel, XMake, Premake, Make, Ninja };
-enum class PackageManager { Vcpkg, Conan, None, Spack, Hunter, CPM, FetchContent };
-enum class TestFramework { GTest, Catch2, Doctest, Boost, None };
-enum class EditorConfig { VSCode, CLion, VS, Vim, Emacs, Sublime };
-enum class CiSystem { GitHub, GitLab, Travis, AppVeyor, AzureDevOps, CircleCI };
-enum class Language { English, Chinese, Spanish, Japanese, German, French };
-
-// New enums for advanced configuration
-enum class CppStandard { Cpp11, Cpp14, Cpp17, Cpp20, Cpp23, Latest };
-enum class ProjectStructure { Minimal, Standard, Advanced, Custom };
-enum class CompilerFlags { Debug, Release, RelWithDebInfo, MinSizeRel, Custom };
-
-// Git workflow and configuration enums
-enum class GitWorkflow { None, GitFlow, GitHubFlow, GitLabFlow, Custom };
-enum class GitBranchStrategy { SingleBranch, FeatureBranches, GitFlow, Custom };
-enum class LicenseType { MIT, Apache2, GPL3, BSD3, BSD2, Unlicense, Custom, None };
+// Import the enums and types from the types module
+using namespace cli_enums;
 
 // 枚举与字符串互相转换的命名空间
 namespace enums {
@@ -94,71 +67,7 @@ std::vector<std::string_view> all_compiler_flags();
 
 } // namespace enums
 
-// 增强的命令行选项结构
-struct CliOptions {
-  std::string projectName;
-  std::string projectDescription; // New: Project description
-  TemplateType templateType = TemplateType::Console;
-  BuildSystem buildSystem = BuildSystem::CMake;
-  PackageManager packageManager = PackageManager::Vcpkg;
-  std::optional<std::string> networkLibrary; // 用于网络项目: asio, boost, poco
-
-  // Enhanced C++ configuration
-  CppStandard cppStandard = CppStandard::Cpp17;
-  ProjectStructure projectStructure = ProjectStructure::Standard;
-  CompilerFlags compilerFlags = CompilerFlags::Release;
-  std::vector<std::string> customCompilerFlags;
-
-  bool includeTests = false;
-  TestFramework testFramework = TestFramework::GTest;
-
-  bool includeDocumentation = false;
-  bool includeCodeStyleTools = false;
-
-  std::vector<EditorConfig> editorOptions;
-  std::vector<CiSystem> ciOptions;
-
-  bool initGit = true;
-  bool showHelp = false;
-  bool version = false;
-  bool verbose = false;
-
-  Language language = Language::English;
-  std::filesystem::path customTemplatePath; // 自定义项目模板路径
-
-  // Profile and validation options
-  std::string profileName; // Project profile to use
-  bool validateConfig = true; // Enable configuration validation
-  bool strictValidation = false; // Enable strict validation mode
-
-  // Git-related options
-  GitWorkflow gitWorkflow = GitWorkflow::None;
-  GitBranchStrategy gitBranchStrategy = GitBranchStrategy::SingleBranch;
-  LicenseType licenseType = LicenseType::MIT;
-  std::string gitRemoteUrl; // Optional remote repository URL
-  std::string gitUserName; // Git user name for configuration
-  std::string gitUserEmail; // Git user email for configuration
-  bool createInitialCommit = true;
-  bool setupGitHooks = false;
-  std::vector<std::string> gitBranches; // Additional branches to create
-
-  // Documentation-related options
-  std::vector<std::string> docFormats{"markdown"}; // Output formats: markdown, html, pdf
-  std::vector<std::string> docTypes{"readme", "api"}; // Types: readme, api, user, developer
-  bool generateDoxygen = false;
-  std::string doxygenTheme = "default";
-  bool includeCodeExamples = true;
-  bool generateChangelog = false;
-
-  // Extended graphical framework options
-  std::vector<std::string> guiFrameworks; // Multiple GUI frameworks
-  std::vector<std::string> gameFrameworks; // Game development frameworks
-  std::vector<std::string> graphicsLibraries; // Graphics rendering libraries
-  bool includeShaders = false; // Include shader templates for graphics projects
-
-  // 用于高级用例的额外选项
-  std::unordered_map<std::string, std::string> additionalOptions;
-};
+// CliOptions is now imported from types/cli_options.h
 
 // 用户输入处理类
 class UserInput {
@@ -219,23 +128,6 @@ private:
       const std::vector<std::string_view> &options,
       std::optional<std::string_view> defaultOption = std::nullopt,
       utils::Color highlightColor = utils::Color::BrightGreen);
-};
-
-// 本地化辅助类
-class Localization {
-public:
-  static void initialize();
-  static std::string_view get(std::string_view key,
-                              Language lang = Language::English);
-  static Language getCurrentLanguage();
-  static void setCurrentLanguage(Language lang);
-
-private:
-  static Language s_currentLanguage;
-  static std::unordered_map<std::string,
-                            std::unordered_map<Language, std::string>>
-      s_strings;
-  static void loadLanguageStrings();
 };
 
 // 配置管理器用于持久化设置
@@ -337,31 +229,4 @@ private:
   static void showCliHeader();
 };
 
-// fmt formatters for custom enums
-template <>
-struct fmt::formatter<TemplateType> : fmt::formatter<std::string_view> {
-  auto format(TemplateType type, fmt::format_context& ctx) const {
-    return fmt::formatter<std::string_view>::format(::enums::to_string(type), ctx);
-  }
-};
-
-template <>
-struct fmt::formatter<BuildSystem> : fmt::formatter<std::string_view> {
-  auto format(BuildSystem system, fmt::format_context& ctx) const {
-    return fmt::formatter<std::string_view>::format(::enums::to_string(system), ctx);
-  }
-};
-
-template <>
-struct fmt::formatter<PackageManager> : fmt::formatter<std::string_view> {
-  auto format(PackageManager manager, fmt::format_context& ctx) const {
-    return fmt::formatter<std::string_view>::format(::enums::to_string(manager), ctx);
-  }
-};
-
-template <>
-struct fmt::formatter<CiSystem> : fmt::formatter<std::string_view> {
-  auto format(CiSystem ci, fmt::format_context& ctx) const {
-    return fmt::formatter<std::string_view>::format(::enums::to_string(ci), ctx);
-  }
-};
+// fmt formatters are now imported from types/cli_enums.h

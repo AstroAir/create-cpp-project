@@ -100,6 +100,7 @@ CliOptions parseArguments(int argc, char* argv[]) {
     if (parseGitOptions(options, args, i)) continue;
     if (parseDocumentationOptions(options, args, i)) continue;
     if (parseAdvancedOptions(options, args, i)) continue;
+    if (parseRemoteSourceOptions(options, args, i)) continue;
 
     // Unknown argument
     spdlog::warn("Unknown argument: {}", args[i]);
@@ -555,6 +556,93 @@ std::string extractProjectName(const std::vector<std::string>& args, CommandType
     return args[1];
   }
   return "";
+}
+
+// Parse remote source options
+bool parseRemoteSourceOptions(CliOptions& options, const std::vector<std::string>& args, size_t& index) {
+  const std::string& arg = args[index];
+
+  if (arg == "--from-git" || arg == "--git-repo") {
+    if (hasValue(args, index)) {
+      options.gitRepositoryUrl = getNextValue(args, index);
+      options.sourceType = SourceType::GitRepository;
+    }
+    return true;
+  }
+
+  if (arg == "--from-archive" || arg == "--archive") {
+    if (hasValue(args, index)) {
+      std::string archiveSource = getNextValue(args, index);
+      // Check if it's a URL or local file path
+      if (archiveSource.substr(0, 7) == "http://" || archiveSource.substr(0, 8) == "https://" ||
+          archiveSource.substr(0, 6) == "ftp://") {
+        options.archiveUrl = archiveSource;
+      } else {
+        options.archiveFilePath = archiveSource;
+      }
+      options.sourceType = SourceType::Archive;
+    }
+    return true;
+  }
+
+  if (arg == "--branch" || arg == "-b") {
+    if (hasValue(args, index)) {
+      options.gitBranch = getNextValue(args, index);
+    }
+    return true;
+  }
+
+  if (arg == "--tag" || arg == "-t") {
+    if (hasValue(args, index)) {
+      options.gitTag = getNextValue(args, index);
+    }
+    return true;
+  }
+
+  if (arg == "--commit") {
+    if (hasValue(args, index)) {
+      options.gitCommit = getNextValue(args, index);
+    }
+    return true;
+  }
+
+  if (arg == "--shallow") {
+    options.useShallowClone = true;
+    return true;
+  }
+
+  if (arg == "--no-shallow") {
+    options.useShallowClone = false;
+    return true;
+  }
+
+  if (arg == "--preserve-git") {
+    options.preserveGitHistory = true;
+    return true;
+  }
+
+  if (arg == "--git-username") {
+    if (hasValue(args, index)) {
+      options.gitUsername = getNextValue(args, index);
+    }
+    return true;
+  }
+
+  if (arg == "--git-password") {
+    if (hasValue(args, index)) {
+      options.gitPassword = getNextValue(args, index);
+    }
+    return true;
+  }
+
+  if (arg == "--ssh-key") {
+    if (hasValue(args, index)) {
+      options.sshKeyPath = getNextValue(args, index);
+    }
+    return true;
+  }
+
+  return false;
 }
 
 } // namespace argument_parser

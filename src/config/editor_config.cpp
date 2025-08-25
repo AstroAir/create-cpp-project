@@ -1,9 +1,10 @@
-#include "editor_config.h"
+﻿#include "editor_config.h"
 #include "../utils/file_utils.h"
 
 #include <spdlog/spdlog.h>
 
 using namespace utils;
+using namespace cli_enums;
 
 bool EditorConfigManager::createEditorConfig(const std::string &projectPath,
                                       const std::string &editorType,
@@ -29,7 +30,7 @@ bool EditorConfigManager::createEditorConfigs(
   bool success = true;
 
   for (const auto &editorType : editorTypes) {
-    if (!createEditorConfig(projectPath, std::string(enums::to_string(editorType)), options)) {
+    if (!createEditorConfig(projectPath, std::string(to_string(editorType)), options)) {
       success = false;
     }
   }

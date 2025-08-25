@@ -1,5 +1,5 @@
 #pragma once
-#include "../cli/cli_parser.h"
+#include "../cli/types/cli_options.h"
 #include "../utils/file_utils.h"
 #include "../testing/test_framework_manager.h"
 #include <string>

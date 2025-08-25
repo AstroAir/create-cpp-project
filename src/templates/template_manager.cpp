@@ -10,6 +10,8 @@
 #include "webservice_template.h"
 #include "embedded_template.h"
 #include "gameengine_template.h"
+#include "git_repository_template.h"
+#include "archive_template.h"
 #include "../utils/framework_integration.h"
 
 #include <iostream>
@@ -73,22 +75,48 @@ TemplateManager::TemplateManager() {
 
 bool TemplateManager::createProject(const CliOptions &options) {
   try {
-    // 将枚举转换为字符串
-    std::string templateTypeStr = std::string(enums::to_string(options.templateType));
+    // Check for remote source types first
+    if (options.sourceType == SourceType::GitRepository) {
+      spdlog::info("Creating project from Git repository");
+      auto template_ptr = std::make_unique<GitRepositoryTemplate>(options);
+      return template_ptr->create();
+    }
 
-    // 查找对应的模板工厂
-    auto it = templateFactories_.find(templateTypeStr);
-    if (it == templateFactories_.end()) {
-      std::cerr << "错误: 未知的项目模板类型 '" << templateTypeStr
-                << "'。\n";
+    if (options.sourceType == SourceType::Archive) {
+      spdlog::info("Creating project from archive");
+      auto template_ptr = std::make_unique<ArchiveTemplate>(options);
+      return template_ptr->create();
+    }
+
+    // Handle traditional template-based creation
+    if (options.sourceType == SourceType::Template) {
+      // 将枚举转换为字符串
+      std::string templateTypeStr = std::string(cli_enums::to_string(options.templateType));
+
+      // 查找对应的模板工厂
+      auto it = templateFactories_.find(templateTypeStr);
+      if (it == templateFactories_.end()) {
+        std::cerr << "错误: 未知的项目模板类型 '" << templateTypeStr
+                  << "'。\n";
+        return false;
+      }
+
+      // 创建模板
+      auto template_ptr = it->second(options);
+
+      // 创建项目
+      return template_ptr->create();
+    }
+
+    // Handle local path source type (future enhancement)
+    if (options.sourceType == SourceType::LocalPath) {
+      spdlog::error("Local path source type not yet implemented");
       return false;
     }
 
-    // 创建模板
-    auto template_ptr = it->second(options);
+    spdlog::error("Unknown source type");
+    return false;
 
-    // 创建项目
-    return template_ptr->create();
   } catch (const std::exception& e) {
     spdlog::error("Exception during project creation: {}", e.what());
     std::cerr << "错误: 创建项目时发生异常: " << e.what() << "\n";

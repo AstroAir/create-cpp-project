@@ -1975,4 +1975,226 @@ exit 0
 )";
 }
 
+// Repository cloning and remote source management implementation
+bool GitUtils::cloneRepository(const std::string& repositoryUrl,
+                              const std::filesystem::path& targetPath,
+                              bool shallow,
+                              const std::optional<std::string>& branch,
+                              const std::optional<std::string>& tag,
+                              const std::optional<std::string>& commit) {
+    try {
+        if (!hasGitInstalled()) {
+            spdlog::error("Git is not installed or not found in PATH");
+            return false;
+        }
+
+        if (!isValidGitUrl(repositoryUrl)) {
+            spdlog::error("Invalid Git repository URL: {}", repositoryUrl);
+            return false;
+        }
+
+        // Prepare clone command
+        std::vector<std::string> cloneArgs = {"clone"};
+
+        if (shallow) {
+            cloneArgs.push_back("--depth");
+            cloneArgs.push_back("1");
+        }
+
+        if (branch) {
+            cloneArgs.push_back("--branch");
+            cloneArgs.push_back(*branch);
+        }
+
+        cloneArgs.push_back(repositoryUrl);
+        cloneArgs.push_back(targetPath.string());
+
+        spdlog::info("Cloning repository {} to {}", repositoryUrl, targetPath.string());
+
+        if (!executeGitCommand(std::filesystem::current_path(), cloneArgs)) {
+            spdlog::error("Failed to clone repository");
+            return false;
+        }
+
+        // Handle tag or commit checkout if specified
+        if (tag && !branch) {
+            if (!checkoutTag(targetPath, *tag)) {
+                spdlog::warn("Failed to checkout tag: {}", *tag);
+            }
+        } else if (commit && !branch && !tag) {
+            if (!checkoutCommit(targetPath, *commit)) {
+                spdlog::warn("Failed to checkout commit: {}", *commit);
+            }
+        }
+
+        spdlog::info("Repository cloned successfully");
+        return true;
+
+    } catch (const std::exception& e) {
+        spdlog::error("Error cloning repository: {}", e.what());
+        return false;
+    }
+}
+
+bool GitUtils::cloneRepositoryWithAuth(const std::string& repositoryUrl,
+                                      const std::filesystem::path& targetPath,
+                                      const std::optional<std::string>& username,
+                                      const std::optional<std::string>& password,
+                                      const std::optional<std::string>& sshKeyPath,
+                                      bool shallow,
+                                      const std::optional<std::string>& branch,
+                                      const std::optional<std::string>& tag,
+                                      const std::optional<std::string>& commit) {
+    try {
+        // For SSH URLs, set up SSH key if provided
+        if (repositoryUrl.substr(0, 4) == "git@" && sshKeyPath) {
+            // Set SSH command to use specific key
+            std::string sshCommand = "ssh -i " + *sshKeyPath + " -o StrictHostKeyChecking=no";
+            if (!executeGitCommand(std::filesystem::current_path(),
+                                 {"config", "--global", "core.sshCommand", sshCommand})) {
+                spdlog::warn("Failed to set SSH command for authentication");
+            }
+        }
+
+        // For HTTPS URLs with credentials, modify URL
+        std::string authUrl = repositoryUrl;
+        if (username && password &&
+            (repositoryUrl.substr(0, 8) == "https://" || repositoryUrl.substr(0, 7) == "http://")) {
+
+            size_t protocolEnd = repositoryUrl.find("://") + 3;
+            authUrl = repositoryUrl.substr(0, protocolEnd) +
+                     *username + ":" + *password + "@" +
+                     repositoryUrl.substr(protocolEnd);
+        }
+
+        // Use the regular clone function with the modified URL
+        return cloneRepository(authUrl, targetPath, shallow, branch, tag, commit);
+
+    } catch (const std::exception& e) {
+        spdlog::error("Error cloning repository with authentication: {}", e.what());
+        return false;
+    }
+}
+
+bool GitUtils::checkoutBranch(const std::filesystem::path& repositoryPath, const std::string& branchName) {
+    try {
+        if (!executeGitCommand(repositoryPath, {"checkout", branchName})) {
+            // Try to create and checkout new branch
+            if (!executeGitCommand(repositoryPath, {"checkout", "-b", branchName})) {
+                spdlog::error("Failed to checkout branch: {}", branchName);
+                return false;
+            }
+        }
+        spdlog::info("Checked out branch: {}", branchName);
+        return true;
+    } catch (const std::exception& e) {
+        spdlog::error("Error checking out branch {}: {}", branchName, e.what());
+        return false;
+    }
+}
+
+bool GitUtils::checkoutTag(const std::filesystem::path& repositoryPath, const std::string& tagName) {
+    try {
+        if (!executeGitCommand(repositoryPath, {"checkout", "tags/" + tagName})) {
+            spdlog::error("Failed to checkout tag: {}", tagName);
+            return false;
+        }
+        spdlog::info("Checked out tag: {}", tagName);
+        return true;
+    } catch (const std::exception& e) {
+        spdlog::error("Error checking out tag {}: {}", tagName, e.what());
+        return false;
+    }
+}
+
+bool GitUtils::checkoutCommit(const std::filesystem::path& repositoryPath, const std::string& commitHash) {
+    try {
+        if (!executeGitCommand(repositoryPath, {"checkout", commitHash})) {
+            spdlog::error("Failed to checkout commit: {}", commitHash);
+            return false;
+        }
+        spdlog::info("Checked out commit: {}", commitHash);
+        return true;
+    } catch (const std::exception& e) {
+        spdlog::error("Error checking out commit {}: {}", commitHash, e.what());
+        return false;
+    }
+}
+
+bool GitUtils::removeGitDirectory(const std::filesystem::path& repositoryPath) {
+    try {
+        std::filesystem::path gitDir = repositoryPath / ".git";
+        if (std::filesystem::exists(gitDir)) {
+            std::filesystem::remove_all(gitDir);
+            spdlog::info("Removed .git directory from {}", repositoryPath.string());
+            return true;
+        }
+        return true; // Already removed or doesn't exist
+    } catch (const std::exception& e) {
+        spdlog::error("Error removing .git directory: {}", e.what());
+        return false;
+    }
+}
+
+bool GitUtils::isValidGitUrl(const std::string& url) {
+    // Basic validation for common Git URL patterns
+    if (url.empty()) return false;
+
+    // HTTPS/HTTP URLs
+    if (url.substr(0, 8) == "https://" || url.substr(0, 7) == "http://") {
+        return url.find(".git") != std::string::npos ||
+               url.find("github.com") != std::string::npos ||
+               url.find("gitlab.com") != std::string::npos ||
+               url.find("bitbucket.org") != std::string::npos;
+    }
+
+    // SSH URLs
+    if (url.substr(0, 4) == "git@") {
+        return url.find(":") != std::string::npos;
+    }
+
+    // Git protocol URLs
+    if (url.substr(0, 6) == "git://") {
+        return true;
+    }
+
+    return false;
+}
+
+std::string GitUtils::extractRepositoryName(const std::string& repositoryUrl) {
+    try {
+        std::string name = repositoryUrl;
+
+        // Remove protocol
+        size_t protocolEnd = name.find("://");
+        if (protocolEnd != std::string::npos) {
+            name = name.substr(protocolEnd + 3);
+        }
+
+        // Handle SSH URLs
+        if (repositoryUrl.substr(0, 4) == "git@") {
+            size_t colonPos = name.find(":");
+            if (colonPos != std::string::npos) {
+                name = name.substr(colonPos + 1);
+            }
+        }
+
+        // Remove host and path, keep only repository name
+        size_t lastSlash = name.find_last_of("/");
+        if (lastSlash != std::string::npos) {
+            name = name.substr(lastSlash + 1);
+        }
+
+        // Remove .git extension
+        if (name.length() > 4 && name.substr(name.length() - 4) == ".git") {
+            name = name.substr(0, name.length() - 4);
+        }
+
+        return name;
+    } catch (const std::exception& e) {
+        spdlog::error("Error extracting repository name: {}", e.what());
+        return "project";
+    }
+}
+
 } // namespace utils

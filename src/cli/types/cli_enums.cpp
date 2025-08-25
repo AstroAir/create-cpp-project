@@ -342,4 +342,29 @@ std::vector<std::string_view> all_license_types() {
   return {"mit", "apache2", "gpl3", "bsd3", "bsd2", "unlicense", "custom", "none"};
 }
 
+// Source type conversions
+std::string_view to_string(SourceType source) {
+  static const std::unordered_map<SourceType, std::string_view> map = {
+      {SourceType::Template, "template"},
+      {SourceType::GitRepository, "git"},
+      {SourceType::Archive, "archive"},
+      {SourceType::LocalPath, "local"}};
+  return map.at(source);
+}
+
+std::optional<SourceType> to_source_type(std::string_view str) {
+  static const std::unordered_map<std::string_view, SourceType> map = {
+      {"template", SourceType::Template},
+      {"git", SourceType::GitRepository},
+      {"archive", SourceType::Archive},
+      {"local", SourceType::LocalPath}};
+
+  auto it = map.find(str);
+  return it != map.end() ? std::optional<SourceType>{it->second} : std::nullopt;
+}
+
+std::vector<std::string_view> all_source_types() {
+  return {"template", "git", "archive", "local"};
+}
+
 } // namespace cli_enums

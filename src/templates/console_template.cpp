@@ -7,6 +7,7 @@
 #include <spdlog/spdlog.h>
 
 using namespace utils;
+using namespace cli_enums;
 
 ConsoleTemplate::ConsoleTemplate(const CliOptions &options)
     : TemplateBase(options) {}
@@ -27,21 +28,21 @@ bool ConsoleTemplate::create() {
     spdlog::error("Failed to create project structure");
     return false;
   }
-  spdlog::info("✅ Project structure created");
+  spdlog::info("�?Project structure created");
 
   // Create build system
   if (!createBuildSystem()) {
     spdlog::error("Failed to configure build system");
     return false;
   }
-  spdlog::info("✅ Build system configured");
+  spdlog::info("�?Build system configured");
 
   // Setup package manager
   if (!setupPackageManager()) {
     spdlog::error("Failed to setup package manager");
     return false;
   }
-  spdlog::info("✅ Package manager setup");
+  spdlog::info("�?Package manager setup");
 
   // Setup test framework
   if (options_.includeTests) {
@@ -49,7 +50,7 @@ bool ConsoleTemplate::create() {
       spdlog::error("Failed to setup test framework");
       return false;
     }
-    spdlog::info("✅ Test framework configured");
+    spdlog::info("�?Test framework configured");
   }
 
   // Initialize Git
@@ -58,7 +59,7 @@ bool ConsoleTemplate::create() {
       spdlog::error("Failed to initialize Git repository");
       return false;
     }
-    spdlog::info("✅ Git repository initialized");
+    spdlog::info("�?Git repository initialized");
   }
 
   // Setup code style tools if enabled
@@ -67,7 +68,7 @@ bool ConsoleTemplate::create() {
       spdlog::error("Failed to setup code style tools");
       return false;
     }
-    spdlog::info("✅ Code style tools configured");
+    spdlog::info("�?Code style tools configured");
   }
 
   spdlog::info("\nYour project is ready!\n");
@@ -379,16 +380,16 @@ int main(int argc, char* argv[]) {{
 
 std::string ConsoleTemplate::getReadmeContent() {
   std::string packageManagerInfo =
-      enums::to_string(options_.packageManager) != "none"
-          ? fmt::format("- {} package manager\n", enums::to_string(options_.packageManager))
+      to_string(options_.packageManager) != "none"
+          ? fmt::format("- {} package manager\n", to_string(options_.packageManager))
           : "";
 
   std::string buildInstructions;
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (to_string(options_.buildSystem) == "cmake") {
     buildInstructions = R"(mkdir build && cd build
 cmake ..
 make)";
-  } else if (enums::to_string(options_.buildSystem) == "meson") {
+  } else if (to_string(options_.buildSystem) == "meson") {
     buildInstructions = R"(meson setup build
 cd build
 meson compile)";
@@ -398,10 +399,10 @@ meson compile)";
 
   std::string testInstructions;
   if (options_.includeTests) {
-    if (enums::to_string(options_.buildSystem) == "cmake") {
+    if (to_string(options_.buildSystem) == "cmake") {
       testInstructions = R"(cd build
 ctest)";
-    } else if (enums::to_string(options_.buildSystem) == "meson") {
+    } else if (to_string(options_.buildSystem) == "meson") {
       testInstructions = R"(cd build
 meson test)";
     } else {
@@ -446,7 +447,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 }
 
 std::string ConsoleTemplate::getCMakeContent() {
-  std::string vcpkgIntegration = enums::to_string(options_.packageManager) == "vcpkg" ? R"(
+  std::string vcpkgIntegration = to_string(options_.packageManager) == "vcpkg" ? R"(
   # vcpkg integration
   if(DEFINED ENV{VCPKG_ROOT})
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
@@ -454,7 +455,7 @@ std::string ConsoleTemplate::getCMakeContent() {
   )"
                                                                     : "";
 
-  std::string conanIntegration = enums::to_string(options_.packageManager) == "conan" ? R"(
+  std::string conanIntegration = to_string(options_.packageManager) == "conan" ? R"(
   # conan integration
   if(EXISTS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
     include("${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
@@ -556,7 +557,7 @@ std::string ConsoleTemplate::getMesonContent() {
 
   // 添加测试依赖
   if (options_.includeTests) {
-    if (enums::to_string(options_.testFramework) == "gtest") {
+    if (to_string(options_.testFramework) == "gtest") {
       dependencies.push_back(
           "gtest_dep = dependency('gtest', required : false)");
       dependencies.push_back("if not gtest_dep.found()");
@@ -569,7 +570,7 @@ std::string ConsoleTemplate::getMesonContent() {
       dependencies.push_back(
           "  gtest_main_dep = dependency('GTest::Main', required : false)");
       dependencies.push_back("endif");
-    } else if (enums::to_string(options_.testFramework) == "catch2") {
+    } else if (to_string(options_.testFramework) == "catch2") {
       dependencies.push_back(
           "catch2_dep = dependency('catch2', required : true)");
     } else {
@@ -591,9 +592,9 @@ std::string ConsoleTemplate::getMesonContent() {
   // 配置测试部分
   std::string testSection;
   if (options_.includeTests) {
-    std::string testDep = enums::to_string(options_.testFramework) == "gtest"
+    std::string testDep = to_string(options_.testFramework) == "gtest"
                               ? "gtest_dep, gtest_main_dep"
-                          : enums::to_string(options_.testFramework) == "catch2" ? "catch2_dep"
+                          : to_string(options_.testFramework) == "catch2" ? "catch2_dep"
                                                                : "doctest_dep";
 
     testSection = fmt::format(R"(
@@ -701,9 +702,9 @@ std::string ConsoleTemplate::getBazelContent() {
   std::string testSection;
   if (options_.includeTests) {
     std::string testFrameworkDep;
-    if (enums::to_string(options_.testFramework) == "gtest") {
+    if (to_string(options_.testFramework) == "gtest") {
       testFrameworkDep = "com_google_googletest//:gtest_main";
-    } else if (enums::to_string(options_.testFramework) == "catch2") {
+    } else if (to_string(options_.testFramework) == "catch2") {
       testFrameworkDep = "catch2//:catch2";
     } else {
       testFrameworkDep = "doctest//:doctest";
@@ -802,12 +803,12 @@ cc_binary(
 std::string ConsoleTemplate::getVcpkgJsonContent() {
   std::string testDependency;
   if (options_.includeTests) {
-    std::string testFramework = enums::to_string(options_.testFramework) == "gtest" ? "gtest"
-                                : enums::to_string(options_.testFramework) == "catch2"
+    std::string testFramework = to_string(options_.testFramework) == "gtest" ? "gtest"
+                                : to_string(options_.testFramework) == "catch2"
                                     ? "catch2"
                                     : "doctest";
 
-    std::string features = enums::to_string(options_.testFramework) == "gtest" ? "gmock" : "";
+    std::string features = to_string(options_.testFramework) == "gtest" ? "gmock" : "";
     std::string featuresText =
         !features.empty() ? fmt::format(R"("features": ["{}"])", features) : "";
 
@@ -832,16 +833,16 @@ std::string ConsoleTemplate::getVcpkgJsonContent() {
 std::string ConsoleTemplate::getConanfileContent() {
   std::string testRequirement;
   if (options_.includeTests) {
-    if (enums::to_string(options_.testFramework) == "gtest") {
+    if (to_string(options_.testFramework) == "gtest") {
       testRequirement = "gtest/1.12.1";
-    } else if (enums::to_string(options_.testFramework) == "catch2") {
+    } else if (to_string(options_.testFramework) == "catch2") {
       testRequirement = "catch2/3.1.0";
     } else {
       testRequirement = "doctest/2.4.9";
     }
   }
 
-  std::string generator = enums::to_string(options_.buildSystem) == "cmake" ? "cmake" : "";
+  std::string generator = to_string(options_.buildSystem) == "cmake" ? "cmake" : "";
 
   return fmt::format(R"([requires]
 {}

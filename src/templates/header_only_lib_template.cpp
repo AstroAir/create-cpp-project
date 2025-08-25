@@ -1,4 +1,4 @@
-#include "header_only_lib_template.h"
+﻿#include "header_only_lib_template.h"
 #include "../utils/file_utils.h"
 #include "../utils/string_utils.h"
 #include "../utils/terminal_utils.h"
@@ -10,6 +10,7 @@
 #include <sstream>
 
 using namespace utils;
+using namespace cli_enums;
 
 HeaderOnlyLibTemplate::HeaderOnlyLibTemplate(const CliOptions &options)
     : TemplateBase(options) {}
@@ -93,7 +94,7 @@ bool HeaderOnlyLibTemplate::create() {
 
   if (options_.includeTests) {
     std::cout << "  4. Build and run tests:\n";
-    if (enums::to_string(options_.buildSystem) == "cmake") {
+    if (to_string(options_.buildSystem) == "cmake") {
       std::cout << "     mkdir build && cd build\n";
       std::cout << "     cmake .. && make && ctest\n";
     }
@@ -195,7 +196,7 @@ bool HeaderOnlyLibTemplate::createProjectStructure() {
 
 bool HeaderOnlyLibTemplate::createBuildSystem() {
   std::string projectPath = options_.projectName;
-  std::string buildSystem = std::string(enums::to_string(options_.buildSystem));
+  std::string buildSystem = std::string(to_string(options_.buildSystem));
 
   if (buildSystem == "cmake") {
     std::string cmakePath = FileUtils::combinePath(projectPath, "CMakeLists.txt");
@@ -228,7 +229,7 @@ bool HeaderOnlyLibTemplate::createBuildSystem() {
 
 bool HeaderOnlyLibTemplate::setupPackageManager() {
   std::string projectPath = options_.projectName;
-  std::string packageManager = std::string(enums::to_string(options_.packageManager));
+  std::string packageManager = std::string(to_string(options_.packageManager));
 
   if (packageManager == "vcpkg") {
     std::string vcpkgPath = FileUtils::combinePath(projectPath, "vcpkg.json");
@@ -253,10 +254,10 @@ bool HeaderOnlyLibTemplate::setupTestFramework() {
   }
 
   std::string projectPath = options_.projectName;
-  std::string testFramework = std::string(enums::to_string(options_.testFramework));
+  std::string testFramework = std::string(to_string(options_.testFramework));
 
   // Create test CMakeLists.txt if using CMake
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (to_string(options_.buildSystem) == "cmake") {
     std::string testCMakePath = FileUtils::combinePath(
         FileUtils::combinePath(projectPath, "tests"), "CMakeLists.txt");
     std::string testCMakeContent;
@@ -744,27 +745,27 @@ std::string HeaderOnlyLibTemplate::getReadmeContent() {
   std::string packageManagerInfo;
   std::string testInstructions;
 
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (to_string(options_.buildSystem) == "cmake") {
     buildInstructions = R"(```bash
 mkdir build && cd build
 cmake ..
 make
 ```";
-  } else if (enums::to_string(options_.buildSystem) == "meson") {
+  } else if (to_string(options_.buildSystem) == "meson") {
     buildInstructions = R"(```bash
 meson setup build
 cd build
 meson compile
 ```";
-  } else if (enums::to_string(options_.buildSystem) == "bazel") {
+  } else if (to_string(options_.buildSystem) == "bazel") {
     buildInstructions = R"(```bash
 bazel build //...
 ```";
   }
 
-  if (enums::to_string(options_.packageManager) == "vcpkg") {
+  if (to_string(options_.packageManager) == "vcpkg") {
     packageManagerInfo = "- vcpkg package manager";
-  } else if (enums::to_string(options_.packageManager) == "conan") {
+  } else if (to_string(options_.packageManager) == "conan") {
     packageManagerInfo = "- Conan package manager";
   }
 

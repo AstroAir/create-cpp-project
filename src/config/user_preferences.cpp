@@ -1,10 +1,11 @@
-#include "user_preferences.h"
+﻿#include "user_preferences.h"
 #include "../utils/file_utils.h"
 #include "../utils/terminal_utils.h"
 #include <spdlog/spdlog.h>
 #include <iostream>
 
 using namespace utils;
+using namespace cli_enums;
 using json = nlohmann::json;
 
 namespace config {
@@ -294,7 +295,7 @@ CliOptions UserPreferences::applyPreferencesToOptions(const CliOptions& baseOpti
         // Apply preferences to CLI options
         if (hasPreference("default.template_type")) {
             std::string templateStr = getPreference<std::string>("default.template_type");
-            auto templateType = enums::to_template_type(templateStr);
+            auto templateType = to_template_type(templateStr);
             if (templateType && options.templateType == TemplateType::Console) {
                 options.templateType = *templateType;
             }
@@ -302,7 +303,7 @@ CliOptions UserPreferences::applyPreferencesToOptions(const CliOptions& baseOpti
 
         if (hasPreference("default.build_system")) {
             std::string buildStr = getPreference<std::string>("default.build_system");
-            auto buildSystem = enums::to_build_system(buildStr);
+            auto buildSystem = to_build_system(buildStr);
             if (buildSystem && options.buildSystem == BuildSystem::CMake) {
                 options.buildSystem = *buildSystem;
             }
@@ -310,7 +311,7 @@ CliOptions UserPreferences::applyPreferencesToOptions(const CliOptions& baseOpti
 
         if (hasPreference("default.package_manager")) {
             std::string packageStr = getPreference<std::string>("default.package_manager");
-            auto packageManager = enums::to_package_manager(packageStr);
+            auto packageManager = to_package_manager(packageStr);
             if (packageManager && options.packageManager == PackageManager::Vcpkg) {
                 options.packageManager = *packageManager;
             }
@@ -322,7 +323,7 @@ CliOptions UserPreferences::applyPreferencesToOptions(const CliOptions& baseOpti
 
         if (hasPreference("default.test_framework")) {
             std::string testStr = getPreference<std::string>("default.test_framework");
-            auto testFramework = enums::to_test_framework(testStr);
+            auto testFramework = to_test_framework(testStr);
             if (testFramework && options.testFramework == TestFramework::GTest) {
                 options.testFramework = *testFramework;
             }
@@ -342,7 +343,7 @@ CliOptions UserPreferences::applyPreferencesToOptions(const CliOptions& baseOpti
 
         if (hasPreference("default.language")) {
             std::string langStr = getPreference<std::string>("default.language");
-            auto language = enums::to_language(langStr);
+            auto language = to_language(langStr);
             if (language && options.language == Language::English) {
                 options.language = *language;
             }
@@ -357,15 +358,15 @@ CliOptions UserPreferences::applyPreferencesToOptions(const CliOptions& baseOpti
 
 void UserPreferences::updatePreferencesFromOptions(const CliOptions& options) {
     try {
-        setPreference("default.template_type", std::string(enums::to_string(options.templateType)));
-        setPreference("default.build_system", std::string(enums::to_string(options.buildSystem)));
-        setPreference("default.package_manager", std::string(enums::to_string(options.packageManager)));
+        setPreference("default.template_type", std::string(to_string(options.templateType)));
+        setPreference("default.build_system", std::string(to_string(options.buildSystem)));
+        setPreference("default.package_manager", std::string(to_string(options.packageManager)));
         setPreference("default.include_tests", options.includeTests);
-        setPreference("default.test_framework", std::string(enums::to_string(options.testFramework)));
+        setPreference("default.test_framework", std::string(to_string(options.testFramework)));
         setPreference("default.include_documentation", options.includeDocumentation);
         setPreference("default.include_code_style_tools", options.includeCodeStyleTools);
         setPreference("default.init_git", options.initGit);
-        setPreference("default.language", std::string(enums::to_string(options.language)));
+        setPreference("default.language", std::string(to_string(options.language)));
 
         savePreferences();
 

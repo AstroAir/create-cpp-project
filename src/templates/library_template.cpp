@@ -1,4 +1,4 @@
-#include "library_template.h"
+﻿#include "library_template.h"
 
 #include "../utils/file_utils.h"
 #include "../utils/string_utils.h"
@@ -8,6 +8,7 @@
 #include <spdlog/spdlog.h>
 
 using namespace utils;
+using namespace cli_enums;
 
 LibraryTemplate::LibraryTemplate(const CliOptions &options)
     : TemplateBase(options) {}
@@ -92,15 +93,15 @@ bool LibraryTemplate::create() {
   // 打印使用说明
   std::cout << fmt::format("cd {}\n", options_.projectName);
 
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (to_string(options_.buildSystem) == "cmake") {
     std::cout << "mkdir build && cd build\n";
     std::cout << "cmake ..\n";
     std::cout << "make\n";
-  } else if (enums::to_string(options_.buildSystem) == "meson") {
+  } else if (to_string(options_.buildSystem) == "meson") {
     std::cout << "meson setup build\n";
     std::cout << "cd build\n";
     std::cout << "meson compile\n";
-  } else if (enums::to_string(options_.buildSystem) == "bazel") {
+  } else if (to_string(options_.buildSystem) == "bazel") {
     std::cout << "bazel build //...\n";
   }
 
@@ -203,7 +204,7 @@ bool LibraryTemplate::createProjectStructure() {
 bool LibraryTemplate::createBuildSystem() {
   std::string projectPath = options_.projectName;
 
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (to_string(options_.buildSystem) == "cmake") {
     // 创建CMakeLists.txt
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "CMakeLists.txt"),
@@ -236,14 +237,14 @@ check_required_components({})
       return false;
     }
 
-  } else if (enums::to_string(options_.buildSystem) == "meson") {
+  } else if (to_string(options_.buildSystem) == "meson") {
     // 创建meson.build
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "meson.build"),
             getMesonContent())) {
       return false;
     }
-  } else if (enums::to_string(options_.buildSystem) == "bazel") {
+  } else if (to_string(options_.buildSystem) == "bazel") {
     // 创建WORKSPACE和BUILD文件
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "WORKSPACE"),
@@ -263,14 +264,14 @@ check_required_components({})
 bool LibraryTemplate::setupPackageManager() {
   std::string projectPath = options_.projectName;
 
-  if (enums::to_string(options_.packageManager) == "vcpkg") {
+  if (to_string(options_.packageManager) == "vcpkg") {
     // 创建vcpkg.json
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "vcpkg.json"),
             getVcpkgJsonContent())) {
       return false;
     }
-  } else if (enums::to_string(options_.packageManager) == "conan") {
+  } else if (to_string(options_.packageManager) == "conan") {
     // 创建conanfile.txt
     if (!FileUtils::writeToFile(
             FileUtils::combinePath(projectPath, "conanfile.txt"),
@@ -295,11 +296,11 @@ bool LibraryTemplate::setupTestFramework() {
   }
 
   std::string testContent;
-  if (enums::to_string(options_.testFramework) == "gtest") {
+  if (to_string(options_.testFramework) == "gtest") {
     testContent = getGTestContent();
-  } else if (enums::to_string(options_.testFramework) == "catch2") {
+  } else if (to_string(options_.testFramework) == "catch2") {
     testContent = getCatch2Content();
-  } else if (enums::to_string(options_.testFramework) == "doctest") {
+  } else if (to_string(options_.testFramework) == "doctest") {
     testContent = getDocTestContent();
   }
 
@@ -310,9 +311,9 @@ bool LibraryTemplate::setupTestFramework() {
   }
 
   // 更新构建系统以包含测试
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (to_string(options_.buildSystem) == "cmake") {
     std::string testCmakeContent;
-    if (enums::to_string(options_.testFramework) == "gtest") {
+    if (to_string(options_.testFramework) == "gtest") {
       testCmakeContent = fmt::format(R"(
 find_package(GTest REQUIRED)
 add_executable(${{PROJECT_NAME}}_tests {})
@@ -324,7 +325,7 @@ target_link_libraries(${{PROJECT_NAME}}_tests PRIVATE
 add_test(NAME ${{PROJECT_NAME}}_tests COMMAND ${{PROJECT_NAME}}_tests)
 )",
                                      testFileName);
-    } else if (enums::to_string(options_.testFramework) == "catch2") {
+    } else if (to_string(options_.testFramework) == "catch2") {
       testCmakeContent = fmt::format(R"(
 find_package(Catch2 REQUIRED)
 add_executable(${{PROJECT_NAME}}_tests {})
@@ -335,7 +336,7 @@ target_link_libraries(${{PROJECT_NAME}}_tests PRIVATE
 add_test(NAME ${{PROJECT_NAME}}_tests COMMAND ${{PROJECT_NAME}}_tests)
 )",
                                      testFileName);
-    } else if (enums::to_string(options_.testFramework) == "doctest") {
+    } else if (to_string(options_.testFramework) == "doctest") {
       testCmakeContent = fmt::format(R"(
 find_package(doctest REQUIRED)
 add_executable(${{PROJECT_NAME}}_tests {})
@@ -478,7 +479,7 @@ bool LibraryTemplate::setupContinuousIntegration() {
 
   // 创建GitHub Actions工作流
   if (!FileUtils::writeToFile(FileUtils::combinePath(workflowsDir, "build.yml"),
-                              getGitHubWorkflowContent(std::string(enums::to_string(options_.buildSystem))))) {
+                              getGitHubWorkflowContent(std::string(to_string(options_.buildSystem))))) {
     spdlog::warn("Failed to create GitHub workflow file");
     return false;
   }
@@ -486,7 +487,7 @@ bool LibraryTemplate::setupContinuousIntegration() {
   // 创建Travis CI配置
   if (!FileUtils::writeToFile(
           FileUtils::combinePath(projectPath, ".travis.yml"),
-          getTravisCIContent(std::string(enums::to_string(options_.buildSystem))))) {
+          getTravisCIContent(std::string(to_string(options_.buildSystem))))) {
     spdlog::warn("Failed to create Travis CI config");
     return false;
   }
@@ -494,7 +495,7 @@ bool LibraryTemplate::setupContinuousIntegration() {
   // 创建AppVeyor配置
   if (!FileUtils::writeToFile(
           FileUtils::combinePath(projectPath, "appveyor.yml"),
-          getAppVeyorContent(std::string(enums::to_string(options_.buildSystem))))) {
+          getAppVeyorContent(std::string(to_string(options_.buildSystem))))) {
     spdlog::warn("Failed to create AppVeyor config");
     return false;
   }
@@ -542,7 +543,7 @@ bool LibraryTemplate::setupBenchmarking() {
   }
 
   // 如果使用CMake，创建相应的CMakeLists.txt
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (to_string(options_.buildSystem) == "cmake") {
     std::string benchmarkCmakeContent = R"(
 find_package(benchmark REQUIRED)
 
@@ -1397,17 +1398,17 @@ std::string LibraryTemplate::getVersionHeaderContent() {
 
 std::string LibraryTemplate::getReadmeContent() {
   std::string packageManagerInfo =
-      enums::to_string(options_.packageManager) != "none"
+      to_string(options_.packageManager) != "none"
           ? fmt::format("- {} package manager\n", options_.packageManager)
           : "";
 
   std::string buildInstructions;
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (to_string(options_.buildSystem) == "cmake") {
     buildInstructions = R"(mkdir build && cd build
 cmake ..
 make
 make install)";
-  } else if (enums::to_string(options_.buildSystem) == "meson") {
+  } else if (to_string(options_.buildSystem) == "meson") {
     buildInstructions = R"(meson setup build
 cd build
 meson compile
@@ -1419,10 +1420,10 @@ bazel run //:install)";
 
   std::string testInstructions;
   if (options_.includeTests) {
-    if (enums::to_string(options_.buildSystem) == "cmake") {
+    if (to_string(options_.buildSystem) == "cmake") {
       testInstructions = R"(cd build
 ctest)";
-    } else if (enums::to_string(options_.buildSystem) == "meson") {
+    } else if (to_string(options_.buildSystem) == "meson") {
       testInstructions = R"(cd build
 meson test)";
     } else {
@@ -1496,17 +1497,17 @@ std::string LibraryTemplate::getCMakeContent() {
   std::string testSection = "";
   if (options_.includeTests) {
     std::string testFrameworkDeps = "";
-    if (enums::to_string(options_.testFramework) == "gtest") {
+    if (to_string(options_.testFramework) == "gtest") {
       testFrameworkDeps = R"(
 # Test framework dependencies
 find_package(gtest REQUIRED)
 )";
-    } else if (enums::to_string(options_.testFramework) == "catch2") {
+    } else if (to_string(options_.testFramework) == "catch2") {
       testFrameworkDeps = R"(
 # Test framework dependencies
 find_package(Catch2 REQUIRED)
 )";
-    } else if (enums::to_string(options_.testFramework) == "doctest") {
+    } else if (to_string(options_.testFramework) == "doctest") {
       testFrameworkDeps = R"(
 # Test framework dependencies
 find_package(doctest REQUIRED)
@@ -1522,7 +1523,7 @@ endif()
 )", testFrameworkDeps);
   }
 
-  std::string vcpkgSection = enums::to_string(options_.packageManager) == "vcpkg" ? R"(
+  std::string vcpkgSection = to_string(options_.packageManager) == "vcpkg" ? R"(
 # vcpkg integration
 if(DEFINED ENV{VCPKG_ROOT})
   set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
@@ -1625,9 +1626,9 @@ install(FILES
 std::string LibraryTemplate::getMesonContent() {
   std::string testDeps = "";
   if (options_.includeTests) {
-    if (enums::to_string(options_.testFramework) == "gtest") {
+    if (to_string(options_.testFramework) == "gtest") {
       testDeps = "gtest_dep = dependency('gtest', main : true)\n";
-    } else if (enums::to_string(options_.testFramework) == "catch2") {
+    } else if (to_string(options_.testFramework) == "catch2") {
       testDeps = "catch2_dep = dependency('catch2')\n";
     } else {
       testDeps = "doctest_dep = dependency('doctest')\n";
@@ -1636,8 +1637,8 @@ std::string LibraryTemplate::getMesonContent() {
 
   std::string testSection;
   if (options_.includeTests) {
-    std::string testDep = enums::to_string(options_.testFramework) == "gtest"    ? "gtest_dep"
-                          : enums::to_string(options_.testFramework) == "catch2" ? "catch2_dep"
+    std::string testDep = to_string(options_.testFramework) == "gtest"    ? "gtest_dep"
+                          : to_string(options_.testFramework) == "catch2" ? "catch2_dep"
                                                                : "doctest_dep";
 
     testSection = fmt::format(R"(
@@ -1725,9 +1726,9 @@ std::string LibraryTemplate::getBazelContent() {
   std::string testSection = "";
   if (options_.includeTests) {
     std::string testFrameworkDep;
-    if (enums::to_string(options_.testFramework) == "gtest") {
+    if (to_string(options_.testFramework) == "gtest") {
       testFrameworkDep = "com_google_googletest//:gtest_main";
-    } else if (enums::to_string(options_.testFramework) == "catch2") {
+    } else if (to_string(options_.testFramework) == "catch2") {
       testFrameworkDep = "catch2//:catch2";
     } else {
       testFrameworkDep = "doctest//:doctest";
@@ -1800,11 +1801,11 @@ cc_binary(
 std::string LibraryTemplate::getVcpkgJsonContent() {
   std::string testDependency = "";
   if (options_.includeTests) {
-    std::string testFramework = enums::to_string(options_.testFramework) == "gtest" ? "gtest"
-                                : enums::to_string(options_.testFramework) == "catch2"
+    std::string testFramework = to_string(options_.testFramework) == "gtest" ? "gtest"
+                                : to_string(options_.testFramework) == "catch2"
                                     ? "catch2"
                                     : "doctest";
-    std::string features = enums::to_string(options_.testFramework) == "gtest" ? "gmock" : "";
+    std::string features = to_string(options_.testFramework) == "gtest" ? "gmock" : "";
 
     if (!features.empty()) {
       testDependency = fmt::format(R"(    {{
@@ -1836,16 +1837,16 @@ std::string LibraryTemplate::getVcpkgJsonContent() {
 std::string LibraryTemplate::getConanfileContent() {
   std::string testRequirement = "";
   if (options_.includeTests) {
-    if (enums::to_string(options_.testFramework) == "gtest") {
+    if (to_string(options_.testFramework) == "gtest") {
       testRequirement = "gtest/1.12.1";
-    } else if (enums::to_string(options_.testFramework) == "catch2") {
+    } else if (to_string(options_.testFramework) == "catch2") {
       testRequirement = "catch2/3.1.0";
     } else {
       testRequirement = "doctest/2.4.9";
     }
   }
 
-  std::string generator = enums::to_string(options_.buildSystem) == "cmake" ? "cmake" : "";
+  std::string generator = to_string(options_.buildSystem) == "cmake" ? "cmake" : "";
 
   return fmt::format(R"([requires]
 {0}
