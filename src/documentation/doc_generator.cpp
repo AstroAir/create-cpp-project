@@ -24,14 +24,14 @@ DocConfig DocGenerator::getConfig() const {
 bool DocGenerator::generateDocumentation(const std::filesystem::path& projectPath) {
     try {
         spdlog::info("Generating documentation for project: {}", projectPath.string());
-        
+
         // Create output directory
         auto outputDir = projectPath / m_config.outputDirectory;
         if (!createOutputDirectory(outputDir)) {
             spdlog::error("Failed to create output directory: {}", outputDir.string());
             return false;
         }
-        
+
         // Generate each document type
         for (const auto& docType : m_config.documentTypes) {
             if (!generateSpecificDoc(docType, projectPath)) {
@@ -39,7 +39,7 @@ bool DocGenerator::generateDocumentation(const std::filesystem::path& projectPat
                 return false;
             }
         }
-        
+
         // Generate index if requested
         if (m_config.generateIndex) {
             std::vector<std::string> files;
@@ -48,7 +48,7 @@ bool DocGenerator::generateDocumentation(const std::filesystem::path& projectPat
                     files.push_back(entry.path().filename().string());
                 }
             }
-            
+
             std::string indexContent = generateIndex(files);
             auto indexPath = outputDir / "index.md";
             if (!utils::FileUtils::writeToFile(indexPath.string(), indexContent)) {
@@ -56,10 +56,10 @@ bool DocGenerator::generateDocumentation(const std::filesystem::path& projectPat
                 return false;
             }
         }
-        
+
         spdlog::info("Documentation generation completed successfully");
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error generating documentation: {}", e.what());
         return false;
@@ -99,16 +99,16 @@ bool DocGenerator::generateREADME(const std::filesystem::path& projectPath) {
     try {
         std::string content = generateREADMEContent();
         content = replaceVariables(content);
-        
+
         auto readmePath = projectPath / "README.md";
         if (!utils::FileUtils::writeToFile(readmePath.string(), content)) {
             spdlog::error("Failed to write README.md");
             return false;
         }
-        
+
         spdlog::info("Generated README.md");
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error generating README: {}", e.what());
         return false;
@@ -199,18 +199,18 @@ bool DocGenerator::generateUserGuide(const std::filesystem::path& projectPath) {
     try {
         std::string content = generateUserGuideContent();
         content = replaceVariables(content);
-        
+
         auto outputDir = projectPath / m_config.outputDirectory;
         auto userGuidePath = outputDir / "user-guide.md";
-        
+
         if (!utils::FileUtils::writeToFile(userGuidePath.string(), content)) {
             spdlog::error("Failed to write user guide");
             return false;
         }
-        
+
         spdlog::info("Generated user guide");
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error generating user guide: {}", e.what());
         return false;
@@ -221,18 +221,18 @@ bool DocGenerator::generateDeveloperGuide(const std::filesystem::path& projectPa
     try {
         std::string content = generateDeveloperGuideContent();
         content = replaceVariables(content);
-        
+
         auto outputDir = projectPath / m_config.outputDirectory;
         auto devGuidePath = outputDir / "developer-guide.md";
-        
+
         if (!utils::FileUtils::writeToFile(devGuidePath.string(), content)) {
             spdlog::error("Failed to write developer guide");
             return false;
         }
-        
+
         spdlog::info("Generated developer guide");
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error generating developer guide: {}", e.what());
         return false;
@@ -264,16 +264,16 @@ bool DocGenerator::generateChangelog(const std::filesystem::path& projectPath) {
     try {
         std::string content = generateChangelogContent();
         content = replaceVariables(content);
-        
+
         auto changelogPath = projectPath / "CHANGELOG.md";
         if (!utils::FileUtils::writeToFile(changelogPath.string(), content)) {
             spdlog::error("Failed to write CHANGELOG.md");
             return false;
         }
-        
+
         spdlog::info("Generated CHANGELOG.md");
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error generating changelog: {}", e.what());
         return false;
@@ -284,16 +284,16 @@ bool DocGenerator::generateContributingGuide(const std::filesystem::path& projec
     try {
         std::string content = generateContributingContent();
         content = replaceVariables(content);
-        
+
         auto contributingPath = projectPath / "CONTRIBUTING.md";
         if (!utils::FileUtils::writeToFile(contributingPath.string(), content)) {
             spdlog::error("Failed to write CONTRIBUTING.md");
             return false;
         }
-        
+
         spdlog::info("Generated CONTRIBUTING.md");
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error generating contributing guide: {}", e.what());
         return false;
@@ -304,16 +304,16 @@ bool DocGenerator::generateLicense(const std::filesystem::path& projectPath) {
     try {
         std::string content = generateLicenseContent();
         content = replaceVariables(content);
-        
+
         auto licensePath = projectPath / "LICENSE";
         if (!utils::FileUtils::writeToFile(licensePath.string(), content)) {
             spdlog::error("Failed to write LICENSE");
             return false;
         }
-        
+
         spdlog::info("Generated LICENSE");
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error generating license: {}", e.what());
         return false;
@@ -491,86 +491,86 @@ std::string DocGenerator::generateREADMEContent() {
 
 std::string DocGenerator::generateUserGuideContent() {
     std::ostringstream guide;
-    
+
     guide << "# {{PROJECT_NAME}} User Guide\n\n";
     guide << "Welcome to the {{PROJECT_NAME}} user guide. This document will help you get started with using {{PROJECT_NAME}}.\n\n";
-    
+
     guide << "## Table of Contents\n\n";
     guide << "1. [Getting Started](#getting-started)\n";
     guide << "2. [Basic Usage](#basic-usage)\n";
     guide << "3. [Advanced Features](#advanced-features)\n";
     guide << "4. [Configuration](#configuration)\n";
     guide << "5. [Troubleshooting](#troubleshooting)\n\n";
-    
+
     guide << "## Getting Started\n\n";
     guide << "This section covers the basic setup and initial configuration of {{PROJECT_NAME}}.\n\n";
-    
+
     guide << "### Installation\n\n";
     guide << "Follow the installation instructions in the [README](../README.md).\n\n";
-    
+
     guide << "### First Steps\n\n";
     guide << "1. Step 1\n";
     guide << "2. Step 2\n";
     guide << "3. Step 3\n\n";
-    
+
     guide << "## Basic Usage\n\n";
     guide << "This section covers the basic usage patterns of {{PROJECT_NAME}}.\n\n";
-    
+
     guide << "### Example 1\n\n";
     guide << "```cpp\n";
     guide << "// Basic example\n";
     guide << "```\n\n";
-    
+
     guide << "### Example 2\n\n";
     guide << "```cpp\n";
     guide << "// Another example\n";
     guide << "```\n\n";
-    
+
     guide << "## Advanced Features\n\n";
     guide << "This section covers advanced features and use cases.\n\n";
-    
+
     guide << "## Configuration\n\n";
     guide << "This section covers configuration options.\n\n";
-    
+
     guide << "## Troubleshooting\n\n";
     guide << "Common issues and their solutions:\n\n";
     guide << "### Issue 1\n\n";
     guide << "**Problem:** Description of the problem.\n\n";
     guide << "**Solution:** Description of the solution.\n\n";
-    
+
     return guide.str();
 }
 
 std::string DocGenerator::generateDeveloperGuideContent() {
     std::ostringstream guide;
-    
+
     guide << "# {{PROJECT_NAME}} Developer Guide\n\n";
     guide << "This guide is for developers who want to contribute to {{PROJECT_NAME}} or understand its internals.\n\n";
-    
+
     guide << "## Table of Contents\n\n";
     guide << "1. [Development Setup](#development-setup)\n";
     guide << "2. [Architecture](#architecture)\n";
     guide << "3. [Building](#building)\n";
     guide << "4. [Testing](#testing)\n";
     guide << "5. [Contributing](#contributing)\n\n";
-    
+
     guide << "## Development Setup\n\n";
     guide << "### Prerequisites\n\n";
     guide << "- C++17 or later\n";
     guide << "- CMake 3.10 or later\n";
     guide << "- Git\n\n";
-    
+
     guide << "### Setting up the Development Environment\n\n";
     guide << "1. Clone the repository\n";
     guide << "2. Install dependencies\n";
     guide << "3. Configure your IDE\n\n";
-    
+
     guide << "## Architecture\n\n";
     guide << "{{PROJECT_NAME}} follows a modular architecture with the following components:\n\n";
     guide << "- **Core**: Main functionality\n";
     guide << "- **Utils**: Utility functions\n";
     guide << "- **Config**: Configuration management\n\n";
-    
+
     guide << "## Building\n\n";
     guide << "### Debug Build\n\n";
     guide << "```bash\n";
@@ -578,27 +578,27 @@ std::string DocGenerator::generateDeveloperGuideContent() {
     guide << "cmake -DCMAKE_BUILD_TYPE=Debug ..\n";
     guide << "cmake --build .\n";
     guide << "```\n\n";
-    
+
     guide << "### Release Build\n\n";
     guide << "```bash\n";
     guide << "mkdir build-release && cd build-release\n";
     guide << "cmake -DCMAKE_BUILD_TYPE=Release ..\n";
     guide << "cmake --build .\n";
     guide << "```\n\n";
-    
+
     guide << "## Testing\n\n";
     guide << "### Running Tests\n\n";
     guide << "```bash\n";
     guide << "cd build\n";
     guide << "ctest\n";
     guide << "```\n\n";
-    
+
     guide << "### Writing Tests\n\n";
     guide << "Follow the existing test patterns in the `tests/` directory.\n\n";
-    
+
     guide << "## Contributing\n\n";
     guide << "Please read [CONTRIBUTING.md](../CONTRIBUTING.md) for detailed contribution guidelines.\n";
-    
+
     return guide.str();
 }
 
@@ -698,42 +698,42 @@ std::string DocGenerator::generateTutorialContent() {
 
 std::string DocGenerator::generateChangelogContent() {
     std::ostringstream changelog;
-    
+
     auto now = std::chrono::system_clock::now();
     auto time_t = std::chrono::system_clock::to_time_t(now);
     auto tm = *std::localtime(&time_t);
-    
+
     changelog << "# Changelog\n\n";
     changelog << "All notable changes to this project will be documented in this file.\n\n";
     changelog << "The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),\n";
     changelog << "and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\n\n";
-    
+
     changelog << "## [Unreleased]\n\n";
     changelog << "### Added\n";
     changelog << "- Initial project structure\n\n";
-    
+
     changelog << "## [{{PROJECT_VERSION}}] - " << std::put_time(&tm, "%Y-%m-%d") << "\n\n";
     changelog << "### Added\n";
     changelog << "- Initial release\n";
     changelog << "- Basic functionality\n";
     changelog << "- Documentation\n\n";
-    
+
     return changelog.str();
 }
 
 std::string DocGenerator::generateContributingContent() {
     std::ostringstream contributing;
-    
+
     contributing << "# Contributing to {{PROJECT_NAME}}\n\n";
     contributing << "First off, thank you for considering contributing to {{PROJECT_NAME}}! It's people like you that make {{PROJECT_NAME}} such a great tool.\n\n";
-    
+
     contributing << "## Code of Conduct\n\n";
     contributing << "This project and everyone participating in it is governed by our Code of Conduct. By participating, you are expected to uphold this code.\n\n";
-    
+
     contributing << "## How Can I Contribute?\n\n";
     contributing << "### Reporting Bugs\n\n";
     contributing << "Before creating bug reports, please check the existing issues as you might find out that you don't need to create one.\n\n";
-    
+
     contributing << "#### How Do I Submit A (Good) Bug Report?\n\n";
     contributing << "Bugs are tracked as GitHub issues. Create an issue and provide the following information:\n\n";
     contributing << "- Use a clear and descriptive title\n";
@@ -741,14 +741,14 @@ std::string DocGenerator::generateContributingContent() {
     contributing << "- Provide specific examples to demonstrate the steps\n";
     contributing << "- Describe the behavior you observed after following the steps\n";
     contributing << "- Explain which behavior you expected to see instead and why\n\n";
-    
+
     contributing << "### Suggesting Enhancements\n\n";
     contributing << "Enhancement suggestions are tracked as GitHub issues. Create an issue and provide the following information:\n\n";
     contributing << "- Use a clear and descriptive title\n";
     contributing << "- Provide a step-by-step description of the suggested enhancement\n";
     contributing << "- Provide specific examples to demonstrate the steps\n";
     contributing << "- Describe the current behavior and explain which behavior you expected to see instead\n\n";
-    
+
     contributing << "### Pull Requests\n\n";
     contributing << "1. Fork the repo and create your branch from `main`\n";
     contributing << "2. If you've added code that should be tested, add tests\n";
@@ -756,23 +756,23 @@ std::string DocGenerator::generateContributingContent() {
     contributing << "4. Ensure the test suite passes\n";
     contributing << "5. Make sure your code lints\n";
     contributing << "6. Issue that pull request!\n\n";
-    
+
     contributing << "## Development Process\n\n";
     contributing << "### Setting up your development environment\n\n";
     contributing << "1. Fork the repository\n";
     contributing << "2. Clone your fork\n";
     contributing << "3. Install dependencies\n";
     contributing << "4. Create a branch for your changes\n\n";
-    
+
     contributing << "### Coding Standards\n\n";
     contributing << "- Follow the existing code style\n";
     contributing << "- Write meaningful commit messages\n";
     contributing << "- Add tests for new functionality\n";
     contributing << "- Update documentation as needed\n\n";
-    
+
     contributing << "## License\n\n";
     contributing << "By contributing, you agree that your contributions will be licensed under the {{LICENSE}} License.\n";
-    
+
     return contributing.str();
 }
 
@@ -790,7 +790,7 @@ std::string DocGenerator::generateLicenseContent() {
 
 std::string DocGenerator::replaceVariables(const std::string& content) const {
     std::string result = content;
-    
+
     // Replace project variables
     result = utils::StringUtils::replace(result, "{{PROJECT_NAME}}", m_config.projectName);
     result = utils::StringUtils::replace(result, "{{PROJECT_VERSION}}", m_config.projectVersion);
@@ -800,28 +800,28 @@ std::string DocGenerator::replaceVariables(const std::string& content) const {
     result = utils::StringUtils::replace(result, "{{LICENSE}}", m_config.license);
     result = utils::StringUtils::replace(result, "{{REPOSITORY}}", m_config.repository);
     result = utils::StringUtils::replace(result, "{{WEBSITE}}", m_config.website);
-    
+
     // Replace current date
     auto now = std::chrono::system_clock::now();
     auto time_t = std::chrono::system_clock::to_time_t(now);
     auto tm = *std::localtime(&time_t);
-    
+
     char dateBuffer[32];
     std::strftime(dateBuffer, sizeof(dateBuffer), "%Y-%m-%d", &tm);
     result = utils::StringUtils::replace(result, "{{CURRENT_DATE}}", std::string(dateBuffer));
-    
+
     std::strftime(dateBuffer, sizeof(dateBuffer), "%Y", &tm);
     result = utils::StringUtils::replace(result, "{{CURRENT_YEAR}}", std::string(dateBuffer));
-    
+
     return result;
 }
 
 std::string DocGenerator::generateIndex(const std::vector<std::string>& files) const {
     std::ostringstream index;
-    
+
     index << "# {{PROJECT_NAME}} Documentation\n\n";
     index << "Welcome to the {{PROJECT_NAME}} documentation.\n\n";
-    
+
     index << "## Available Documents\n\n";
     for (const auto& file : files) {
         if (file != "index.md") {
@@ -829,24 +829,24 @@ std::string DocGenerator::generateIndex(const std::vector<std::string>& files) c
             title = utils::StringUtils::replace(title, ".md", "");
             title = utils::StringUtils::replace(title, "-", " ");
             title = utils::StringUtils::replace(title, "_", " ");
-            
+
             // Capitalize first letter of each word
             std::istringstream iss(title);
             std::string word;
             std::ostringstream titleStream;
             bool first = true;
-            
+
             while (iss >> word) {
                 if (!first) titleStream << " ";
                 word[0] = std::toupper(word[0]);
                 titleStream << word;
                 first = false;
             }
-            
+
             index << "- [" << titleStream.str() << "](" << file << ")\n";
         }
     }
-    
+
     index << "\n";
     return index.str();
 }

@@ -46,40 +46,82 @@ ninja
 
 ## 📚 Documentation
 
-**📖 [Complete Documentation](documents/README.md)** - Start here for comprehensive guides and references
+Our comprehensive documentation is built with MkDocs and provides detailed guides, tutorials, and API references.
+
+### 🌐 Online Documentation
+
+**📖 [View Documentation](https://cpp-scaffold.github.io/cpp-scaffold/)** - Complete online documentation
+
+### 🏠 Local Documentation
+
+Build and serve the documentation locally:
+
+```bash
+# Install MkDocs and dependencies
+pip install -r requirements.txt
+
+# Serve documentation locally
+mkdocs serve
+
+# Build static documentation
+mkdocs build
+```
+
+### 📋 Quick Links
+
+- **[Getting Started](docs/getting-started/index.md)** - Installation and first project
+- **[User Guide](docs/user-guide/index.md)** - Complete usage documentation
+- **[Tutorials](docs/tutorials/index.md)** - Step-by-step examples
+- **[Developer Guide](docs/developer-guide/index.md)** - Contributing and extending
+- **[API Reference](docs/api-reference/index.md)** - Complete API documentation
 
 ### Quick Links
 
 | For | Documentation | Description |
 |-----|---------------|-------------|
-| **New Users** | [Installation Guide](documents/user-guide/INSTALLATION.md) | Get CPP-Scaffold up and running |
-| **All Users** | [Usage Guide](documents/user-guide/USAGE.md) | Learn how to use CPP-Scaffold effectively |
-| **Developers** | [API Reference](documents/api-reference/API.md) | Complete API documentation |
-| **Contributors** | [Contributing Guide](documents/developer-guide/CONTRIBUTING.md) | How to contribute to the project |
-| **Troubleshooting** | [Troubleshooting Guide](documents/user-guide/TROUBLESHOOTING.md) | Common issues and solutions |
+| **New Users** | [Getting Started](docs/getting-started/index.md) | Installation and first project |
+| **All Users** | [User Guide](docs/user-guide/index.md) | Complete usage documentation |
+| **Developers** | [API Reference](docs/api-reference/index.md) | Complete API documentation |
+| **Contributors** | [Developer Guide](docs/developer-guide/index.md) | Contributing and extending |
+| **Troubleshooting** | [Troubleshooting](docs/user-guide/troubleshooting.md) | Common issues and solutions |
 
 ### Documentation Structure
 
-```
-documents/
-├── README.md                    # Documentation index and navigation
-├── user-guide/                 # User-facing documentation
-│   ├── INSTALLATION.md          # Installation instructions
-│   ├── USAGE.md                 # Usage guide and examples
-│   └── TROUBLESHOOTING.md       # Common issues and solutions
-├── developer-guide/             # Developer documentation
-│   ├── ARCHITECTURE.md          # System architecture
-│   ├── BUILD.md                 # Build system documentation
-│   └── CONTRIBUTING.md          # Contributing guidelines
-├── api-reference/               # API documentation
-│   └── API.md                   # Complete API reference
-├── components/                  # Component documentation
-│   ├── README.md                # Component overview
-│   ├── cli-parser.md            # CLI parser component
-│   ├── template-system.md       # Template system component
+The documentation is organized using MkDocs with the following structure:
+
+```text
+docs/                           # MkDocs documentation source
+├── index.md                    # Documentation homepage
+├── getting-started/            # Getting started guides
+│   ├── installation.md         # Installation instructions
+│   ├── quick-start.md          # Quick start guide
+│   └── first-project.md        # First project tutorial
+├── user-guide/                 # User documentation
+│   ├── usage.md                # Usage guide and examples
+│   ├── templates.md            # Project templates guide
+│   ├── configuration.md        # Configuration management
+│   └── troubleshooting.md      # Common issues and solutions
+├── tutorials/                  # Step-by-step tutorials
+│   ├── console-app.md          # Console application tutorial
+│   ├── library-project.md      # Library project tutorial
+│   ├── gui-application.md      # GUI application tutorial
+│   └── advanced-features.md    # Advanced features tutorial
+├── developer-guide/            # Developer documentation
+│   ├── architecture.md         # System architecture
+│   ├── building.md             # Build system documentation
+│   ├── contributing.md         # Contributing guidelines
+│   └── extending.md            # Extending CPP-Scaffold
+├── components/                 # Component documentation
+│   ├── cli-parser.md           # CLI parser component
+│   ├── template-system.md      # Template system component
 │   └── configuration-system.md # Configuration system component
-└── reference/                   # Additional references
-    └── ENHANCEMENTS.md          # Recent improvements
+├── api-reference/              # API documentation
+│   └── api.md                  # Complete API reference
+└── reference/                  # Additional references
+    └── enhancements.md         # Recent improvements
+
+mkdocs.yml                      # MkDocs configuration
+requirements.txt                # Python dependencies for docs
 ```
 
 ## 🎯 Project Templates

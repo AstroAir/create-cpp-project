@@ -14,7 +14,7 @@
 namespace utils {
 
 // SpinnerIndicator Implementation
-SpinnerIndicator::SpinnerIndicator() 
+SpinnerIndicator::SpinnerIndicator()
     : m_spinnerChars{"|", "/", "-", "\\"}
     , m_spinnerSpeed(100) {
 }
@@ -28,7 +28,7 @@ void SpinnerIndicator::start(const std::string& message) {
     m_startTime = std::chrono::steady_clock::now();
     m_running = true;
     m_progress = 0.0;
-    
+
     m_spinnerThread = std::make_unique<std::thread>(&SpinnerIndicator::spinnerLoop, this);
 }
 
@@ -42,7 +42,7 @@ void SpinnerIndicator::update(double progress, const std::string& message) {
 void SpinnerIndicator::finish(const std::string& message) {
     m_finishMessage = message;
     stop();
-    
+
     // Clear the line and show completion message
     std::cout << "\r" << std::string(80, ' ') << "\r";
     if (!m_finishMessage.empty()) {
@@ -94,7 +94,7 @@ void SpinnerIndicator::setSpinnerSpeed(int milliseconds) {
 
 void SpinnerIndicator::spinnerLoop() {
     size_t charIndex = 0;
-    
+
     while (m_running) {
         render();
         charIndex = (charIndex + 1) % m_spinnerChars.size();
@@ -104,34 +104,34 @@ void SpinnerIndicator::spinnerLoop() {
 
 void SpinnerIndicator::render() {
     static size_t charIndex = 0;
-    
+
     std::ostringstream output;
     output << "\r";
-    
+
     // Spinner character
     output << TerminalUtils::colorize(m_spinnerChars[charIndex % m_spinnerChars.size()], utils::Color::BrightCyan);
     output << " ";
-    
+
     // Message
     if (!m_message.empty()) {
         output << m_message;
     }
-    
+
     // Progress percentage
     if (m_showPercentage && m_progress > 0.0) {
         output << " (" << std::fixed << std::setprecision(1) << (m_progress * 100.0) << "%)";
     }
-    
+
     // Elapsed time
     if (m_showElapsedTime) {
         output << " [" << getElapsedTime() << "]";
     }
-    
+
     // ETA
     if (m_showETA && m_progress > 0.0) {
         output << " ETA: " << getETA();
     }
-    
+
     std::cout << output.str() << std::flush;
     charIndex++;
 }
@@ -140,13 +140,13 @@ std::string SpinnerIndicator::formatTime(std::chrono::seconds seconds) const {
     auto hours = std::chrono::duration_cast<std::chrono::hours>(seconds);
     auto minutes = std::chrono::duration_cast<std::chrono::minutes>(seconds % std::chrono::hours(1));
     auto secs = seconds % std::chrono::minutes(1);
-    
+
     if (hours.count() > 0) {
-        return std::to_string(hours.count()) + "h " + 
-               std::to_string(minutes.count()) + "m " + 
+        return std::to_string(hours.count()) + "h " +
+               std::to_string(minutes.count()) + "m " +
                std::to_string(secs.count()) + "s";
     } else if (minutes.count() > 0) {
-        return std::to_string(minutes.count()) + "m " + 
+        return std::to_string(minutes.count()) + "m " +
                std::to_string(secs.count()) + "s";
     } else {
         return std::to_string(secs.count()) + "s";
@@ -163,26 +163,26 @@ std::string SpinnerIndicator::getETA() const {
     if (m_progress <= 0.0) {
         return "Unknown";
     }
-    
+
     auto now = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - m_startTime);
-    
+
     if (elapsed.count() == 0) {
         return "Unknown";
     }
-    
+
     auto totalTime = std::chrono::seconds(static_cast<long long>(elapsed.count() / m_progress));
     auto remaining = totalTime - elapsed;
-    
+
     if (remaining.count() <= 0) {
         return "0s";
     }
-    
+
     return formatTime(remaining);
 }
 
 // ProgressBarIndicator Implementation
-ProgressBarIndicator::ProgressBarIndicator(int width) 
+ProgressBarIndicator::ProgressBarIndicator(int width)
     : m_width(width)
     , m_fillChar('=')
     , m_emptyChar(' ')
@@ -219,11 +219,11 @@ void ProgressBarIndicator::finish(const std::string& message) {
     }
     render();
     std::cout << std::endl;
-    
+
     if (!message.empty()) {
         std::cout << TerminalUtils::colorize("✓ " + message, utils::Color::BrightGreen) << std::endl;
     }
-    
+
     m_started = false;
 }
 
@@ -280,41 +280,41 @@ void ProgressBarIndicator::setBrackets(char left, char right) {
 void ProgressBarIndicator::render() {
     std::ostringstream output;
     output << "\r";
-    
+
     // Message
     if (!m_message.empty()) {
         output << m_message << " ";
     }
-    
+
     // Progress bar
     output << m_leftBracket;
-    
+
     int filled = static_cast<int>(m_progress * m_width);
     int empty = m_width - filled;
-    
+
     // Filled portion
     output << TerminalUtils::colorize(std::string(filled, m_fillChar), utils::Color::BrightGreen);
-    
+
     // Empty portion
     output << std::string(empty, m_emptyChar);
-    
+
     output << m_rightBracket;
-    
+
     // Percentage
     if (m_showPercentage) {
         output << " " << std::fixed << std::setprecision(1) << (m_progress * 100.0) << "%";
     }
-    
+
     // Elapsed time
     if (m_showElapsedTime) {
         output << " [" << getElapsedTime() << "]";
     }
-    
+
     // ETA
     if (m_showETA && m_progress > 0.0) {
         output << " ETA: " << getETA();
     }
-    
+
     std::cout << output.str() << std::flush;
 }
 
@@ -322,13 +322,13 @@ std::string ProgressBarIndicator::formatTime(std::chrono::seconds seconds) const
     auto hours = std::chrono::duration_cast<std::chrono::hours>(seconds);
     auto minutes = std::chrono::duration_cast<std::chrono::minutes>(seconds % std::chrono::hours(1));
     auto secs = seconds % std::chrono::minutes(1);
-    
+
     if (hours.count() > 0) {
-        return std::to_string(hours.count()) + "h " + 
-               std::to_string(minutes.count()) + "m " + 
+        return std::to_string(hours.count()) + "h " +
+               std::to_string(minutes.count()) + "m " +
                std::to_string(secs.count()) + "s";
     } else if (minutes.count() > 0) {
-        return std::to_string(minutes.count()) + "m " + 
+        return std::to_string(minutes.count()) + "m " +
                std::to_string(secs.count()) + "s";
     } else {
         return std::to_string(secs.count()) + "s";
@@ -345,21 +345,21 @@ std::string ProgressBarIndicator::getETA() const {
     if (m_progress <= 0.0) {
         return "Unknown";
     }
-    
+
     auto now = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - m_startTime);
-    
+
     if (elapsed.count() == 0) {
         return "Unknown";
     }
-    
+
     auto totalTime = std::chrono::seconds(static_cast<long long>(elapsed.count() / m_progress));
     auto remaining = totalTime - elapsed;
-    
+
     if (remaining.count() <= 0) {
         return "0s";
     }
-    
+
     return formatTime(remaining);
 }
 

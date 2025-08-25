@@ -135,25 +135,25 @@ void InteractiveMenu::addInfo(const std::string& id, const std::string& title, c
 
 bool InteractiveMenu::show() {
     m_running = true;
-    
+
     while (m_running) {
         if (m_config.clearScreen) {
             clearScreen();
         }
-        
+
         render();
-        
+
         int selection = getSelection();
         if (selection == -1) {
             // Exit requested
             break;
         }
-        
+
         if (!handleSelection(selection)) {
             break;
         }
     }
-    
+
     return true;
 }
 
@@ -170,25 +170,25 @@ void InteractiveMenu::render() {
 void InteractiveMenu::renderHeader() {
     if (!m_config.title.empty()) {
         std::cout << TerminalUtils::colorize(m_config.title, utils::Color::BrightCyan) << std::endl;
-        
+
         if (!m_config.subtitle.empty()) {
             std::cout << TerminalUtils::colorize(m_config.subtitle, utils::Color::White) << std::endl;
         }
-        
+
         std::cout << std::endl;
     }
 }
 
 void InteractiveMenu::renderItems() {
     int visibleIndex = 1;
-    
+
     for (size_t i = 0; i < m_items.size(); ++i) {
         const auto& item = m_items[i];
-        
+
         if (!item.visible) {
             continue;
         }
-        
+
         if (item.type == MenuItemType::Separator) {
             if (!item.title.empty()) {
                 std::cout << TerminalUtils::colorize("-- " + item.title + " ", utils::Color::BrightBlack) << std::string(40, '-') << std::endl;
@@ -197,20 +197,20 @@ void InteractiveMenu::renderItems() {
             }
             continue;
         }
-        
+
         std::string formattedItem = formatItem(item, visibleIndex);
-        
+
         if (item.enabled) {
             std::cout << formattedItem << std::endl;
         } else {
             std::cout << TerminalUtils::colorize(formattedItem, utils::Color::BrightBlack) << std::endl;
         }
-        
+
         if (item.type != MenuItemType::Info) {
             visibleIndex++;
         }
     }
-    
+
     std::cout << std::endl;
 }
 
@@ -218,41 +218,41 @@ void InteractiveMenu::renderFooter() {
     if (m_config.allowBack && !m_menuStack.empty()) {
         std::cout << TerminalUtils::colorize("b) Back", utils::Color::BrightYellow) << "  ";
     }
-    
+
     if (m_config.allowExit) {
         std::cout << TerminalUtils::colorize("q) Quit", utils::Color::BrightRed);
     }
-    
+
     if (!m_config.footer.empty()) {
         std::cout << std::endl << std::endl;
         std::cout << TerminalUtils::colorize(m_config.footer, utils::Color::BrightBlack) << std::endl;
     }
-    
+
     std::cout << std::endl;
 }
 
 int InteractiveMenu::getSelection() {
     std::cout << "Enter your choice: ";
-    
+
     std::string input;
     std::getline(std::cin, input);
-    
+
     if (input.empty()) {
         return -2; // Invalid input
     }
-    
+
     // Handle special commands
     if (input == "q" || input == "quit" || input == "exit") {
         return -1; // Exit
     }
-    
+
     if (input == "b" || input == "back") {
         if (m_config.allowBack && !m_menuStack.empty()) {
             goBack();
             return -2; // Continue
         }
     }
-    
+
     // Try to parse as number
     try {
         int selection = std::stoi(input);
@@ -268,21 +268,21 @@ bool InteractiveMenu::handleSelection(int selection) {
     if (selection <= 0) {
         return true; // Continue
     }
-    
+
     // Find the corresponding menu item
     int visibleIndex = 1;
     for (auto& item : m_items) {
         if (!item.visible || item.type == MenuItemType::Separator || item.type == MenuItemType::Info) {
             continue;
         }
-        
+
         if (visibleIndex == selection) {
             if (!item.enabled) {
                 std::cout << TerminalUtils::colorize("This option is currently disabled.", utils::Color::BrightRed) << std::endl;
                 waitForEnter();
                 return true;
             }
-            
+
             switch (item.type) {
                 case MenuItemType::Action:
                     return executeAction(item);
@@ -301,10 +301,10 @@ bool InteractiveMenu::handleSelection(int selection) {
                     break;
             }
         }
-        
+
         visibleIndex++;
     }
-    
+
     std::cout << TerminalUtils::colorize("Invalid selection. Please try again.", utils::Color::BrightRed) << std::endl;
     waitForEnter();
     return true;
@@ -320,51 +320,51 @@ bool InteractiveMenu::executeAction(const MenuItem& item) {
 bool InteractiveMenu::handleToggle(MenuItem& item) {
     item.toggleState = !item.toggleState;
     item.icon = item.toggleState ? "☑" : "☐";
-    
+
     if (item.toggleCallback) {
         item.toggleCallback(item.toggleState);
     }
-    
+
     return true;
 }
 
 bool InteractiveMenu::handleInput(MenuItem& item) {
     std::cout << std::endl;
     std::cout << item.inputPrompt << ": ";
-    
+
     std::string input;
     std::getline(std::cin, input);
-    
+
     if (item.inputValidator && !item.inputValidator(input)) {
         std::cout << TerminalUtils::colorize("Invalid input. Please try again.", utils::Color::BrightRed) << std::endl;
         waitForEnter();
         return true;
     }
-    
+
     item.inputValue = input;
-    
+
     if (item.inputCallback) {
         item.inputCallback(input);
     }
-    
+
     return true;
 }
 
 std::string InteractiveMenu::formatItem(const MenuItem& item, int index) const {
     std::ostringstream formatted;
-    
+
     // Number
     if (m_config.showNumbers && item.type != MenuItemType::Info) {
         formatted << std::setw(2) << index << ") ";
     } else {
         formatted << "   ";
     }
-    
+
     // Icon
     if (m_config.showIcons && !item.icon.empty()) {
         formatted << item.icon << " ";
     }
-    
+
     // Title
     std::string color = getItemColor(item);
     if (!color.empty()) {
@@ -372,12 +372,12 @@ std::string InteractiveMenu::formatItem(const MenuItem& item, int index) const {
     } else {
         formatted << item.title;
     }
-    
+
     // Description
     if (m_config.showDescriptions && !item.description.empty()) {
         formatted << " - " << TerminalUtils::colorize(item.description, utils::Color::BrightBlack);
     }
-    
+
     return formatted.str();
 }
 
@@ -385,7 +385,7 @@ std::string InteractiveMenu::getItemColor(const MenuItem& item) const {
     if (item.highlighted) {
         return "highlight";
     }
-    
+
     switch (item.type) {
         case MenuItemType::Action:
             return "action";

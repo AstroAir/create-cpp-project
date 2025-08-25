@@ -316,9 +316,9 @@ bool LibraryTemplate::setupTestFramework() {
       testCmakeContent = fmt::format(R"(
 find_package(GTest REQUIRED)
 add_executable(${{PROJECT_NAME}}_tests {})
-target_link_libraries(${{PROJECT_NAME}}_tests PRIVATE 
+target_link_libraries(${{PROJECT_NAME}}_tests PRIVATE
     ${{PROJECT_NAME}}
-    GTest::GTest 
+    GTest::GTest
     GTest::Main
 )
 add_test(NAME ${{PROJECT_NAME}}_tests COMMAND ${{PROJECT_NAME}}_tests)
@@ -328,7 +328,7 @@ add_test(NAME ${{PROJECT_NAME}}_tests COMMAND ${{PROJECT_NAME}}_tests)
       testCmakeContent = fmt::format(R"(
 find_package(Catch2 REQUIRED)
 add_executable(${{PROJECT_NAME}}_tests {})
-target_link_libraries(${{PROJECT_NAME}}_tests PRIVATE 
+target_link_libraries(${{PROJECT_NAME}}_tests PRIVATE
     ${{PROJECT_NAME}}
     Catch2::Catch2
 )
@@ -339,7 +339,7 @@ add_test(NAME ${{PROJECT_NAME}}_tests COMMAND ${{PROJECT_NAME}}_tests)
       testCmakeContent = fmt::format(R"(
 find_package(doctest REQUIRED)
 add_executable(${{PROJECT_NAME}}_tests {})
-target_link_libraries(${{PROJECT_NAME}}_tests PRIVATE 
+target_link_libraries(${{PROJECT_NAME}}_tests PRIVATE
     ${{PROJECT_NAME}}
     doctest::doctest
 )
@@ -547,7 +547,7 @@ bool LibraryTemplate::setupBenchmarking() {
 find_package(benchmark REQUIRED)
 
 add_executable(${PROJECT_NAME}_benchmark benchmark_main.cpp)
-target_link_libraries(${PROJECT_NAME}_benchmark PRIVATE 
+target_link_libraries(${PROJECT_NAME}_benchmark PRIVATE
     ${PROJECT_NAME}
     benchmark::benchmark
 )
@@ -1357,10 +1357,10 @@ namespace {0} {{
 class Example {{
 public:
     explicit Example(int value = 0);
-    
+
     int getValue() const;
     void setValue(int value);
-    
+
 private:
     int value_;
 }};
@@ -1469,16 +1469,16 @@ A C++ library created with CPP-Scaffold.
 int main() {{
     // Create an Example object
     {0}::Example example(42);
-    
+
     // Use the example object
     int value = example.getValue();
-    
+
     // Use a free function
     int sum = {0}::add(3, 4);
-    
+
     // Get library version
     std::string version = {0}::getVersion();
-    
+
     return 0;
 }}
 ```
@@ -1550,8 +1550,8 @@ set(SOURCES
 
 # Library target
 add_library(${{PROJECT_NAME}} ${{SOURCES}})
-target_include_directories(${{PROJECT_NAME}} 
-  PUBLIC 
+target_include_directories(${{PROJECT_NAME}}
+  PUBLIC
     $<BUILD_INTERFACE:${{CMAKE_CURRENT_SOURCE_DIR}}/include>
     $<INSTALL_INTERFACE:include>
 )
@@ -1869,22 +1869,22 @@ std::string LibraryTemplate::getExampleContent() {
 int main() {{
     // Create an Example object
     {0}::Example example(42);
-    
+
     // Get value
     int value = example.getValue();
     std::cout << "Example value: " << value << std::endl;
-    
+
     // Modify value
     example.setValue(100);
     std::cout << "New value: " << example.getValue() << std::endl;
-    
+
     // Use free function
     int result = {0}::add(3, 4);
     std::cout << "3 + 4 = " << result << std::endl;
-    
+
     // Get library version
     std::cout << "Library version: " << {0}::getVersion() << std::endl;
-    
+
     return 0;
 }}
 )",
@@ -1899,7 +1899,7 @@ std::string LibraryTemplate::getGTestContent() {
 TEST(ExampleTest, Constructor) {{
     {0}::Example example;
     EXPECT_EQ(example.getValue(), 0);
-    
+
     {0}::Example example2(42);
     EXPECT_EQ(example2.getValue(), 42);
 }}
@@ -1939,11 +1939,11 @@ TEST_CASE("Example class tests", "[Example]") {{
     SECTION("Constructor") {{
         {0}::Example example;
         REQUIRE(example.getValue() == 0);
-        
+
         {0}::Example example2(42);
         REQUIRE(example2.getValue() == 42);
     }}
-    
+
     SECTION("Get and set value") {{
         {0}::Example example;
         example.setValue(100);
@@ -1977,11 +1977,11 @@ TEST_CASE("Example class tests") {{
     SUBCASE("Constructor") {{
         {0}::Example example;
         CHECK(example.getValue() == 0);
-        
+
         {0}::Example example2(42);
         CHECK(example2.getValue() == 42);
     }}
-    
+
     SUBCASE("Get and set value") {{
         {0}::Example example;
         example.setValue(100);
@@ -2191,8 +2191,8 @@ REPEAT_BRIEF         = YES
 ALWAYS_DETAILED_SEC  = NO
 INLINE_INHERITED_MEMB = NO
 FULL_PATH_NAMES      = YES
-STRIP_FROM_PATH      = 
-STRIP_FROM_INC_PATH  = 
+STRIP_FROM_PATH      =
+STRIP_FROM_INC_PATH  =
 TAB_SIZE             = 4
 MARKDOWN_SUPPORT     = YES
 TOC_INCLUDE_HEADINGS = 5

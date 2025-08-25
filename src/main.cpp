@@ -50,17 +50,17 @@ void initializeLogger(bool verbose) {
   }
 }
 
-// Demonstrate enhanced features
-void demonstrateEnhancedFeatures() {
-  spdlog::info("Demonstrating enhanced CPP-Scaffold features...");
+// Demonstrate advanced features
+void demonstrateAdvancedFeatures() {
+  spdlog::info("Demonstrating CPP-Scaffold advanced features...");
 
   // 1. Progress Indicators
   {
-    auto progress = utils::progress::spinner("Initializing enhanced features");
+    auto progress = utils::progress::spinner("Initializing advanced features");
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     progress->update(0.5, "Loading configuration system");
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    progress->finish("Enhanced features initialized!");
+    progress->finish("Advanced features initialized!");
   }
 
   // 2. Configuration Management
@@ -93,14 +93,14 @@ void demonstrateEnhancedFeatures() {
   {
     documentation::DocConfig docConfig;
     docConfig.projectName = "CPP-Scaffold";
-    docConfig.projectDescription = "Enhanced C++ project scaffolding tool";
+    docConfig.projectDescription = "Advanced C++ project scaffolding tool";
     docConfig.author = "CPP-Scaffold Team";
 
     documentation::DocGenerator docGen(docConfig);
     spdlog::info("Documentation generator configured for: {}", docConfig.projectName);
   }
 
-  spdlog::info("All enhanced features are operational!");
+  spdlog::info("All advanced features are operational!");
 }
 
 int main(int argc, char *argv[]) {
@@ -111,9 +111,9 @@ int main(int argc, char *argv[]) {
     spdlog::info("CPP-Scaffold is starting...");
     spdlog::debug("Parsing command line arguments");
 
-    // Demonstrate enhanced features if in verbose mode
+    // Demonstrate advanced features if in verbose mode
     if (false) { // Set to true to enable demonstration
-      demonstrateEnhancedFeatures();
+      demonstrateAdvancedFeatures();
     }
 
     // Parse command line arguments

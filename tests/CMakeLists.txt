@@ -12,7 +12,6 @@ endif()
 # Create test library with all source files except main.cpp
 set(TEST_SOURCES
     ../src/cli/cli_parser.cpp
-    ../src/cli/enhanced_cli_parser.cpp
     ../src/cli/project_wizard.cpp
     ../src/templates/template_manager.cpp
     ../src/templates/template_base.cpp
@@ -41,7 +40,6 @@ set(TEST_SOURCES
     ../src/config/code_style_config.cpp
     ../src/config/doc_config.cpp
     ../src/config/config_manager.cpp
-    ../src/config/enhanced_config_manager.cpp
     ../src/config/user_preferences.cpp
     ../src/config/interactive_config.cpp
     ../src/config/project_profiles.cpp

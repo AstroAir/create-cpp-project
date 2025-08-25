@@ -205,7 +205,6 @@ endif()
 set(CORE_SOURCES
     src/main.cpp
     src/cli/cli_parser.cpp
-    src/cli/enhanced_cli_parser.cpp
     src/cli/project_wizard.cpp
     src/templates/template_manager.cpp
     src/templates/template_base.cpp
@@ -241,7 +240,6 @@ set(CONFIG_SOURCES
     src/config/code_style_config.cpp
     src/config/doc_config.cpp
     src/config/config_manager.cpp
-    src/config/enhanced_config_manager.cpp
     src/config/user_preferences.cpp
     src/config/interactive_config.cpp
     src/config/project_profiles.cpp
@@ -337,7 +335,15 @@ endif()
 
 # Advanced compiler optimizations
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    # Detect actual compiler being used (not just the ID)
+    execute_process(
+        COMMAND ${CMAKE_CXX_COMPILER} --version
+        OUTPUT_VARIABLE COMPILER_VERSION_OUTPUT
+        ERROR_QUIET
+    )
+
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" AND NOT COMPILER_VERSION_OUTPUT MATCHES "clang")
+        # True GCC compiler
         target_compile_options(cpp-scaffold PRIVATE
             -O3
             -march=native
@@ -346,14 +352,18 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
             -fuse-linker-plugin
             -ffat-lto-objects
         )
-    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        message(STATUS "Using GCC-specific optimizations with LTO")
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR COMPILER_VERSION_OUTPUT MATCHES "clang")
+        # Clang compiler (including when masquerading as GCC)
         target_compile_options(cpp-scaffold PRIVATE
             -O3
             -march=native
             -mtune=native
             -flto=thin
         )
+        message(STATUS "Using Clang-specific optimizations with thin LTO")
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+        # MSVC compiler
         target_compile_options(cpp-scaffold PRIVATE
             /O2
             /Ob2
@@ -362,6 +372,11 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
             /GL
         )
         target_link_options(cpp-scaffold PRIVATE /LTCG)
+        message(STATUS "Using MSVC-specific optimizations with LTCG")
+    else()
+        # Fallback for unknown compilers
+        target_compile_options(cpp-scaffold PRIVATE -O3)
+        message(STATUS "Using generic optimizations for unknown compiler")
     endif()
 endif()
 
@@ -462,6 +477,7 @@ message(STATUS "=== Build Configuration Summary ===")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "C++ standard: C++${CMAKE_CXX_STANDARD}")
 message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "Compiler path: ${CMAKE_CXX_COMPILER}")
 message(STATUS "Generator: ${CMAKE_GENERATOR}")
 message(STATUS "Unity builds: ${ENABLE_UNITY_BUILD}")
 message(STATUS "Precompiled headers: ${ENABLE_PRECOMPILED_HEADERS}")
@@ -469,6 +485,17 @@ message(STATUS "ccache: ${ENABLE_CCACHE}")
 message(STATUS "Testing: ${BUILD_TESTING}")
 if(CCACHE_PROGRAM)
     message(STATUS "ccache found: ${CCACHE_PROGRAM}")
+endif()
+# Additional compiler detection for troubleshooting
+execute_process(
+    COMMAND ${CMAKE_CXX_COMPILER} --version
+    OUTPUT_VARIABLE COMPILER_VERSION_CHECK
+    ERROR_QUIET
+)
+if(COMPILER_VERSION_CHECK MATCHES "clang")
+    message(STATUS "Detected: Clang-based compiler (even if ID shows GNU)")
+elseif(COMPILER_VERSION_CHECK MATCHES "gcc" OR COMPILER_VERSION_CHECK MATCHES "g\\+\\+")
+    message(STATUS "Detected: True GCC compiler")
 endif()
 message(STATUS "===================================")
 message(STATUS "")

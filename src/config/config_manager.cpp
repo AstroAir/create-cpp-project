@@ -39,7 +39,7 @@ bool ConfigManager::loadConfiguration() {
         }
 
         m_config = json::parse(configContent);
-        
+
         // Check schema version and migrate if necessary
         int schemaVersion = m_config.value("schemaVersion", 0);
         if (schemaVersion < CONFIG_SCHEMA_VERSION) {
@@ -80,7 +80,7 @@ bool ConfigManager::saveConfiguration() {
 
         auto configPath = getConfigFilePath();
         std::string configContent = m_config.dump(2);
-        
+
         if (!FileUtils::writeToFile(configPath.string(), configContent)) {
             spdlog::error("Failed to write configuration file");
             return false;
@@ -104,21 +104,21 @@ bool ConfigManager::saveConfiguration() {
 bool ConfigManager::resetToDefaults() {
     try {
         spdlog::info("Resetting configuration to defaults");
-        
+
         // Create backup before reset
         createBackup();
-        
+
         // Clear current configuration
         m_config.clear();
         m_profiles.clear();
         m_customTemplates.clear();
         m_environmentOverrides.clear();
-        
+
         // Initialize with defaults
         initializeDefaultConfiguration();
-        
+
         return saveConfiguration();
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error resetting configuration: {}", e.what());
         return false;
@@ -141,7 +141,7 @@ bool ConfigManager::saveProfile(const std::string& profileName, const CliOptions
         profile.schemaVersion = CONFIG_SCHEMA_VERSION;
 
         m_profiles[profileName] = profile;
-        
+
         spdlog::info("Profile '{}' saved successfully", profileName);
         return saveProfiles();
 
@@ -160,10 +160,10 @@ std::optional<CliOptions> ConfigManager::loadProfile(const std::string& profileN
         }
 
         const auto& profile = it->second;
-        
+
         // Check if profile needs migration
         if (profile.schemaVersion < CONFIG_SCHEMA_VERSION) {
-            spdlog::warn("Profile '{}' uses old schema version {}, current is {}", 
+            spdlog::warn("Profile '{}' uses old schema version {}, current is {}",
                         profileName, profile.schemaVersion, CONFIG_SCHEMA_VERSION);
         }
 
@@ -180,11 +180,11 @@ std::optional<CliOptions> ConfigManager::loadProfile(const std::string& profileN
 std::vector<std::string> ConfigManager::listProfiles() {
     std::vector<std::string> profileNames;
     profileNames.reserve(m_profiles.size());
-    
+
     for (const auto& [name, profile] : m_profiles) {
         profileNames.push_back(name);
     }
-    
+
     return profileNames;
 }
 
@@ -211,7 +211,7 @@ CliOptions ConfigManager::loadDefaultOptions() {
         if (m_config.contains("defaultOptions")) {
             return jsonToCliOptions(m_config["defaultOptions"]);
         }
-        
+
         // Return system defaults if no user defaults exist
         CliOptions defaults;
         defaults.templateType = TemplateType::Console;
@@ -220,7 +220,7 @@ CliOptions ConfigManager::loadDefaultOptions() {
         defaults.testFramework = TestFramework::GTest;
         defaults.language = Language::English;
         defaults.initGit = true;
-        
+
         return defaults;
 
     } catch (const std::exception& e) {
@@ -245,11 +245,11 @@ void ConfigManager::loadEnvironmentVariables() {
     try {
         // Load relevant environment variables
         auto envVars = utils::getRelevantEnvironmentVariables();
-        
+
         for (const auto& [key, value] : envVars) {
             m_environmentOverrides[key] = value;
         }
-        
+
         spdlog::info("Loaded {} environment variables", envVars.size());
 
     } catch (const std::exception& e) {
@@ -295,7 +295,7 @@ bool ConfigManager::ensureConfigDirectoryExists() {
         auto profilesDir = getProfilesDirectory();
         auto templatesDir = getCustomTemplatesDirectory();
         auto cacheDir = getCacheDirectory();
-        
+
         return FileUtils::createDirectory(configDir.string()) &&
                FileUtils::createDirectory(profilesDir.string()) &&
                FileUtils::createDirectory(templatesDir.string()) &&
@@ -312,18 +312,18 @@ void ConfigManager::initializeDefaultConfiguration() {
     m_config["schemaVersion"] = CONFIG_SCHEMA_VERSION;
     m_config["createdAt"] = getCurrentTimestamp();
     m_config["lastModified"] = getCurrentTimestamp();
-    
+
     // Initialize default settings
     m_config["settings"] = json::object();
     m_config["settings"]["autoSave"] = true;
     m_config["settings"]["verboseLogging"] = false;
     m_config["settings"]["checkForUpdates"] = true;
     m_config["settings"]["createBackups"] = true;
-    
+
     // Initialize default options
     CliOptions defaults;
     m_config["defaultOptions"] = cliOptionsToJson(defaults);
-    
+
     registerDefaultConfigEntries();
 }
 

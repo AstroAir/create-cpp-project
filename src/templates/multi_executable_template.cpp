@@ -69,7 +69,7 @@ bool MultiExecutableTemplate::create() {
   std::cout << "  1. cd " << options_.projectName << "\n";
   std::cout << "  2. Review the generated executables in src/\n";
   std::cout << "  3. Customize the shared library in lib/\n";
-  
+
   if (enums::to_string(options_.buildSystem) == "cmake") {
     std::cout << "  4. Build the project:\n";
     std::cout << "     mkdir build && cd build\n";
@@ -125,7 +125,7 @@ bool MultiExecutableTemplate::setupSharedLibrary() {
 
   // Create shared library header
   std::string libHeaderPath = FileUtils::combinePath(
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"), 
+      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"),
       options_.projectName + "_lib.h");
   if (!FileUtils::writeToFile(libHeaderPath, getSharedLibraryHeaderContent())) {
     spdlog::error("Failed to create shared library header");
@@ -134,7 +134,7 @@ bool MultiExecutableTemplate::setupSharedLibrary() {
 
   // Create shared library source
   std::string libSourcePath = FileUtils::combinePath(
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "src"), 
+      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "src"),
       options_.projectName + "_lib.cpp");
   if (!FileUtils::writeToFile(libSourcePath, getSharedLibrarySourceContent())) {
     spdlog::error("Failed to create shared library source");
@@ -143,7 +143,7 @@ bool MultiExecutableTemplate::setupSharedLibrary() {
 
   // Create utils header
   std::string utilsHeaderPath = FileUtils::combinePath(
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"), 
+      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"),
       "utils.h");
   if (!FileUtils::writeToFile(utilsHeaderPath, getUtilsHeaderContent())) {
     spdlog::error("Failed to create utils header");
@@ -152,7 +152,7 @@ bool MultiExecutableTemplate::setupSharedLibrary() {
 
   // Create utils source
   std::string utilsSourcePath = FileUtils::combinePath(
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "src"), 
+      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "src"),
       "utils.cpp");
   if (!FileUtils::writeToFile(utilsSourcePath, getUtilsSourceContent())) {
     spdlog::error("Failed to create utils source");
@@ -161,7 +161,7 @@ bool MultiExecutableTemplate::setupSharedLibrary() {
 
   // Create version header
   std::string versionHeaderPath = FileUtils::combinePath(
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"), 
+      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"),
       "version.h");
   if (!FileUtils::writeToFile(versionHeaderPath, getVersionHeaderContent())) {
     spdlog::error("Failed to create version header");
@@ -170,7 +170,7 @@ bool MultiExecutableTemplate::setupSharedLibrary() {
 
   // Create config header
   std::string configHeaderPath = FileUtils::combinePath(
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"), 
+      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"),
       "config.h");
   if (!FileUtils::writeToFile(configHeaderPath, getConfigHeaderContent())) {
     spdlog::error("Failed to create config header");
@@ -187,7 +187,7 @@ bool MultiExecutableTemplate::setupExecutables() {
   for (const auto& config : configs) {
     std::string executablePath = FileUtils::combinePath(
         FileUtils::combinePath(projectPath, "src"), config.sourceFile);
-    
+
     std::string content;
     if (config.name == "main") {
       content = getMainExecutableContent();
@@ -230,7 +230,7 @@ bool MultiExecutableTemplate::createBuildSystem() {
       spdlog::error("Failed to create BUILD file");
       return false;
     }
-    
+
     std::string workspacePath = FileUtils::combinePath(projectPath, "WORKSPACE");
     if (!FileUtils::writeToFile(workspacePath, "workspace(name = \"" + options_.projectName + "\")\n")) {
       spdlog::error("Failed to create WORKSPACE file");
@@ -275,7 +275,7 @@ bool MultiExecutableTemplate::setupTestFramework() {
     std::string testCMakePath = FileUtils::combinePath(
         FileUtils::combinePath(projectPath, "tests"), "CMakeLists.txt");
     std::string testCMakeContent;
-    
+
     if (testFramework == "gtest") {
       testCMakeContent = getGTestContent();
     } else if (testFramework == "catch2") {
@@ -283,7 +283,7 @@ bool MultiExecutableTemplate::setupTestFramework() {
     } else if (testFramework == "doctest") {
       testCMakeContent = getDocTestContent();
     }
-    
+
     if (!FileUtils::writeToFile(testCMakePath, testCMakeContent)) {
       spdlog::error("Failed to create test CMakeLists.txt");
       return false;
@@ -293,7 +293,7 @@ bool MultiExecutableTemplate::setupTestFramework() {
   // Create basic test file
   std::string testFilePath = FileUtils::combinePath(
       FileUtils::combinePath(projectPath, "tests"), "test_" + options_.projectName + ".cpp");
-  
+
   std::string testContent = fmt::format(R"(#include <{0}_lib.h>
 
 #ifdef USING_GTEST

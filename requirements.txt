@@ -1,0 +1,23 @@
+# MkDocs and core dependencies
+mkdocs>=1.5.0
+mkdocs-material>=9.4.0
+
+# MkDocs plugins
+mkdocs-mermaid2-plugin>=1.1.0
+mkdocs-git-revision-date-localized-plugin>=1.2.0
+mkdocs-minify-plugin>=0.7.0
+
+# Additional dependencies for enhanced functionality
+pymdown-extensions>=10.3.0
+markdown>=3.5.0
+jinja2>=3.1.0
+markupsafe>=2.1.0
+
+# Optional: For PDF generation (uncomment if needed)
+# mkdocs-with-pdf>=0.9.0
+# weasyprint>=60.0
+
+# Optional: For additional plugins (uncomment if needed)
+# mkdocs-awesome-pages-plugin>=2.9.0
+# mkdocs-redirects>=1.2.0
+# mkdocs-macros-plugin>=1.0.0

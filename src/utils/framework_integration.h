@@ -40,7 +40,7 @@ public:
         CLI11,
         Doctest
     };
-    
+
     // Package manager types
     enum class PackageManager {
         vcpkg,
@@ -50,7 +50,7 @@ public:
         FetchContent,
         System
     };
-    
+
     // Framework information
     struct FrameworkInfo {
         Framework framework;
@@ -69,40 +69,40 @@ public:
         bool requiresSpecialSetup;
         std::function<bool(const std::filesystem::path&)> setupFunction;
     };
-    
+
     // Framework detection and installation
     static bool isFrameworkAvailable(Framework framework, PackageManager packageManager = PackageManager::vcpkg);
     static bool installFramework(Framework framework, const std::filesystem::path& projectPath, PackageManager packageManager = PackageManager::vcpkg);
     static bool configureFramework(Framework framework, const std::filesystem::path& projectPath);
-    
+
     // Framework information
     static std::optional<FrameworkInfo> getFrameworkInfo(Framework framework);
     static std::vector<Framework> listAvailableFrameworks();
     static std::vector<Framework> getCompatibleFrameworks(Framework baseFramework);
-    
+
     // CMake integration
     static std::string generateCMakeConfig(const std::vector<Framework>& frameworks);
     static std::string generateFindPackageCommands(const std::vector<Framework>& frameworks);
     static std::string generateTargetLinkLibraries(const std::vector<Framework>& frameworks, const std::string& targetName);
-    
+
     // Package manager integration
     static bool setupPackageManager(PackageManager packageManager, const std::filesystem::path& projectPath);
     static std::string generatePackageManagerConfig(PackageManager packageManager, const std::vector<Framework>& frameworks);
-    
+
     // Template integration
     static bool integrateWithTemplate(const std::vector<Framework>& frameworks, const std::filesystem::path& projectPath);
     static std::vector<std::string> generateTemplateFiles(Framework framework, const std::filesystem::path& projectPath);
-    
+
 private:
     // Framework registry
     static std::map<Framework, FrameworkInfo> s_frameworkRegistry;
     static void initializeFrameworkRegistry();
-    
+
     // Package manager helpers
     static bool setupVcpkg(const std::filesystem::path& projectPath, const std::vector<Framework>& frameworks);
     static bool setupConan(const std::filesystem::path& projectPath, const std::vector<Framework>& frameworks);
     static bool setupCPM(const std::filesystem::path& projectPath, const std::vector<Framework>& frameworks);
-    
+
     // Framework-specific setup functions
     static bool setupQt(const std::filesystem::path& projectPath);
     static bool setupSFML(const std::filesystem::path& projectPath);
@@ -124,7 +124,7 @@ private:
     // Graphics library setup functions
     static bool setupGLFW(const std::filesystem::path& projectPath);
     static bool setupVulkan(const std::filesystem::path& projectPath);
-    
+
     // Utility functions
     static std::string frameworkToString(Framework framework);
     static std::optional<Framework> stringToFramework(const std::string& name);
@@ -139,22 +139,22 @@ public:
     static std::vector<FrameworkIntegration::Framework> resolveDependencies(const std::vector<FrameworkIntegration::Framework>& requestedFrameworks);
     static bool hasCircularDependencies(const std::vector<FrameworkIntegration::Framework>& frameworks);
     static std::vector<FrameworkIntegration::Framework> getInstallationOrder(const std::vector<FrameworkIntegration::Framework>& frameworks);
-    
+
     // Conflict detection
     static std::vector<std::pair<FrameworkIntegration::Framework, FrameworkIntegration::Framework>> detectConflicts(const std::vector<FrameworkIntegration::Framework>& frameworks);
     static bool areFrameworksCompatible(FrameworkIntegration::Framework framework1, FrameworkIntegration::Framework framework2);
-    
+
     // Version management
     static std::string getRecommendedVersion(FrameworkIntegration::Framework framework);
     static bool isVersionCompatible(FrameworkIntegration::Framework framework, const std::string& version);
-    
+
 private:
     // Dependency graph
     static std::map<FrameworkIntegration::Framework, std::vector<FrameworkIntegration::Framework>> s_dependencyGraph;
     static std::map<std::pair<FrameworkIntegration::Framework, FrameworkIntegration::Framework>, bool> s_compatibilityMatrix;
-    
+
     // Graph algorithms
-    static bool hasCycleDFS(FrameworkIntegration::Framework framework, 
+    static bool hasCycleDFS(FrameworkIntegration::Framework framework,
                            std::map<FrameworkIntegration::Framework, int>& visited,
                            const std::vector<FrameworkIntegration::Framework>& frameworks);
     static void topologicalSortDFS(FrameworkIntegration::Framework framework,
@@ -171,17 +171,17 @@ public:
     static std::string generateHeaderFile(FrameworkIntegration::Framework framework, const std::string& className);
     static std::string generateSourceFile(FrameworkIntegration::Framework framework, const std::string& className);
     static std::string generateCMakeLists(const std::vector<FrameworkIntegration::Framework>& frameworks, const std::string& projectName);
-    
+
     // Example code generation
     static std::string generateHelloWorldExample(FrameworkIntegration::Framework framework);
     static std::string generateBasicWindowExample(FrameworkIntegration::Framework framework);
     static std::string generateTestExample(FrameworkIntegration::Framework framework);
-    
+
     // Documentation generation
     static std::string generateReadme(const std::vector<FrameworkIntegration::Framework>& frameworks, const std::string& projectName);
     static std::string generateBuildInstructions(const std::vector<FrameworkIntegration::Framework>& frameworks);
     static std::string generateUsageExamples(FrameworkIntegration::Framework framework);
-    
+
 private:
     // Template helpers
     static std::string getFrameworkIncludes(FrameworkIntegration::Framework framework);
@@ -196,7 +196,7 @@ public:
     // Interactive selection
     static std::vector<FrameworkIntegration::Framework> selectFrameworksInteractively();
     static FrameworkIntegration::PackageManager selectPackageManagerInteractively();
-    
+
     // Framework categories
     enum class Category {
         GUI,
@@ -210,21 +210,21 @@ public:
         Serialization,
         Logging
     };
-    
+
     static std::vector<FrameworkIntegration::Framework> getFrameworksByCategory(Category category);
     static std::vector<FrameworkIntegration::Framework> selectByCategory();
-    
+
     // Recommendation system
     static std::vector<FrameworkIntegration::Framework> recommendFrameworks(const std::string& projectType);
     static std::vector<FrameworkIntegration::Framework> getPopularFrameworks();
     static std::vector<FrameworkIntegration::Framework> getFrameworksForBeginners();
-    
+
 private:
     // Interactive helpers
     static void displayFrameworkInfo(FrameworkIntegration::Framework framework);
     static bool confirmFrameworkSelection(const std::vector<FrameworkIntegration::Framework>& frameworks);
     static void showDependencyTree(const std::vector<FrameworkIntegration::Framework>& frameworks);
-    
+
     // Category mappings
     static std::map<Category, std::vector<FrameworkIntegration::Framework>> s_categoryMap;
     static std::map<std::string, std::vector<FrameworkIntegration::Framework>> s_projectTypeRecommendations;
@@ -237,21 +237,21 @@ public:
     static std::vector<std::string> getAvailableVersions(FrameworkIntegration::Framework framework);
     static std::string getLatestVersion(FrameworkIntegration::Framework framework);
     static std::string getStableVersion(FrameworkIntegration::Framework framework);
-    
+
     // Version comparison
     static int compareVersions(const std::string& version1, const std::string& version2);
     static bool isVersionNewer(const std::string& version1, const std::string& version2);
     static bool isVersionInRange(const std::string& version, const std::string& minVersion, const std::string& maxVersion);
-    
+
     // Version constraints
     static bool satisfiesConstraints(FrameworkIntegration::Framework framework, const std::string& version, const std::vector<std::string>& constraints);
     static std::string resolveVersionConstraints(FrameworkIntegration::Framework framework, const std::vector<std::string>& constraints);
-    
+
 private:
     // Version parsing
     static std::vector<int> parseVersion(const std::string& version);
     static bool isValidVersion(const std::string& version);
-    
+
     // Version database
     static std::map<FrameworkIntegration::Framework, std::vector<std::string>> s_versionDatabase;
     static void initializeVersionDatabase();

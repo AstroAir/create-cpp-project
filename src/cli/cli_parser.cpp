@@ -311,6 +311,83 @@ std::vector<std::string_view> all_git_branch_strategies() {
 std::vector<std::string_view> all_license_types() {
   return {"mit", "apache2", "gpl3", "bsd3", "bsd2", "unlicense", "custom", "none"};
 }
+
+// New enum conversions for enhanced configuration
+std::string_view to_string(CppStandard standard) {
+  static const std::unordered_map<CppStandard, std::string_view> map = {
+      {CppStandard::Cpp11, "c++11"},
+      {CppStandard::Cpp14, "c++14"},
+      {CppStandard::Cpp17, "c++17"},
+      {CppStandard::Cpp20, "c++20"},
+      {CppStandard::Cpp23, "c++23"},
+      {CppStandard::Latest, "latest"}};
+  return map.at(standard);
+}
+
+std::optional<CppStandard> to_cpp_standard(std::string_view str) {
+  static const std::unordered_map<std::string_view, CppStandard> map = {
+      {"c++11", CppStandard::Cpp11}, {"11", CppStandard::Cpp11},
+      {"c++14", CppStandard::Cpp14}, {"14", CppStandard::Cpp14},
+      {"c++17", CppStandard::Cpp17}, {"17", CppStandard::Cpp17},
+      {"c++20", CppStandard::Cpp20}, {"20", CppStandard::Cpp20},
+      {"c++23", CppStandard::Cpp23}, {"23", CppStandard::Cpp23},
+      {"latest", CppStandard::Latest}};
+  auto it = map.find(str);
+  return it != map.end() ? std::optional<CppStandard>{it->second} : std::nullopt;
+}
+
+std::string_view to_string(ProjectStructure structure) {
+  static const std::unordered_map<ProjectStructure, std::string_view> map = {
+      {ProjectStructure::Minimal, "minimal"},
+      {ProjectStructure::Standard, "standard"},
+      {ProjectStructure::Advanced, "advanced"},
+      {ProjectStructure::Custom, "custom"}};
+  return map.at(structure);
+}
+
+std::optional<ProjectStructure> to_project_structure(std::string_view str) {
+  static const std::unordered_map<std::string_view, ProjectStructure> map = {
+      {"minimal", ProjectStructure::Minimal},
+      {"standard", ProjectStructure::Standard},
+      {"advanced", ProjectStructure::Advanced},
+      {"custom", ProjectStructure::Custom}};
+  auto it = map.find(str);
+  return it != map.end() ? std::optional<ProjectStructure>{it->second} : std::nullopt;
+}
+
+std::string_view to_string(CompilerFlags flags) {
+  static const std::unordered_map<CompilerFlags, std::string_view> map = {
+      {CompilerFlags::Debug, "debug"},
+      {CompilerFlags::Release, "release"},
+      {CompilerFlags::RelWithDebInfo, "relwithdebinfo"},
+      {CompilerFlags::MinSizeRel, "minsizerel"},
+      {CompilerFlags::Custom, "custom"}};
+  return map.at(flags);
+}
+
+std::optional<CompilerFlags> to_compiler_flags(std::string_view str) {
+  static const std::unordered_map<std::string_view, CompilerFlags> map = {
+      {"debug", CompilerFlags::Debug},
+      {"release", CompilerFlags::Release},
+      {"relwithdebinfo", CompilerFlags::RelWithDebInfo},
+      {"minsizerel", CompilerFlags::MinSizeRel},
+      {"custom", CompilerFlags::Custom}};
+  auto it = map.find(str);
+  return it != map.end() ? std::optional<CompilerFlags>{it->second} : std::nullopt;
+}
+
+std::vector<std::string_view> all_cpp_standards() {
+  return {"c++11", "c++14", "c++17", "c++20", "c++23", "latest"};
+}
+
+std::vector<std::string_view> all_project_structures() {
+  return {"minimal", "standard", "advanced", "custom"};
+}
+
+std::vector<std::string_view> all_compiler_flags() {
+  return {"debug", "release", "relwithdebinfo", "minsizerel", "custom"};
+}
+
 } // namespace enums
 
 // 本地化实现

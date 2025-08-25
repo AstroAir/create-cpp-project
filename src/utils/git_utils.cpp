@@ -24,21 +24,21 @@ bool GitUtils::initializeRepository(const std::filesystem::path& projectPath) {
             spdlog::info("Git repository already exists at {}", projectPath.string());
             return true;
         }
-        
+
         if (!hasGitInstalled()) {
             spdlog::error("Git is not installed or not found in PATH");
             return false;
         }
-        
+
         // Initialize repository
         if (!executeGitCommand(projectPath, {"init"})) {
             spdlog::error("Failed to initialize Git repository");
             return false;
         }
-        
+
         spdlog::info("Git repository initialized at {}", projectPath.string());
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error initializing Git repository: {}", e.what());
         return false;
@@ -153,18 +153,18 @@ bool GitUtils::configureRepository(const std::filesystem::path& projectPath,
                 spdlog::warn("Failed to set Git user name");
             }
         }
-        
+
         if (!userEmail.empty()) {
             if (!executeGitCommand(projectPath, {"config", "user.email", userEmail})) {
                 spdlog::warn("Failed to set Git user email");
             }
         }
-        
+
         // Set default branch name to main
         executeGitCommand(projectPath, {"config", "init.defaultBranch", "main"});
-        
+
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error configuring Git repository: {}", e.what());
         return false;
@@ -179,16 +179,16 @@ bool GitUtils::createInitialCommit(const std::filesystem::path& projectPath,
             spdlog::error("Failed to add files to Git");
             return false;
         }
-        
+
         // Create initial commit
         if (!executeGitCommand(projectPath, {"commit", "-m", message})) {
             spdlog::error("Failed to create initial commit");
             return false;
         }
-        
+
         spdlog::info("Created initial commit: {}", message);
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error creating initial commit: {}", e.what());
         return false;
@@ -199,15 +199,15 @@ bool GitUtils::createGitAttributes(const std::filesystem::path& projectPath) {
     try {
         auto gitAttributesPath = projectPath / ".gitattributes";
         std::string content = getGitAttributesTemplate();
-        
+
         if (!FileUtils::writeToFile(gitAttributesPath.string(), content)) {
             spdlog::error("Failed to create .gitattributes file");
             return false;
         }
-        
+
         spdlog::info("Created .gitattributes file");
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error creating .gitattributes: {}", e.what());
         return false;
@@ -226,20 +226,20 @@ bool GitUtils::executeGitCommand(const std::filesystem::path& workingDir,
         }
 
         std::string fullCommand = command.str();
-        
+
 #ifdef _WIN32
         if (output) {
             fullCommand += " 2>&1";
             FILE* pipe = _popen(fullCommand.c_str(), "r");
             if (!pipe) return false;
-            
+
             char buffer[128];
             std::ostringstream result;
             while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
                 result << buffer;
             }
             *output = result.str();
-            
+
             int exitCode = _pclose(pipe);
             return exitCode == 0;
         } else {
@@ -250,7 +250,7 @@ bool GitUtils::executeGitCommand(const std::filesystem::path& workingDir,
         // Change to working directory
         auto oldPath = std::filesystem::current_path();
         std::filesystem::current_path(workingDir);
-        
+
         if (output) {
             fullCommand += " 2>&1";
             FILE* pipe = popen(fullCommand.c_str(), "r");
@@ -258,14 +258,14 @@ bool GitUtils::executeGitCommand(const std::filesystem::path& workingDir,
                 std::filesystem::current_path(oldPath);
                 return false;
             }
-            
+
             char buffer[128];
             std::ostringstream result;
             while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
                 result << buffer;
             }
             *output = result.str();
-            
+
             int exitCode = pclose(pipe);
             std::filesystem::current_path(oldPath);
             return WEXITSTATUS(exitCode) == 0;
@@ -275,7 +275,7 @@ bool GitUtils::executeGitCommand(const std::filesystem::path& workingDir,
             return WEXITSTATUS(result) == 0;
         }
 #endif
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error executing Git command: {}", e.what());
         return false;

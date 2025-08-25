@@ -29,28 +29,28 @@ struct MenuItem {
     MenuItemType type;
     bool enabled{true};
     bool visible{true};
-    
+
     // Action callback
     std::function<bool()> action;
-    
+
     // Submenu items (for Submenu type)
     std::vector<MenuItem> submenuItems;
-    
+
     // Toggle state (for Toggle type)
     bool toggleState{false};
     std::function<void(bool)> toggleCallback;
-    
+
     // Input properties (for Input type)
     std::string inputValue;
     std::string inputPrompt;
     std::function<bool(const std::string&)> inputValidator;
     std::function<void(const std::string&)> inputCallback;
-    
+
     // Choice properties (for Choice/MultiChoice type)
     std::vector<std::string> choices;
     std::vector<int> selectedChoices;
     std::function<void(const std::vector<int>&)> choiceCallback;
-    
+
     // Styling
     std::string icon;
     std::string color;
@@ -78,13 +78,13 @@ class InteractiveMenu {
 public:
     InteractiveMenu(const MenuConfig& config = MenuConfig{});
     ~InteractiveMenu() = default;
-    
+
     // Menu management
     void setConfig(const MenuConfig& config);
     void setTitle(const std::string& title);
     void setSubtitle(const std::string& subtitle);
     void setFooter(const std::string& footer);
-    
+
     // Item management
     void addItem(const MenuItem& item);
     void addAction(const std::string& id, const std::string& title, std::function<bool()> action, const std::string& description = "");
@@ -95,45 +95,45 @@ public:
     void addMultiChoice(const std::string& id, const std::string& title, const std::vector<std::string>& choices, std::function<void(const std::vector<int>&)> callback, const std::string& description = "");
     void addSeparator(const std::string& title = "");
     void addInfo(const std::string& id, const std::string& title, const std::string& info);
-    
+
     // Item modification
     void setItemEnabled(const std::string& id, bool enabled);
     void setItemVisible(const std::string& id, bool visible);
     void setItemHighlighted(const std::string& id, bool highlighted);
     void updateItemTitle(const std::string& id, const std::string& title);
     void updateItemDescription(const std::string& id, const std::string& description);
-    
+
     // Menu execution
     bool show();
     void close();
-    
+
     // Navigation
     void goBack();
     void goToSubmenu(const std::string& submenuId);
-    
+
     // State management
     void saveState();
     void restoreState();
     void clearState();
-    
+
 private:
     MenuConfig m_config;
     std::vector<MenuItem> m_items;
     std::vector<std::vector<MenuItem>> m_menuStack;
     std::map<std::string, std::string> m_state;
     bool m_running{false};
-    
+
     // Display methods
     void render();
     void renderHeader();
     void renderItems();
     void renderFooter();
     void renderBorder(const std::string& content);
-    
+
     // Input handling
     int getSelection();
     bool handleSelection(int selection);
-    
+
     // Item handling
     bool executeAction(const MenuItem& item);
     bool handleToggle(MenuItem& item);
@@ -141,7 +141,7 @@ private:
     bool handleChoice(MenuItem& item);
     bool handleMultiChoice(MenuItem& item);
     void enterSubmenu(const MenuItem& item);
-    
+
     // Utility methods
     MenuItem* findItem(const std::string& id);
     std::string formatItem(const MenuItem& item, int index) const;
@@ -155,7 +155,7 @@ private:
 class MenuBuilder {
 public:
     MenuBuilder();
-    
+
     // Configuration
     MenuBuilder& title(const std::string& title);
     MenuBuilder& subtitle(const std::string& subtitle);
@@ -168,7 +168,7 @@ public:
     MenuBuilder& allowBack(bool allow);
     MenuBuilder& allowExit(bool allow);
     MenuBuilder& clearScreen(bool clear);
-    
+
     // Items
     MenuBuilder& action(const std::string& id, const std::string& title, std::function<bool()> action, const std::string& description = "");
     MenuBuilder& submenu(const std::string& id, const std::string& title, std::function<void(MenuBuilder&)> builder, const std::string& description = "");
@@ -178,11 +178,11 @@ public:
     MenuBuilder& multiChoice(const std::string& id, const std::string& title, const std::vector<std::string>& choices, std::function<void(const std::vector<int>&)> callback, const std::string& description = "");
     MenuBuilder& separator(const std::string& title = "");
     MenuBuilder& info(const std::string& id, const std::string& title, const std::string& info);
-    
+
     // Build and show
     std::unique_ptr<InteractiveMenu> build();
     bool show();
-    
+
 private:
     MenuConfig m_config;
     std::vector<MenuItem> m_items;
@@ -192,22 +192,22 @@ private:
 namespace menus {
     // Configuration menu
     std::unique_ptr<InteractiveMenu> createConfigurationMenu();
-    
+
     // Project creation menu
     std::unique_ptr<InteractiveMenu> createProjectMenu();
-    
+
     // Template selection menu
     std::unique_ptr<InteractiveMenu> createTemplateMenu();
-    
+
     // Framework selection menu
     std::unique_ptr<InteractiveMenu> createFrameworkMenu();
-    
+
     // Settings menu
     std::unique_ptr<InteractiveMenu> createSettingsMenu();
-    
+
     // Help menu
     std::unique_ptr<InteractiveMenu> createHelpMenu();
-    
+
     // Main menu
     std::unique_ptr<InteractiveMenu> createMainMenu();
 }
@@ -219,18 +219,18 @@ namespace menu_utils {
     bool validateEmail(const std::string& email);
     bool validatePath(const std::string& path);
     bool validateURL(const std::string& url);
-    
+
     // Choice helpers
     std::vector<std::string> getTemplateChoices();
     std::vector<std::string> getBuildSystemChoices();
     std::vector<std::string> getPackageManagerChoices();
     std::vector<std::string> getFrameworkChoices();
-    
+
     // Formatting helpers
     std::string formatChoice(const std::string& choice, bool selected);
     std::string formatToggle(const std::string& title, bool state);
     std::string formatProgress(double progress);
-    
+
     // Color themes
     struct ColorTheme {
         std::string primary;
@@ -242,7 +242,7 @@ namespace menu_utils {
         std::string info;
         std::string muted;
     };
-    
+
     ColorTheme getTheme(const std::string& themeName);
     void applyTheme(const ColorTheme& theme);
 }

@@ -180,7 +180,7 @@ std::string CIConfig::getGitHubActionsYamlContent(const CliOptions &options) {
                     pip install conan
                     conan profile new default --detect
                     conan install . --build=missing
-                    
+
 )");
   } else {
     packageManagerConfig = "";
@@ -197,26 +197,26 @@ on:
 jobs:
     build-linux:
         runs-on: ubuntu-latest
-        
+
         steps:
             - uses: actions/checkout@v2
-            
+
 {0}{1}{2}
-                    
+
     build-windows:
         runs-on: windows-latest
-        
+
         steps:
             - uses: actions/checkout@v2
-            
+
 {0}{1}{2}
-                    
+
     build-macos:
         runs-on: macos-latest
-        
+
         steps:
             - uses: actions/checkout@v2
-            
+
 {0}{1}{2})",
                      packageManagerConfig, buildCommands, testCommands);
 }

@@ -320,9 +320,9 @@ endif()
       testCmakeContent = R"(
 find_package(GTest REQUIRED)
 add_executable(${PROJECT_NAME}_tests test_main.cpp)
-target_link_libraries(${PROJECT_NAME}_tests PRIVATE 
+target_link_libraries(${PROJECT_NAME}_tests PRIVATE
     ${PROJECT_NAME}_lib
-    GTest::GTest 
+    GTest::GTest
     GTest::Main
 )
 add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
@@ -331,7 +331,7 @@ add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
       testCmakeContent = R"(
 find_package(Catch2 REQUIRED)
 add_executable(${PROJECT_NAME}_tests test_main.cpp)
-target_link_libraries(${PROJECT_NAME}_tests PRIVATE 
+target_link_libraries(${PROJECT_NAME}_tests PRIVATE
     ${PROJECT_NAME}_lib
     Catch2::Catch2
 )
@@ -341,7 +341,7 @@ add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
       testCmakeContent = R"(
 find_package(doctest REQUIRED)
 add_executable(${PROJECT_NAME}_tests test_main.cpp)
-target_link_libraries(${PROJECT_NAME}_tests PRIVATE 
+target_link_libraries(${PROJECT_NAME}_tests PRIVATE
     ${PROJECT_NAME}_lib
     doctest::doctest
 )
@@ -605,9 +605,9 @@ std::string ConsoleTemplate::getMesonContent() {
     dependencies : [{}],
     link_with : {}_lib
   )
-  
+
   test(
-    '{}_unit_tests', 
+    '{}_unit_tests',
     test_exe,
     protocol : 'stdout',
     timeout : 30
@@ -626,7 +626,7 @@ std::string ConsoleTemplate::getMesonContent() {
     'include/' + meson.project_name(),
     install_dir : get_option('includedir')
   )
-  
+
   pkg_mod = import('pkgconfig')
   pkg_mod.generate(
     name : meson.project_name(),
@@ -648,7 +648,7 @@ std::string ConsoleTemplate::getMesonContent() {
       'default_library=static'
     ]
   )
-  
+
   # Compiler setup
   cpp = meson.get_compiler('cpp')
   if cpp.get_id() == 'gcc' or cpp.get_id() == 'clang'
@@ -656,19 +656,19 @@ std::string ConsoleTemplate::getMesonContent() {
   elif cpp.get_id() == 'msvc'
     add_project_arguments('/W4', '/WX', language : 'cpp')
   endif
-  
+
   # Dependencies
   {}
-  
+
   # Source files
   src_files = [
     'src/main.cpp',
     # Add more source files here
   ]
-  
+
   # Include directories
   inc_dirs = include_directories('include')
-  
+
   # Library target for reuse in tests
   {}_lib = library(
     '{}_lib',
@@ -677,7 +677,7 @@ std::string ConsoleTemplate::getMesonContent() {
     dependencies : [fmt_dep],
     install : true
   )
-  
+
   # Main executable
   {}_exe = executable(
     '{}',
@@ -687,7 +687,7 @@ std::string ConsoleTemplate::getMesonContent() {
     link_with : {}_lib,
     install : true
   )
-  
+
   # Tests
   {}
   {})",
@@ -732,9 +732,9 @@ std::string ConsoleTemplate::getBazelContent() {
 
   // WORKSPACE 文件内容
   std::string workspaceContent = fmt::format(R"(workspace(name = "{}")
-  
+
   load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-  
+
   # fmt dependency
   http_archive(
       name = "fmt",

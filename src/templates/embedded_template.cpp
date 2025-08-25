@@ -156,7 +156,7 @@ bool EmbeddedTemplate::setupPackageManager() {
     if (!FileUtils::createDirectory(FileUtils::combinePath(projectPath, "libs"))) {
       return false;
     }
-    
+
     // Create a simple library management script
     std::string libScript = R"(#!/bin/bash
 # Library management script for embedded project
@@ -165,7 +165,7 @@ bool EmbeddedTemplate::setupPackageManager() {
 echo "Setting up embedded libraries..."
 # Example: git submodule add https://github.com/FreeRTOS/FreeRTOS.git libs/FreeRTOS
 )";
-    
+
     if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "scripts/setup_libs.sh"), libScript)) {
       return false;
     }

@@ -43,29 +43,29 @@ private:
   std::string getConfigContent();
   std::string getAssetsReadmeContent();
   std::string getGameEngineReadmeContent();
-  
+
   // Build system content for game engine
   std::string getGameEngineCMakeContent();
   std::string getGameEngineMesonContent();
   std::string getGameEngineBazelContent();
-  
+
   // Package manager content for game engine
   std::string getGameEngineVcpkgContent();
   std::string getGameEngineConanContent();
-  
+
   // Documentation content
   std::string getGameEngineDoxygenContent();
   std::string getArchitectureDocContent();
   std::string getGettingStartedContent();
-  
+
   // Asset pipeline
   std::string getAssetPipelineScriptContent();
   std::string getShaderCompilerScriptContent();
-  
+
   // Example game content
   std::string getExampleGameContent();
   std::string getExampleSceneContent();
-  
+
   // Configuration and settings
   std::string getEngineConfigContent();
   std::string getGraphicsConfigContent();

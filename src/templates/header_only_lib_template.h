@@ -55,7 +55,7 @@ private:
   std::string getContributingGuideContent();
   std::string getChangelogContent();
   std::string getLicenseContent();
-  
+
   // Helper methods
   std::string getProjectNameUpper() const;
   std::string getProjectNamespace() const;

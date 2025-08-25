@@ -17,24 +17,24 @@ TestFrameworkManager& TestFrameworkManager::getInstance() {
 bool TestFrameworkManager::setupFramework(TestFramework framework, const std::filesystem::path& projectPath, const TestConfig& config) {
     try {
         spdlog::info("Setting up test framework: {}", static_cast<int>(framework));
-        
+
         // Initialize frameworks if not done
         if (m_frameworks.empty()) {
             initializeFrameworks();
         }
-        
+
         // Check if framework is supported
         if (!isFrameworkSupported(framework)) {
             spdlog::error("Test framework not supported: {}", static_cast<int>(framework));
             return false;
         }
-        
+
         // Create test directory structure
         if (!generateTestStructure(projectPath, config)) {
             spdlog::error("Failed to generate test structure");
             return false;
         }
-        
+
         // Setup framework-specific configuration
         switch (framework) {
             case TestFramework::GoogleTest:
@@ -49,7 +49,7 @@ bool TestFrameworkManager::setupFramework(TestFramework framework, const std::fi
                 spdlog::error("Framework setup not implemented: {}", static_cast<int>(framework));
                 return false;
         }
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error setting up test framework: {}", e.what());
         return false;
@@ -60,7 +60,7 @@ bool TestFrameworkManager::isFrameworkSupported(TestFramework framework) const {
     if (m_frameworks.empty()) {
         const_cast<TestFrameworkManager*>(this)->initializeFrameworks();
     }
-    
+
     return m_frameworks.find(framework) != m_frameworks.end();
 }
 
@@ -68,12 +68,12 @@ std::optional<FrameworkInfo> TestFrameworkManager::getFrameworkInfo(TestFramewor
     if (m_frameworks.empty()) {
         const_cast<TestFrameworkManager*>(this)->initializeFrameworks();
     }
-    
+
     auto it = m_frameworks.find(framework);
     if (it != m_frameworks.end()) {
         return it->second;
     }
-    
+
     return std::nullopt;
 }
 
@@ -81,12 +81,12 @@ std::vector<TestFramework> TestFrameworkManager::listSupportedFrameworks() const
     if (m_frameworks.empty()) {
         const_cast<TestFrameworkManager*>(this)->initializeFrameworks();
     }
-    
+
     std::vector<TestFramework> frameworks;
     for (const auto& [framework, info] : m_frameworks) {
         frameworks.push_back(framework);
     }
-    
+
     return frameworks;
 }
 
@@ -144,10 +144,10 @@ bool TestFrameworkManager::generateTestStructure(const std::filesystem::path& pr
                 spdlog::warn("Failed to create fixture directory: {}", fixtureDir.string());
             }
         }
-        
+
         spdlog::info("Test structure created successfully");
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error generating test structure: {}", e.what());
         return false;
@@ -157,7 +157,7 @@ bool TestFrameworkManager::generateTestStructure(const std::filesystem::path& pr
 bool TestFrameworkManager::generateTestFile(const std::filesystem::path& filePath, const std::string& className, TestFramework framework) {
     try {
         std::string testContent;
-        
+
         switch (framework) {
             case TestFramework::GoogleTest:
                 testContent = generateGoogleTestTemplate(className);
@@ -175,15 +175,15 @@ bool TestFrameworkManager::generateTestFile(const std::filesystem::path& filePat
                 spdlog::error("Test template not available for framework: {}", static_cast<int>(framework));
                 return false;
         }
-        
+
         if (!FileUtils::writeToFile(filePath.string(), testContent)) {
             spdlog::error("Failed to write test file: {}", filePath.string());
             return false;
         }
-        
+
         spdlog::info("Generated test file: {}", filePath.string());
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error generating test file: {}", e.what());
         return false;
@@ -207,7 +207,7 @@ void TestFrameworkManager::initializeFrameworks() {
     gtestInfo.supportsBenchmarking = false;
     gtestInfo.supportsParallelExecution = true;
     m_frameworks[TestFramework::GoogleTest] = gtestInfo;
-    
+
     // Catch2
     FrameworkInfo catch2Info;
     catch2Info.framework = TestFramework::Catch2;
@@ -224,7 +224,7 @@ void TestFrameworkManager::initializeFrameworks() {
     catch2Info.supportsBenchmarking = true;
     catch2Info.supportsParallelExecution = true;
     m_frameworks[TestFramework::Catch2] = catch2Info;
-    
+
     // Doctest
     FrameworkInfo doctestInfo;
     doctestInfo.framework = TestFramework::Doctest;
@@ -241,7 +241,7 @@ void TestFrameworkManager::initializeFrameworks() {
     doctestInfo.supportsBenchmarking = false;
     doctestInfo.supportsParallelExecution = true;
     m_frameworks[TestFramework::Doctest] = doctestInfo;
-    
+
     // Boost.Test
     FrameworkInfo boostTestInfo;
     boostTestInfo.framework = TestFramework::Boost_Test;
@@ -271,7 +271,7 @@ int main(int argc, char **argv) {
     return RUN_ALL_TESTS();
 }
 )";
-        
+
         if (!FileUtils::writeToFile(mainTestFile.string(), mainContent)) {
             spdlog::error("Failed to create main test file");
             return false;
@@ -285,10 +285,10 @@ int main(int argc, char **argv) {
             spdlog::error("Failed to create sample test file");
             return false;
         }
-        
+
         spdlog::info("Google Test setup completed");
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error setting up Google Test: {}", e.what());
         return false;
@@ -302,7 +302,7 @@ bool TestFrameworkManager::setupCatch2(const std::filesystem::path& projectPath,
         std::string mainContent = R"(#define CATCH_CONFIG_MAIN
 #include <catch2/catch_all.hpp>
 )";
-        
+
         if (!FileUtils::writeToFile(mainTestFile.string(), mainContent)) {
             spdlog::error("Failed to create main test file");
             return false;
@@ -316,10 +316,10 @@ bool TestFrameworkManager::setupCatch2(const std::filesystem::path& projectPath,
             spdlog::error("Failed to create sample test file");
             return false;
         }
-        
+
         spdlog::info("Catch2 setup completed");
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error setting up Catch2: {}", e.what());
         return false;
@@ -333,7 +333,7 @@ bool TestFrameworkManager::setupDoctest(const std::filesystem::path& projectPath
         std::string mainContent = R"(#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 )";
-        
+
         if (!FileUtils::writeToFile(mainTestFile.string(), mainContent)) {
             spdlog::error("Failed to create main test file");
             return false;
@@ -347,10 +347,10 @@ bool TestFrameworkManager::setupDoctest(const std::filesystem::path& projectPath
             spdlog::error("Failed to create sample test file");
             return false;
         }
-        
+
         spdlog::info("Doctest setup completed");
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error setting up Doctest: {}", e.what());
         return false;
@@ -364,7 +364,7 @@ bool TestFrameworkManager::setupBoostTest(const std::filesystem::path& projectPa
         std::string mainContent = R"(#define BOOST_TEST_MODULE Main Test Suite
 #include <boost/test/included/unit_test.hpp>
 )";
-        
+
         if (!FileUtils::writeToFile(mainTestFile.string(), mainContent)) {
             spdlog::error("Failed to create main test file");
             return false;
@@ -378,10 +378,10 @@ bool TestFrameworkManager::setupBoostTest(const std::filesystem::path& projectPa
             spdlog::error("Failed to create sample test file");
             return false;
         }
-        
+
         spdlog::info("Boost.Test setup completed");
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error setting up Boost.Test: {}", e.what());
         return false;
@@ -397,11 +397,11 @@ protected:
     void SetUp() override {
         // Set up test fixtures here
     }
-    
+
     void TearDown() override {
         // Clean up after tests
     }
-    
+
     // Test fixture members
 };
 
@@ -442,7 +442,7 @@ TEST_CASE(")" + className + R"( basic functionality", "[)" + utils::StringUtils:
         REQUIRE(true);
         CHECK(1 == 1);
     }
-    
+
     SECTION("Another test") {
         REQUIRE_FALSE(false);
         CHECK_THAT("Hello World", Catch::Matchers::ContainsSubstring("World"));
@@ -451,7 +451,7 @@ TEST_CASE(")" + className + R"( basic functionality", "[)" + utils::StringUtils:
 
 TEST_CASE(")" + className + R"( parameterized test", "[)" + utils::StringUtils::toLower(className) + R"(][parameterized]") {
     auto value = GENERATE(1, 2, 3, 4, 5);
-    
+
     REQUIRE(value > 0);
     REQUIRE(value <= 5);
 }
@@ -465,10 +465,10 @@ TEST_CASE(")" + className + R"( benchmark", "[)" + utils::StringUtils::toLower(c
 SCENARIO(")" + className + R"( BDD style test", "[)" + utils::StringUtils::toLower(className) + R"(][bdd]") {
     GIVEN("A )" + className + R"( object") {
         // Setup
-        
+
         WHEN("Something happens") {
             // Action
-            
+
             THEN("Expected result occurs") {
                 REQUIRE(true);
             }
@@ -485,11 +485,11 @@ std::string TestFrameworkManager::generateDoctestTemplate(const std::string& cla
 TEST_CASE(")" + className + R"( basic functionality") {
     CHECK(true);
     REQUIRE(1 == 1);
-    
+
     SUBCASE("Subtest 1") {
         CHECK_FALSE(false);
     }
-    
+
     SUBCASE("Subtest 2") {
         CHECK_EQ(2 + 2, 4);
     }
@@ -503,10 +503,10 @@ TEST_CASE_TEMPLATE(")" + className + R"( template test", T, int, float, double) 
 SCENARIO(")" + className + R"( BDD style") {
     GIVEN("A )" + className + R"( object") {
         // Setup
-        
+
         WHEN("Something happens") {
             // Action
-            
+
             THEN("Expected result occurs") {
                 REQUIRE(true);
             }
@@ -537,11 +537,11 @@ struct )" + className + R"(Fixture {
     )" + className + R"(Fixture() {
         // Setup
     }
-    
+
     ~)" + className + R"(Fixture() {
         // Cleanup
     }
-    
+
     // Fixture members
 };
 

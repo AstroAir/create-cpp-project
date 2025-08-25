@@ -30,13 +30,13 @@ protected:
 
   // 设置CI/CD配置
   bool setupCICD(const std::string &projectPath);
-  
+
   // 设置编辑器配置
   bool setupEditorConfig(const std::string &projectPath);
-  
+
   // 设置代码风格配置
   bool setupCodeStyleConfig(const std::string &projectPath);
-  
+
   // 设置文档配置
   bool setupDocConfig(const std::string &projectPath);
 
@@ -45,19 +45,19 @@ protected:
 
   // 获取.gitignore内容
   std::string getGitignoreContent();
-  
+
   // 获取许可证内容
   std::string getLicenseContent(const std::string &projectName);
-  
+
   // 创建许可证文件
   bool createLicense(const std::string &projectPath);
-  
+
   // 创建空的.clang-format文件
   bool createClangFormat(const std::string &projectPath);
-  
+
   // 创建.gitattributes文件
   bool createGitAttributes(const std::string &projectPath);
-  
+
   // 打印项目创建后的使用指南
   void printUsageGuide();
 

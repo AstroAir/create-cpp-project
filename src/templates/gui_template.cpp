@@ -382,9 +382,9 @@ find_package(GTest REQUIRED)
 add_executable(${PROJECT_NAME}_tests
     test_main.cpp
 )
-target_link_libraries(${PROJECT_NAME}_tests PRIVATE 
+target_link_libraries(${PROJECT_NAME}_tests PRIVATE
     ${PROJECT_NAME}_lib
-    GTest::GTest 
+    GTest::GTest
     GTest::Main
     spdlog::spdlog
 )
@@ -396,7 +396,7 @@ find_package(Catch2 REQUIRED)
 add_executable(${PROJECT_NAME}_tests
     test_main.cpp
 )
-target_link_libraries(${PROJECT_NAME}_tests PRIVATE 
+target_link_libraries(${PROJECT_NAME}_tests PRIVATE
     ${PROJECT_NAME}_lib
     Catch2::Catch2
     spdlog::spdlog
@@ -409,7 +409,7 @@ find_package(doctest REQUIRED)
 add_executable(${PROJECT_NAME}_tests
     test_main.cpp
 )
-target_link_libraries(${PROJECT_NAME}_tests PRIVATE 
+target_link_libraries(${PROJECT_NAME}_tests PRIVATE
     ${PROJECT_NAME}_lib
     doctest::doctest
     spdlog::spdlog
@@ -438,23 +438,23 @@ int main(int argc, char* argv[]) {
     // 初始化日志系�?
     )" + options_.projectName +
            R"(::Logging::init("logs/app.log");
-    
+
     // 创建应用实例
     QApplication qtApp(argc, argv);
     )" + options_.projectName +
            R"(::Application app;
-    
+
     // 显示主窗�?
     if (!app.initialize()) {
         SPDLOG_ERROR("应用初始化失�?);
         return 1;
     }
-    
+
     // 运行应用主循�?
     SPDLOG_INFO("应用启动成功");
     int result = qtApp.exec();
     SPDLOG_INFO("应用退出，返回�? {}", result);
-    
+
     return result;
 }
 )";
@@ -472,12 +472,12 @@ int main(int argc, char* argv[]) {
     )" + options_.projectName +
            R"(::Logging::init("logs/app.log");
     SPDLOG_INFO("应用启动�?);
-    
+
     // 运行wxWidgets应用
     wxEntryStart(argc, argv);
     int result = wxEntry(argc, argv);
     wxEntryCleanup();
-    
+
     SPDLOG_INFO("应用退出，返回�? {}", result);
     return result;
 }
@@ -492,24 +492,24 @@ int main(int argc, char* argv[]) {
     )" + options_.projectName +
            R"(::Logging::init("logs/app.log");
     SPDLOG_INFO("应用启动�?);
-    
+
     // 初始化GTK
     gtk_init(&argc, &argv);
-    
+
     // 创建应用实例
     )" + options_.projectName +
            R"(::Application app;
-    
+
     if (!app.initialize()) {
         SPDLOG_ERROR("应用初始化失�?);
         return 1;
     }
-    
+
     // 运行GTK主循�?
     SPDLOG_INFO("应用启动成功");
     int result = app.run();
     SPDLOG_INFO("应用退出，返回�? {}", result);
-    
+
     return result;
 }
 )";
@@ -525,7 +525,7 @@ int main(int argc, char* argv[]) {
     )" + options_.projectName +
          R"(::Logging::init("logs/app.log");
     SPDLOG_INFO("应用启动�?);
-    
+
     // 创建应用实例
     )" + options_.projectName +
          R"(::Application app;
@@ -533,12 +533,12 @@ int main(int argc, char* argv[]) {
         SPDLOG_ERROR("应用初始化失�?);
         return 1;
     }
-    
+
     // 运行应用主循�?
     SPDLOG_INFO("应用启动成功");
     int result = app.run();
     SPDLOG_INFO("应用退出，返回�? {}", result);
-    
+
     return result;
 }
 )";
@@ -573,7 +573,7 @@ class MainWindow : public QMainWindow {
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
-    
+
     // 初始化窗�?
     bool initialize();
 
@@ -581,17 +581,17 @@ private slots:
     // 槽函�?
     void onActionExit();
     void onActionAbout();
-    
+
 private:
     // UI设计器生成的UI�?
     std::unique_ptr<Ui::MainWindow> ui;
-    
+
     // 初始化菜�?
     void setupMenus();
-    
+
     // 初始化状态栏
     void setupStatusBar();
-    
+
     // 连接信号和槽
     void connectSignals();
 };
@@ -627,7 +627,7 @@ class MainWindow : public wxFrame {
 public:
     MainWindow(const wxString& title, const wxPoint& pos, const wxSize& size);
     ~MainWindow() override;
-    
+
     // 初始化窗�?
     bool initialize();
 
@@ -636,16 +636,16 @@ private:
     wxMenuBar* menuBar{nullptr};
     wxStatusBar* statusBar{nullptr};
     wxPanel* mainPanel{nullptr};
-    
+
     // 初始化UI
     void setupMenus();
     void setupStatusBar();
     void setupControls();
-    
+
     // 事件处理
     void onExit(wxCommandEvent& event);
     void onAbout(wxCommandEvent& event);
-    
+
     // 事件�?
     wxDECLARE_EVENT_TABLE();
 };
@@ -674,13 +674,13 @@ class MainWindow {
 public:
     MainWindow();
     ~MainWindow();
-    
+
     // 初始化窗�?
     bool initialize();
-    
+
     // 显示窗口
     void show();
-    
+
     // 获取GTK窗口控件
     GtkWidget* getWidget() const { return window; }
 
@@ -690,16 +690,16 @@ private:
     GtkWidget* mainBox{nullptr};
     GtkWidget* menuBar{nullptr};
     GtkWidget* statusBar{nullptr};
-    
+
     // UI文件路径
     std::string uiFilePath;
-    
+
     // 初始化UI
     void setupUI();
     void setupMenus();
     void setupStatusBar();
     void setupSignals();
-    
+
     // 回调函数
     static void onExit(GtkWidget* widget, gpointer data);
     static void onAbout(GtkWidget* widget, gpointer data);
@@ -730,23 +730,23 @@ class MainWindow {
 public:
     MainWindow();
     ~MainWindow();
-    
+
     // 初始化窗�?
     bool initialize();
-    
+
     // 显示窗口
     void show();
-    
+
     // 窗口是否可见
     bool isVisible() const;
 
 private:
     // 窗口是否已初始化
     bool initialized{false};
-    
+
     // 窗口是否可见
     bool visible{false};
-    
+
     // 初始化UI
     void setupUI();
 };
@@ -784,23 +784,23 @@ MainWindow::~MainWindow()
 bool MainWindow::initialize()
 {
     SPDLOG_DEBUG("初始化MainWindow");
-    
+
     // 设置UI
     ui->setupUi(this);
-    
+
     // 设置窗口标题
     setWindowTitle(tr(")" +
            options_.projectName + R"("));
-    
+
     // 初始化菜�?
     setupMenus();
-    
+
     // 初始化状态栏
     setupStatusBar();
-    
+
     // 连接信号和槽
     connectSignals();
-    
+
     SPDLOG_INFO("MainWindow初始化完�?);
     return true;
 }
@@ -808,10 +808,10 @@ bool MainWindow::initialize()
 void MainWindow::setupMenus()
 {
     SPDLOG_DEBUG("设置菜单");
-    
+
     // 连接退出操�?
     connect(ui->actionExit, &QAction::triggered, this, &MainWindow::onActionExit);
-    
+
     // 连接关于操作
     connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::onActionAbout);
 }
@@ -873,15 +873,15 @@ MainWindow::~MainWindow()
 bool MainWindow::initialize()
 {
     SPDLOG_DEBUG("初始化MainWindow");
-    
+
     // 设置图标
     // SetIcon(wxIcon("APPICON"));
-    
+
     // 创建UI元素
     setupMenus();
     setupStatusBar();
     setupControls();
-    
+
     SPDLOG_INFO("MainWindow初始化完�?);
     return true;
 }
@@ -889,20 +889,20 @@ bool MainWindow::initialize()
 void MainWindow::setupMenus()
 {
     SPDLOG_DEBUG("设置菜单");
-    
+
     // 创建文件菜单
     wxMenu *menuFile = new wxMenu;
     menuFile->Append(ID_MENU_EXIT, "退出\tAlt+F4", "退出应用程�?);
-    
+
     // 创建帮助菜单
     wxMenu *menuHelp = new wxMenu;
     menuHelp->Append(ID_MENU_ABOUT, "关于...\tF1", "显示关于对话�?);
-    
+
     // 创建菜单�?
     menuBar = new wxMenuBar;
     menuBar->Append(menuFile, "文件");
     menuBar->Append(menuHelp, "帮助");
-    
+
     // 设置菜单�?
     SetMenuBar(menuBar);
 }
@@ -910,7 +910,7 @@ void MainWindow::setupMenus()
 void MainWindow::setupStatusBar()
 {
     SPDLOG_DEBUG("设置状态栏");
-    
+
     // 创建状态栏
     statusBar = CreateStatusBar(1);
     statusBar->SetStatusText("就绪");
@@ -919,20 +919,20 @@ void MainWindow::setupStatusBar()
 void MainWindow::setupControls()
 {
     SPDLOG_DEBUG("设置控件");
-    
+
     // 创建主面�?
     mainPanel = new wxPanel(this, wxID_ANY);
-    
+
     // 创建一个简单的布局
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-    
+
     // 添加一个文本标�?
     sizer->Add(
         new wxStaticText(mainPanel, wxID_ANY, "欢迎使用 )" +
            options_.projectName + R"("),
         0, wxALL | wxALIGN_CENTER_HORIZONTAL, 20
     );
-    
+
     // 设置面板布局
     mainPanel->SetSizer(sizer);
     mainPanel->Layout();
@@ -947,14 +947,14 @@ void MainWindow::onExit(wxCommandEvent& event)
 void MainWindow::onAbout(wxCommandEvent& event)
 {
     SPDLOG_DEBUG("触发关于操作");
-    
+
     wxAboutDialogInfo aboutInfo;
     aboutInfo.SetName(")" +
            options_.projectName + R"(");
     aboutInfo.SetVersion("1.0");
     aboutInfo.SetDescription("一个使用wxWidgets框架的GUI应用");
     aboutInfo.SetCopyright("(C) 2025");
-    
+
     wxAboutBox(aboutInfo);
 }
 
@@ -968,7 +968,7 @@ void MainWindow::onAbout(wxCommandEvent& event)
 namespace )" +
            options_.projectName + R"( {
 
-MainWindow::MainWindow() 
+MainWindow::MainWindow()
     : uiFilePath("ui/main_window.glade")
 {
     SPDLOG_DEBUG("MainWindow构造函�?);
@@ -985,16 +985,16 @@ MainWindow::~MainWindow()
 bool MainWindow::initialize()
 {
     SPDLOG_DEBUG("初始化MainWindow");
-    
+
     // 从Glade文件加载界面
     GtkBuilder* builder = gtk_builder_new();
-    
+
     if (gtk_builder_add_from_file(builder, uiFilePath.c_str(), nullptr) == 0) {
         SPDLOG_ERROR("无法加载UI文件: {}", uiFilePath);
         g_object_unref(builder);
         return false;
     }
-    
+
     // 获取主窗口控�?
     window = GTK_WIDGET(gtk_builder_get_object(builder, "main_window"));
     if (!window) {
@@ -1002,26 +1002,26 @@ bool MainWindow::initialize()
         g_object_unref(builder);
         return false;
     }
-    
+
     // 获取其他控件
     menuBar = GTK_WIDGET(gtk_builder_get_object(builder, "menubar"));
     statusBar = GTK_WIDGET(gtk_builder_get_object(builder, "statusbar"));
-    
+
     // 设置信号
-    g_signal_connect(gtk_builder_get_object(builder, "menu_exit"), "activate", 
+    g_signal_connect(gtk_builder_get_object(builder, "menu_exit"), "activate",
                     G_CALLBACK(onExit), this);
-    g_signal_connect(gtk_builder_get_object(builder, "menu_about"), "activate", 
+    g_signal_connect(gtk_builder_get_object(builder, "menu_about"), "activate",
                     G_CALLBACK(onAbout), this);
-    
+
     // 窗口关闭时退出应�?
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), nullptr);
-    
+
     // 显示所有控�?
     gtk_widget_show_all(window);
-    
+
     // 释放构建�?
     g_object_unref(builder);
-    
+
     SPDLOG_INFO("MainWindow初始化完�?);
     return true;
 }
@@ -1063,16 +1063,16 @@ void MainWindow::onExit(GtkWidget* widget, gpointer data)
 void MainWindow::onAbout(GtkWidget* widget, gpointer data)
 {
     SPDLOG_DEBUG("触发关于操作");
-    
+
     GtkWidget* dialog = gtk_about_dialog_new();
     GtkAboutDialog* about_dialog = GTK_ABOUT_DIALOG(dialog);
-    
+
     gtk_about_dialog_set_program_name(about_dialog, ")" +
            options_.projectName + R"(");
     gtk_about_dialog_set_version(about_dialog, "1.0");
     gtk_about_dialog_set_copyright(about_dialog, "(C) 2025");
     gtk_about_dialog_set_comments(about_dialog, "一个使用GTK框架的GUI应用");
-    
+
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
 }
@@ -1157,20 +1157,20 @@ class Application : public QObject {
 public:
     Application();
     ~Application() override;
-    
+
     // 初始化应用程�?
     bool initialize();
-    
+
     // 获取主窗�?
     MainWindow* mainWindow() { return mainWindow_.get(); }
 
 private:
     // 主窗�?
     std::unique_ptr<MainWindow> mainWindow_;
-    
+
     // 加载应用程序配置
     bool loadSettings();
-    
+
     // 保存应用程序配置
     bool saveSettings();
 };
@@ -1200,23 +1200,23 @@ class Application : public wxApp {
 public:
     Application();
     virtual ~Application();
-    
+
     // wxWidgets应用初始�?
     bool OnInit() override;
-    
+
     // wxWidgets应用退�?
     int OnExit() override;
-    
+
     // 获取主窗�?
     MainWindow* getMainWindow() { return mainWindow_; }
-    
+
 private:
     // 主窗�?
     MainWindow* mainWindow_{nullptr};
-    
+
     // 加载应用程序配置
     bool loadSettings();
-    
+
     // 保存应用程序配置
     bool saveSettings();
 };
@@ -1245,23 +1245,23 @@ class Application {
 public:
     Application();
     ~Application();
-    
+
     // 初始化应用程�?
     bool initialize();
-    
+
     // 运行应用程序
     int run();
-    
+
     // 获取主窗�?
     MainWindow* getMainWindow() { return mainWindow_.get(); }
-    
+
 private:
     // 主窗�?
     std::unique_ptr<MainWindow> mainWindow_;
-    
+
     // 加载应用程序配置
     bool loadSettings();
-    
+
     // 保存应用程序配置
     bool saveSettings();
 };
@@ -1292,26 +1292,26 @@ class Application {
 public:
     Application();
     ~Application();
-    
+
     // 初始化应用程�?
     bool initialize();
-    
+
     // 运行应用程序主循�?
     int run();
-    
+
     // 获取主窗�?
     MainWindow* getMainWindow() { return mainWindow_.get(); }
-    
+
 private:
     // 主窗�?
     std::unique_ptr<MainWindow> mainWindow_;
-    
+
     // 应用程序是否正在运行
     bool running{false};
-    
+
     // 加载应用程序配置
     bool loadSettings();
-    
+
     // 保存应用程序配置
     bool saveSettings();
 };
@@ -1346,22 +1346,22 @@ Application::~Application()
 bool Application::initialize()
 {
     SPDLOG_INFO("初始化应用程�?);
-    
+
     // 加载设置
     if (!loadSettings()) {
         SPDLOG_WARN("无法加载应用程序设置");
     }
-    
+
     // 创建并初始化主窗�?
     mainWindow_ = std::make_unique<MainWindow>();
     if (!mainWindow_->initialize()) {
         SPDLOG_ERROR("初始化主窗口失败");
         return false;
     }
-    
+
     // 显示主窗�?
     mainWindow_->show();
-    
+
     SPDLOG_INFO("应用程序初始化完�?);
     return true;
 }
@@ -1403,16 +1403,16 @@ Application::~Application()
 bool Application::OnInit()
 {
     SPDLOG_INFO("初始化应用程�?);
-    
+
     // 设置应用程序名称
     SetAppName(")" +
            options_.projectName + R"(");
-    
+
     // 加载设置
     if (!loadSettings()) {
         SPDLOG_WARN("无法加载应用程序设置");
     }
-    
+
     // 创建并初始化主窗�?
     mainWindow_ = new MainWindow(")" +
            options_.projectName + R"(", wxPoint(50, 50), wxSize(800, 600));
@@ -1420,10 +1420,10 @@ bool Application::OnInit()
         SPDLOG_ERROR("初始化主窗口失败");
         return false;
     }
-    
+
     // 显示主窗�?
     mainWindow_->Show(true);
-    
+
     SPDLOG_INFO("应用程序初始化完�?);
     return true;
 }
@@ -1431,10 +1431,10 @@ bool Application::OnInit()
 int Application::OnExit()
 {
     SPDLOG_INFO("应用程序退�?);
-    
+
     // 保存设置
     saveSettings();
-    
+
     return wxApp::OnExit();
 }
 
@@ -1475,19 +1475,19 @@ Application::~Application()
 bool Application::initialize()
 {
     SPDLOG_INFO("初始化应用程�?);
-    
+
     // 加载设置
     if (!loadSettings()) {
         SPDLOG_WARN("无法加载应用程序设置");
     }
-    
+
     // 创建并初始化主窗�?
     mainWindow_ = std::make_unique<MainWindow>();
     if (!mainWindow_->initialize()) {
         SPDLOG_ERROR("初始化主窗口失败");
         return false;
     }
-    
+
     SPDLOG_INFO("应用程序初始化完�?);
     return true;
 }
@@ -1495,10 +1495,10 @@ bool Application::initialize()
 int Application::run()
 {
     SPDLOG_INFO("运行应用程序");
-    
+
     // 运行GTK主循�?
     gtk_main();
-    
+
     return 0;
 }
 
@@ -1543,19 +1543,19 @@ Application::~Application()
 bool Application::initialize()
 {
     SPDLOG_INFO("初始化应用程�?);
-    
+
     // 加载设置
     if (!loadSettings()) {
         SPDLOG_WARN("无法加载应用程序设置");
     }
-    
+
     // 创建并初始化主窗�?
     mainWindow_ = std::make_unique<MainWindow>();
     if (!mainWindow_->initialize()) {
         SPDLOG_ERROR("初始化主窗口失败");
         return false;
     }
-    
+
     SPDLOG_INFO("应用程序初始化完�?);
     return true;
 }
@@ -1563,24 +1563,24 @@ bool Application::initialize()
 int Application::run()
 {
     SPDLOG_INFO("运行应用程序");
-    
+
     if (!mainWindow_) {
         SPDLOG_ERROR("主窗口未初始�?);
         return 1;
     }
-    
+
     // 显示主窗�?
     mainWindow_->show();
-    
+
     // 模拟事件循环
     running = true;
-    
+
     while (running) {
         // 处理事件...
-        
+
         // 模拟事件循环的时间片
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        
+
         // 在实际应用中，这里会有一个真正的事件循环
         // 对于本示例，我们只是模拟几秒钟然后退�?
         static int counter = 0;
@@ -1588,7 +1588,7 @@ int Application::run()
             running = false;
         }
     }
-    
+
     SPDLOG_INFO("应用程序主循环结�?);
     return 0;
 }
@@ -1640,31 +1640,31 @@ namespace )" +
 class Logging {
 public:
     // 初始化日志系�?
-    static bool init(const std::string& logFilePath, 
+    static bool init(const std::string& logFilePath,
                    spdlog::level::level_enum level = spdlog::level::info);
-    
+
     // 关闭日志系统
     static void shutdown();
-    
+
     // 设置日志级别
     static void setLevel(spdlog::level::level_enum level);
-    
+
     // 获取当前日志级别
     static spdlog::level::level_enum getLevel();
-    
+
     // 获取格式化时间戳
     static std::string getFormattedTimestamp();
 
 private:
     // 是否已初始化
     static bool initialized_;
-    
+
     // 日志文件路径
     static std::string logFilePath_;
-    
+
     // 当前日志级别
     static spdlog::level::level_enum level_;
-    
+
     // 创建日志目录
     static bool createLogDirectory(const std::string& path);
 };
@@ -1699,11 +1699,11 @@ bool Logging::init(const std::string& logFilePath, spdlog::level::level_enum lev
     if (initialized_) {
         return true; // 已经初始化过
     }
-    
+
     try {
         logFilePath_ = logFilePath;
         level_ = level;
-        
+
         // 创建日志目录
         if (!createLogDirectory(logFilePath_)) {
             // 如果创建目录失败，回退到控制台日志
@@ -1711,36 +1711,36 @@ bool Logging::init(const std::string& logFilePath, spdlog::level::level_enum lev
             auto logger = std::make_shared<spdlog::logger>("console_logger", console_sink);
             logger->set_level(level_);
             spdlog::set_default_logger(logger);
-            
+
             spdlog::warn("无法创建日志目录，仅使用控制台输�?);
             initialized_ = true;
             return false;
         }
-        
+
         // 创建一个旋转文件日志，最�?MB，保�?个备�?
         auto rotating_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
             logFilePath_, 5 * 1024 * 1024, 3);
-        
+
         // 同时输出到控制台
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-        
+
         // 创建带有两个接收器的记录�?
         std::vector<spdlog::sink_ptr> sinks {rotating_sink, console_sink};
         auto logger = std::make_shared<spdlog::logger>("multi_sink", sinks.begin(), sinks.end());
-        
+
         // 设置记录格式
         logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [%t] %v");
-        
+
         // 设置日志级别
         logger->set_level(level_);
-        
+
         // 设置为默认记录器
         spdlog::set_default_logger(logger);
-        
+
         // 记录初始化信�?
-        spdlog::info("日志系统初始化成功，级别: {}, 路径: {}", 
+        spdlog::info("日志系统初始化成功，级别: {}, 路径: {}",
                    spdlog::level::to_string_view(level_), logFilePath_);
-        
+
         initialized_ = true;
         return true;
     }
@@ -1775,11 +1775,11 @@ std::string Logging::getFormattedTimestamp() {
     auto time = std::chrono::system_clock::to_time_t(now);
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
         now.time_since_epoch()) % 1000;
-    
+
     std::stringstream ss;
     ss << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S");
     ss << '.' << std::setfill('0') << std::setw(3) << ms.count();
-    
+
     return ss.str();
 }
 
@@ -1787,7 +1787,7 @@ bool Logging::createLogDirectory(const std::string& path) {
     try {
         std::filesystem::path p(path);
         auto dir = p.parent_path();
-        
+
         if (!dir.empty() && !std::filesystem::exists(dir)) {
             return std::filesystem::create_directories(dir);
         }
@@ -2309,7 +2309,7 @@ cc_library(
              options_.projectName + R"(_lib",
     srcs = [
         "src/application.cpp",
-        "src/main_window.cpp", 
+        "src/main_window.cpp",
         "src/logging.cpp",
     ],
     hdrs = glob(["include//*.h"]),
@@ -2478,7 +2478,7 @@ std::string GuiTemplate::getGTestContent() {
 class LoggingEnvironment : public ::testing::Environment {
 public:
     ~LoggingEnvironment() override = default;
-    
+
     // 测试开始前设置
     void SetUp() override {
         )" +
@@ -2486,7 +2486,7 @@ public:
          R"(::Logging::init("logs/test.log", spdlog::level::debug);
         SPDLOG_INFO("测试开�?);
     }
-    
+
     // 测试结束后清�?
     void TearDown() override {
         SPDLOG_INFO("测试结束");
@@ -2500,13 +2500,13 @@ TEST(LoggingTest, InitializationWorks) {
     // 由于在Environment中已经初始化，所以这里应该可以正常使�?
     EXPECT_EQ()" +
          options_.projectName + R"(::Logging::getLevel(), spdlog::level::debug);
-    
+
     // 测试日志级别设置
     )" + options_.projectName +
          R"(::Logging::setLevel(spdlog::level::info);
     EXPECT_EQ()" +
          options_.projectName + R"(::Logging::getLevel(), spdlog::level::info);
-    
+
     // 测试获取格式化时间戳
     auto timestamp = )" +
          options_.projectName + R"(::Logging::getFormattedTimestamp();
@@ -2537,7 +2537,7 @@ struct LoggingFixture {
          R"(::Logging::init("logs/test.log", spdlog::level::debug);
         SPDLOG_INFO("测试开�?);
     }
-    
+
     ~LoggingFixture() {
         SPDLOG_INFO("测试结束");
         )" +
@@ -2550,7 +2550,7 @@ TEST_CASE_METHOD(LoggingFixture, "测试Logging�?, "[logging]") {
         REQUIRE()" +
          options_.projectName +
          R"(::Logging::getLevel() == spdlog::level::debug);
-        
+
         // 测试日志级别设置
         )" +
          options_.projectName + R"(::Logging::setLevel(spdlog::level::info);
@@ -2558,7 +2558,7 @@ TEST_CASE_METHOD(LoggingFixture, "测试Logging�?, "[logging]") {
          options_.projectName +
          R"(::Logging::getLevel() == spdlog::level::info);
     }
-    
+
     SECTION("测试格式化时间戳") {
         auto timestamp = )" +
          options_.projectName + R"(::Logging::getFormattedTimestamp();
@@ -2584,7 +2584,7 @@ public:
          R"(::Logging::init("logs/test.log", spdlog::level::debug);
         SPDLOG_INFO("测试开�?);
     }
-    
+
     ~LoggingFixture() {
         SPDLOG_INFO("测试结束");
         )" +
@@ -2597,7 +2597,7 @@ TEST_CASE_FIXTURE(LoggingFixture, "测试Logging�?) {
         CHECK()" +
          options_.projectName +
          R"(::Logging::getLevel() == spdlog::level::debug);
-        
+
         // 测试日志级别设置
         )" +
          options_.projectName + R"(::Logging::setLevel(spdlog::level::info);
@@ -2605,7 +2605,7 @@ TEST_CASE_FIXTURE(LoggingFixture, "测试Logging�?) {
          options_.projectName +
          R"(::Logging::getLevel() == spdlog::level::info);
     }
-    
+
     SUBCASE("测试格式化时间戳") {
         auto timestamp = )" +
          options_.projectName + R"(::Logging::getFormattedTimestamp();

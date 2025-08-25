@@ -15,7 +15,7 @@ void FrameworkIntegration::initializeFrameworkRegistry() {
     if (!s_frameworkRegistry.empty()) {
         return; // Already initialized
     }
-    
+
     // Qt Framework
     FrameworkInfo qtInfo;
     qtInfo.framework = Framework::Qt;
@@ -28,7 +28,7 @@ void FrameworkIntegration::initializeFrameworkRegistry() {
     qtInfo.requiresSpecialSetup = true;
     qtInfo.setupFunction = setupQt;
     s_frameworkRegistry[Framework::Qt] = qtInfo;
-    
+
     // SFML Framework
     FrameworkInfo sfmlInfo;
     sfmlInfo.framework = Framework::SFML;
@@ -41,7 +41,7 @@ void FrameworkIntegration::initializeFrameworkRegistry() {
     sfmlInfo.requiresSpecialSetup = true;
     sfmlInfo.setupFunction = setupSFML;
     s_frameworkRegistry[Framework::SFML] = sfmlInfo;
-    
+
     // Boost Libraries
     FrameworkInfo boostInfo;
     boostInfo.framework = Framework::Boost;
@@ -54,7 +54,7 @@ void FrameworkIntegration::initializeFrameworkRegistry() {
     boostInfo.requiresSpecialSetup = true;
     boostInfo.setupFunction = setupBoost;
     s_frameworkRegistry[Framework::Boost] = boostInfo;
-    
+
     // Google Test
     FrameworkInfo gtestInfo;
     gtestInfo.framework = Framework::GoogleTest;
@@ -67,7 +67,7 @@ void FrameworkIntegration::initializeFrameworkRegistry() {
     gtestInfo.requiresSpecialSetup = true;
     gtestInfo.setupFunction = setupGoogleTest;
     s_frameworkRegistry[Framework::GoogleTest] = gtestInfo;
-    
+
     // OpenCV
     FrameworkInfo opencvInfo;
     opencvInfo.framework = Framework::OpenCV;
@@ -80,7 +80,7 @@ void FrameworkIntegration::initializeFrameworkRegistry() {
     opencvInfo.requiresSpecialSetup = true;
     opencvInfo.setupFunction = setupOpenCV;
     s_frameworkRegistry[Framework::OpenCV] = opencvInfo;
-    
+
     // Dear ImGui
     FrameworkInfo imguiInfo;
     imguiInfo.framework = Framework::Dear_ImGui;
@@ -93,7 +93,7 @@ void FrameworkIntegration::initializeFrameworkRegistry() {
     imguiInfo.requiresSpecialSetup = true;
     imguiInfo.setupFunction = setupImGui;
     s_frameworkRegistry[Framework::Dear_ImGui] = imguiInfo;
-    
+
     // fmt library
     FrameworkInfo fmtInfo;
     fmtInfo.framework = Framework::fmt;
@@ -105,7 +105,7 @@ void FrameworkIntegration::initializeFrameworkRegistry() {
     fmtInfo.cmakeTargets = {"fmt::fmt"};
     fmtInfo.requiresSpecialSetup = false;
     s_frameworkRegistry[Framework::fmt] = fmtInfo;
-    
+
     // spdlog
     FrameworkInfo spdlogInfo;
     spdlogInfo.framework = Framework::spdlog;
@@ -117,7 +117,7 @@ void FrameworkIntegration::initializeFrameworkRegistry() {
     spdlogInfo.cmakeTargets = {"spdlog::spdlog"};
     spdlogInfo.requiresSpecialSetup = false;
     s_frameworkRegistry[Framework::spdlog] = spdlogInfo;
-    
+
     // nlohmann/json
     FrameworkInfo jsonInfo;
     jsonInfo.framework = Framework::JSON_nlohmann;
@@ -243,12 +243,12 @@ void FrameworkIntegration::initializeFrameworkRegistry() {
 
 bool FrameworkIntegration::isFrameworkAvailable(Framework framework, PackageManager packageManager) {
     initializeFrameworkRegistry();
-    
+
     auto it = s_frameworkRegistry.find(framework);
     if (it == s_frameworkRegistry.end()) {
         return false;
     }
-    
+
     const auto& info = it->second;
     auto pmIt = info.packageNames.find(packageManager);
     return pmIt != info.packageNames.end();
@@ -257,22 +257,22 @@ bool FrameworkIntegration::isFrameworkAvailable(Framework framework, PackageMana
 bool FrameworkIntegration::installFramework(Framework framework, const std::filesystem::path& projectPath, PackageManager packageManager) {
     try {
         initializeFrameworkRegistry();
-        
+
         auto it = s_frameworkRegistry.find(framework);
         if (it == s_frameworkRegistry.end()) {
             spdlog::error("Unknown framework: {}", static_cast<int>(framework));
             return false;
         }
-        
+
         const auto& info = it->second;
         auto pmIt = info.packageNames.find(packageManager);
         if (pmIt == info.packageNames.end()) {
             spdlog::error("Framework {} not available for package manager {}", info.name, static_cast<int>(packageManager));
             return false;
         }
-        
+
         spdlog::info("Installing framework: {} using {}", info.name, packageManagerToString(packageManager));
-        
+
         // Install based on package manager
         switch (packageManager) {
             case PackageManager::vcpkg:
@@ -285,7 +285,7 @@ bool FrameworkIntegration::installFramework(Framework framework, const std::file
                 spdlog::error("Unsupported package manager");
                 return false;
         }
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error installing framework: {}", e.what());
         return false;
@@ -295,21 +295,21 @@ bool FrameworkIntegration::installFramework(Framework framework, const std::file
 bool FrameworkIntegration::configureFramework(Framework framework, const std::filesystem::path& projectPath) {
     try {
         initializeFrameworkRegistry();
-        
+
         auto it = s_frameworkRegistry.find(framework);
         if (it == s_frameworkRegistry.end()) {
             spdlog::error("Unknown framework: {}", static_cast<int>(framework));
             return false;
         }
-        
+
         const auto& info = it->second;
-        
+
         if (info.requiresSpecialSetup && info.setupFunction) {
             return info.setupFunction(projectPath);
         }
-        
+
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error configuring framework: {}", e.what());
         return false;
@@ -318,38 +318,38 @@ bool FrameworkIntegration::configureFramework(Framework framework, const std::fi
 
 std::optional<FrameworkIntegration::FrameworkInfo> FrameworkIntegration::getFrameworkInfo(Framework framework) {
     initializeFrameworkRegistry();
-    
+
     auto it = s_frameworkRegistry.find(framework);
     if (it != s_frameworkRegistry.end()) {
         return it->second;
     }
-    
+
     return std::nullopt;
 }
 
 std::vector<FrameworkIntegration::Framework> FrameworkIntegration::listAvailableFrameworks() {
     initializeFrameworkRegistry();
-    
+
     std::vector<Framework> frameworks;
     for (const auto& [framework, info] : s_frameworkRegistry) {
         frameworks.push_back(framework);
     }
-    
+
     return frameworks;
 }
 
 std::string FrameworkIntegration::generateCMakeConfig(const std::vector<Framework>& frameworks) {
     initializeFrameworkRegistry();
-    
+
     std::ostringstream cmake;
     cmake << "# Framework configuration generated by CPP-Scaffold\n\n";
-    
+
     // Find package commands
     for (const auto& framework : frameworks) {
         auto it = s_frameworkRegistry.find(framework);
         if (it != s_frameworkRegistry.end()) {
             const auto& info = it->second;
-            
+
             if (framework == Framework::Qt) {
                 cmake << "find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui)\n";
             } else if (framework == Framework::SFML) {
@@ -365,17 +365,17 @@ std::string FrameworkIntegration::generateCMakeConfig(const std::vector<Framewor
             }
         }
     }
-    
+
     cmake << "\n";
     return cmake.str();
 }
 
 std::string FrameworkIntegration::generateTargetLinkLibraries(const std::vector<Framework>& frameworks, const std::string& targetName) {
     initializeFrameworkRegistry();
-    
+
     std::ostringstream cmake;
     cmake << "target_link_libraries(" << targetName << "\n";
-    
+
     for (const auto& framework : frameworks) {
         auto it = s_frameworkRegistry.find(framework);
         if (it != s_frameworkRegistry.end()) {
@@ -385,7 +385,7 @@ std::string FrameworkIntegration::generateTargetLinkLibraries(const std::vector<
             }
         }
     }
-    
+
     cmake << ")\n";
     return cmake.str();
 }
@@ -393,7 +393,7 @@ std::string FrameworkIntegration::generateTargetLinkLibraries(const std::vector<
 // Framework-specific setup functions
 bool FrameworkIntegration::setupQt(const std::filesystem::path& projectPath) {
     spdlog::info("Setting up Qt framework");
-    
+
     // Create a basic Qt application template
     std::string mainCpp = R"(#include <QApplication>
 #include <QWidget>
@@ -404,46 +404,46 @@ bool FrameworkIntegration::setupQt(const std::filesystem::path& projectPath) {
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    
+
     QWidget window;
     window.setWindowTitle("Qt Application");
     window.resize(400, 300);
-    
+
     QVBoxLayout *layout = new QVBoxLayout(&window);
-    
+
     QLabel *label = new QLabel("Hello, Qt!");
     layout->addWidget(label);
-    
+
     QPushButton *button = new QPushButton("Click me!");
     layout->addWidget(button);
-    
+
     QObject::connect(button, &QPushButton::clicked, [&]() {
         label->setText("Button clicked!");
     });
-    
+
     window.show();
-    
+
     return app.exec();
 }
 )";
-    
+
     std::string mainPath = (projectPath / "main.cpp").string();
     return FileUtils::writeToFile(mainPath, mainCpp);
 }
 
 bool FrameworkIntegration::setupSFML(const std::filesystem::path& projectPath) {
     spdlog::info("Setting up SFML framework");
-    
+
     std::string mainCpp = R"(#include <SFML/Graphics.hpp>
 
 int main()
 {
     sf::RenderWindow window(sf::VideoMode(800, 600), "SFML Application");
-    
+
     sf::CircleShape shape(100.f);
     shape.setFillColor(sf::Color::Green);
     shape.setPosition(350.f, 250.f);
-    
+
     while (window.isOpen())
     {
         sf::Event event;
@@ -452,23 +452,23 @@ int main()
             if (event.type == sf::Event::Closed)
                 window.close();
         }
-        
+
         window.clear();
         window.draw(shape);
         window.display();
     }
-    
+
     return 0;
 }
 )";
-    
+
     std::string mainPath = (projectPath / "main.cpp").string();
     return FileUtils::writeToFile(mainPath, mainCpp);
 }
 
 bool FrameworkIntegration::setupBoost(const std::filesystem::path& projectPath) {
     spdlog::info("Setting up Boost libraries");
-    
+
     std::string mainCpp = R"(#include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 #include <iostream>
@@ -480,33 +480,33 @@ int main()
     // Boost.Filesystem example
     boost::filesystem::path currentPath = boost::filesystem::current_path();
     std::cout << "Current path: " << currentPath << std::endl;
-    
+
     // Boost.Algorithm example
     std::string text = "Hello, Boost World!";
     std::vector<std::string> words;
     boost::split(words, text, boost::is_any_of(" "));
-    
+
     std::cout << "Words: ";
     for (const auto& word : words) {
         std::cout << word << " ";
     }
     std::cout << std::endl;
-    
+
     return 0;
 }
 )";
-    
+
     std::string mainPath = (projectPath / "main.cpp").string();
     return FileUtils::writeToFile(mainPath, mainCpp);
 }
 
 bool FrameworkIntegration::setupGoogleTest(const std::filesystem::path& projectPath) {
     spdlog::info("Setting up Google Test framework");
-    
+
     // Create test directory
     std::filesystem::path testDir = projectPath / "tests";
     std::filesystem::create_directories(testDir);
-    
+
     std::string testCpp = R"(#include <gtest/gtest.h>
 
 // Example test
@@ -528,7 +528,7 @@ int main(int argc, char **argv) {
     return RUN_ALL_TESTS();
 }
 )";
-    
+
     std::string testPath = (testDir / "test_main.cpp").string();
     return FileUtils::writeToFile(testPath, testCpp);
 }
@@ -554,13 +554,13 @@ bool FrameworkIntegration::setupOpenGL(const std::filesystem::path& projectPath)
 // Package manager setup functions
 bool FrameworkIntegration::setupVcpkg(const std::filesystem::path& projectPath, const std::vector<Framework>& frameworks) {
     spdlog::info("Setting up vcpkg package manager");
-    
+
     std::ostringstream vcpkgJson;
     vcpkgJson << "{\n";
     vcpkgJson << "  \"name\": \"" << projectPath.filename().string() << "\",\n";
     vcpkgJson << "  \"version\": \"1.0.0\",\n";
     vcpkgJson << "  \"dependencies\": [\n";
-    
+
     bool first = true;
     for (const auto& framework : frameworks) {
         auto it = s_frameworkRegistry.find(framework);
@@ -574,20 +574,20 @@ bool FrameworkIntegration::setupVcpkg(const std::filesystem::path& projectPath, 
             }
         }
     }
-    
+
     vcpkgJson << "\n  ]\n";
     vcpkgJson << "}\n";
-    
+
     std::string vcpkgPath = (projectPath / "vcpkg.json").string();
     return FileUtils::writeToFile(vcpkgPath, vcpkgJson.str());
 }
 
 bool FrameworkIntegration::setupConan(const std::filesystem::path& projectPath, const std::vector<Framework>& frameworks) {
     spdlog::info("Setting up Conan package manager");
-    
+
     std::ostringstream conanfile;
     conanfile << "[requires]\n";
-    
+
     for (const auto& framework : frameworks) {
         auto it = s_frameworkRegistry.find(framework);
         if (it != s_frameworkRegistry.end()) {
@@ -598,11 +598,11 @@ bool FrameworkIntegration::setupConan(const std::filesystem::path& projectPath, 
             }
         }
     }
-    
+
     conanfile << "\n[generators]\n";
     conanfile << "CMakeDeps\n";
     conanfile << "CMakeToolchain\n";
-    
+
     std::string conanPath = (projectPath / "conanfile.txt").string();
     return FileUtils::writeToFile(conanPath, conanfile.str());
 }
@@ -618,12 +618,12 @@ bool FrameworkIntegration::setupCPM(const std::filesystem::path& projectPath, co
 // Utility functions
 std::string FrameworkIntegration::frameworkToString(Framework framework) {
     initializeFrameworkRegistry();
-    
+
     auto it = s_frameworkRegistry.find(framework);
     if (it != s_frameworkRegistry.end()) {
         return it->second.name;
     }
-    
+
     return "Unknown";
 }
 

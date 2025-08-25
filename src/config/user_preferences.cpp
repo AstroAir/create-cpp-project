@@ -18,30 +18,30 @@ bool UserPreferences::loadPreferences() {
     try {
         auto& configManager = ConfigManager::getInstance();
         auto configPath = configManager.getConfigDirectory() / "preferences.json";
-        
+
         if (!FileUtils::fileExists(configPath.string())) {
             spdlog::info("Preferences file not found, using defaults");
             m_preferences = preferences::getDefaultPreferences();
             return savePreferences();
         }
-        
+
         std::string content = FileUtils::readFromFile(configPath.string());
         if (content.empty()) {
             spdlog::error("Failed to read preferences file");
             return false;
         }
-        
+
         m_preferences = json::parse(content);
-        
+
         // Initialize preference definitions
         initializePreferenceDefinitions();
-        
+
         // Apply environment variable overrides
         applyEnvironmentOverrides();
-        
+
         spdlog::info("User preferences loaded successfully");
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error loading preferences: {}", e.what());
         return false;
@@ -52,22 +52,22 @@ bool UserPreferences::savePreferences() {
     try {
         auto& configManager = ConfigManager::getInstance();
         auto configPath = configManager.getConfigDirectory() / "preferences.json";
-        
+
         // Ensure config directory exists
         if (!FileUtils::createDirectory(configManager.getConfigDirectory().string())) {
             spdlog::error("Failed to create config directory");
             return false;
         }
-        
+
         std::string content = m_preferences.dump(2);
         if (!FileUtils::writeToFile(configPath.string(), content)) {
             spdlog::error("Failed to write preferences file");
             return false;
         }
-        
+
         spdlog::info("User preferences saved successfully");
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error saving preferences: {}", e.what());
         return false;
@@ -79,7 +79,7 @@ bool UserPreferences::resetToDefaults() {
         spdlog::info("Resetting preferences to defaults");
         m_preferences = preferences::getDefaultPreferences();
         return savePreferences();
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error resetting preferences: {}", e.what());
         return false;
@@ -100,13 +100,13 @@ bool UserPreferences::removePreference(const std::string& key) {
 
 std::vector<PreferenceDefinition> UserPreferences::getPreferencesByCategory(PreferenceCategory category) {
     std::vector<PreferenceDefinition> result;
-    
+
     for (const auto& pref : m_preferenceDefinitions) {
         if (pref.category == category) {
             result.push_back(pref);
         }
     }
-    
+
     return result;
 }
 
@@ -131,7 +131,7 @@ void UserPreferences::applyEnvironmentOverrides() {
                 if (envValue) {
                     json value;
                     std::string envStr(envValue);
-                    
+
                     // Convert environment variable value based on preference type
                     switch (pref.type) {
                         case ConfigValueType::String:
@@ -150,7 +150,7 @@ void UserPreferences::applyEnvironmentOverrides() {
                         default:
                             continue; // Skip unsupported types
                     }
-                    
+
                     if (validatePreference(pref.key, value)) {
                         m_preferences[pref.key] = value;
                         spdlog::debug("Applied environment override for {}: {}", pref.key, envStr);
@@ -158,7 +158,7 @@ void UserPreferences::applyEnvironmentOverrides() {
                 }
             }
         }
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error applying environment overrides: {}", e.what());
     }
@@ -166,7 +166,7 @@ void UserPreferences::applyEnvironmentOverrides() {
 
 std::map<std::string, std::string> UserPreferences::getEnvironmentOverrides() {
     std::map<std::string, std::string> overrides;
-    
+
     for (const auto& pref : m_preferenceDefinitions) {
         if (!pref.environmentVariable.empty()) {
             const char* envValue = std::getenv(pref.environmentVariable.c_str());
@@ -175,7 +175,7 @@ std::map<std::string, std::string> UserPreferences::getEnvironmentOverrides() {
             }
         }
     }
-    
+
     return overrides;
 }
 
@@ -185,7 +185,7 @@ bool UserPreferences::validatePreference(const std::string& key, const nlohmann:
         m_validationErrors.push_back("Unknown preference key: " + key);
         return false;
     }
-    
+
     // Type validation
     switch (prefDef->type) {
         case ConfigValueType::String:
@@ -219,7 +219,7 @@ bool UserPreferences::validatePreference(const std::string& key, const nlohmann:
             }
             break;
     }
-    
+
     // Value validation (allowed values)
     if (!prefDef->allowedValues.empty() && value.is_string()) {
         std::string strValue = value.get<std::string>();
@@ -235,7 +235,7 @@ bool UserPreferences::validatePreference(const std::string& key, const nlohmann:
             return false;
         }
     }
-    
+
     return true;
 }
 
@@ -247,7 +247,7 @@ bool UserPreferences::exportPreferences(const std::filesystem::path& filePath) {
     try {
         std::string content = m_preferences.dump(2);
         return FileUtils::writeToFile(filePath.string(), content);
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error exporting preferences: {}", e.what());
         return false;
@@ -260,15 +260,15 @@ bool UserPreferences::importPreferences(const std::filesystem::path& filePath) {
             spdlog::error("Preferences file not found: {}", filePath.string());
             return false;
         }
-        
+
         std::string content = FileUtils::readFromFile(filePath.string());
         if (content.empty()) {
             spdlog::error("Failed to read preferences file");
             return false;
         }
-        
+
         json importedPrefs = json::parse(content);
-        
+
         // Validate imported preferences
         m_validationErrors.clear();
         for (const auto& [key, value] : importedPrefs.items()) {
@@ -278,9 +278,9 @@ bool UserPreferences::importPreferences(const std::filesystem::path& filePath) {
                 m_preferences[key] = value;
             }
         }
-        
+
         return savePreferences();
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error importing preferences: {}", e.what());
         return false;
@@ -289,7 +289,7 @@ bool UserPreferences::importPreferences(const std::filesystem::path& filePath) {
 
 CliOptions UserPreferences::applyPreferencesToOptions(const CliOptions& baseOptions) {
     CliOptions options = baseOptions;
-    
+
     try {
         // Apply preferences to CLI options
         if (hasPreference("default.template_type")) {
@@ -299,7 +299,7 @@ CliOptions UserPreferences::applyPreferencesToOptions(const CliOptions& baseOpti
                 options.templateType = *templateType;
             }
         }
-        
+
         if (hasPreference("default.build_system")) {
             std::string buildStr = getPreference<std::string>("default.build_system");
             auto buildSystem = enums::to_build_system(buildStr);
@@ -307,7 +307,7 @@ CliOptions UserPreferences::applyPreferencesToOptions(const CliOptions& baseOpti
                 options.buildSystem = *buildSystem;
             }
         }
-        
+
         if (hasPreference("default.package_manager")) {
             std::string packageStr = getPreference<std::string>("default.package_manager");
             auto packageManager = enums::to_package_manager(packageStr);
@@ -315,11 +315,11 @@ CliOptions UserPreferences::applyPreferencesToOptions(const CliOptions& baseOpti
                 options.packageManager = *packageManager;
             }
         }
-        
+
         if (hasPreference("default.include_tests")) {
             options.includeTests = getPreference<bool>("default.include_tests", options.includeTests);
         }
-        
+
         if (hasPreference("default.test_framework")) {
             std::string testStr = getPreference<std::string>("default.test_framework");
             auto testFramework = enums::to_test_framework(testStr);
@@ -327,19 +327,19 @@ CliOptions UserPreferences::applyPreferencesToOptions(const CliOptions& baseOpti
                 options.testFramework = *testFramework;
             }
         }
-        
+
         if (hasPreference("default.include_documentation")) {
             options.includeDocumentation = getPreference<bool>("default.include_documentation", options.includeDocumentation);
         }
-        
+
         if (hasPreference("default.include_code_style_tools")) {
             options.includeCodeStyleTools = getPreference<bool>("default.include_code_style_tools", options.includeCodeStyleTools);
         }
-        
+
         if (hasPreference("default.init_git")) {
             options.initGit = getPreference<bool>("default.init_git", options.initGit);
         }
-        
+
         if (hasPreference("default.language")) {
             std::string langStr = getPreference<std::string>("default.language");
             auto language = enums::to_language(langStr);
@@ -347,11 +347,11 @@ CliOptions UserPreferences::applyPreferencesToOptions(const CliOptions& baseOpti
                 options.language = *language;
             }
         }
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error applying preferences to options: {}", e.what());
     }
-    
+
     return options;
 }
 
@@ -366,9 +366,9 @@ void UserPreferences::updatePreferencesFromOptions(const CliOptions& options) {
         setPreference("default.include_code_style_tools", options.includeCodeStyleTools);
         setPreference("default.init_git", options.initGit);
         setPreference("default.language", std::string(enums::to_string(options.language)));
-        
+
         savePreferences();
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error updating preferences from options: {}", e.what());
     }
@@ -378,13 +378,13 @@ nlohmann::json UserPreferences::getPreferenceValue(const std::string& key) {
     if (m_preferences.contains(key)) {
         return m_preferences[key];
     }
-    
+
     // Return default value if preference not found
     auto prefDef = getPreferenceDefinition(key);
     if (prefDef) {
         return prefDef->defaultValue;
     }
-    
+
     return json{};
 }
 
@@ -398,71 +398,71 @@ bool UserPreferences::setPreferenceValue(const std::string& key, const nlohmann:
 
 void UserPreferences::initializePreferenceDefinitions() {
     m_preferenceDefinitions.clear();
-    
+
     // General preferences
     registerPreference({
         "general.auto_save", "Auto Save", "Automatically save configuration changes",
         ConfigValueType::Boolean, true, {}, PreferenceCategory::General, false, "CPP_SCAFFOLD_AUTO_SAVE"
     });
-    
+
     registerPreference({
         "general.verbose_logging", "Verbose Logging", "Enable verbose logging output",
         ConfigValueType::Boolean, false, {}, PreferenceCategory::General, false, "CPP_SCAFFOLD_VERBOSE"
     });
-    
+
     registerPreference({
         "general.check_for_updates", "Check for Updates", "Automatically check for updates",
         ConfigValueType::Boolean, true, {}, PreferenceCategory::General, false, "CPP_SCAFFOLD_CHECK_UPDATES"
     });
-    
+
     // Default template preferences
     registerPreference({
         "default.template_type", "Default Template Type", "Default project template type",
-        ConfigValueType::String, "console", {"console", "lib", "header-only-lib", "multi-executable", "gui", "network"}, 
+        ConfigValueType::String, "console", {"console", "lib", "header-only-lib", "multi-executable", "gui", "network"},
         PreferenceCategory::Templates, false, "CPP_SCAFFOLD_DEFAULT_TEMPLATE"
     });
-    
+
     registerPreference({
         "default.build_system", "Default Build System", "Default build system",
-        ConfigValueType::String, "cmake", {"cmake", "meson", "bazel", "xmake", "premake"}, 
+        ConfigValueType::String, "cmake", {"cmake", "meson", "bazel", "xmake", "premake"},
         PreferenceCategory::BuildSystems, false, "CPP_SCAFFOLD_DEFAULT_BUILD_SYSTEM"
     });
-    
+
     registerPreference({
         "default.package_manager", "Default Package Manager", "Default package manager",
-        ConfigValueType::String, "vcpkg", {"vcpkg", "conan", "none"}, 
+        ConfigValueType::String, "vcpkg", {"vcpkg", "conan", "none"},
         PreferenceCategory::BuildSystems, false, "CPP_SCAFFOLD_DEFAULT_PACKAGE_MANAGER"
     });
-    
+
     registerPreference({
         "default.include_tests", "Include Tests by Default", "Include test framework by default",
         ConfigValueType::Boolean, false, {}, PreferenceCategory::Testing, false, "CPP_SCAFFOLD_DEFAULT_TESTS"
     });
-    
+
     registerPreference({
         "default.test_framework", "Default Test Framework", "Default test framework",
-        ConfigValueType::String, "gtest", {"gtest", "catch2", "doctest", "boost"}, 
+        ConfigValueType::String, "gtest", {"gtest", "catch2", "doctest", "boost"},
         PreferenceCategory::Testing, false, "CPP_SCAFFOLD_DEFAULT_TEST_FRAMEWORK"
     });
-    
+
     registerPreference({
         "default.include_documentation", "Include Documentation by Default", "Include documentation by default",
         ConfigValueType::Boolean, false, {}, PreferenceCategory::Documentation, false, "CPP_SCAFFOLD_DEFAULT_DOCS"
     });
-    
+
     registerPreference({
         "default.include_code_style_tools", "Include Code Style Tools by Default", "Include code style tools by default",
         ConfigValueType::Boolean, false, {}, PreferenceCategory::CodeStyle, false, "CPP_SCAFFOLD_DEFAULT_CODE_STYLE"
     });
-    
+
     registerPreference({
         "default.init_git", "Initialize Git by Default", "Initialize Git repository by default",
         ConfigValueType::Boolean, true, {}, PreferenceCategory::General, false, "CPP_SCAFFOLD_DEFAULT_GIT"
     });
-    
+
     registerPreference({
         "default.language", "Default Language", "Default interface language",
-        ConfigValueType::String, "en", {"en", "zh", "es", "jp", "de", "fr"}, 
+        ConfigValueType::String, "en", {"en", "zh", "es", "jp", "de", "fr"},
         PreferenceCategory::General, false, "CPP_SCAFFOLD_DEFAULT_LANGUAGE"
     });
 }

@@ -1,0 +1,193 @@
+site_name: CPP-Scaffold Documentation
+site_description: A powerful, modern C++ project scaffolding tool
+site_author: CPP-Scaffold Team
+site_url: https://cpp-scaffold.github.io/cpp-scaffold/
+
+# Repository
+repo_name: cpp-scaffold/cpp-scaffold
+repo_url: https://github.com/cpp-scaffold/cpp-scaffold
+edit_uri: edit/main/docs/
+
+# Copyright
+copyright: Copyright &copy; 2024 CPP-Scaffold Team
+
+# Configuration
+theme:
+  name: material
+  language: en
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.indexes
+    - toc.follow
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.action.edit
+    - content.action.view
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
+
+# Plugins
+plugins:
+  - search:
+      lang: en
+  - mermaid2:
+      arguments:
+        theme: |
+          ^(JSON.parse(__md_get("__palette").index == 1)) ?
+          'dark' : 'light'
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+      enable_git_follow: false
+  - minify:
+      minify_html: true
+
+# Extensions
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      title: On this page
+  - tables
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: cpp-scaffold
+      repo: cpp-scaffold
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Navigation
+nav:
+  - Home: index.md
+  - Getting Started:
+    - getting-started/index.md
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quick-start.md
+    - Your First Project: getting-started/first-project.md
+  - User Guide:
+    - user-guide/index.md
+    - Usage: user-guide/usage.md
+    - Project Templates: user-guide/templates.md
+    - Configuration: user-guide/configuration.md
+    - Troubleshooting: user-guide/troubleshooting.md
+  - Tutorials:
+    - tutorials/index.md
+    - Console Application: tutorials/console-app.md
+    - Library Project: tutorials/library-project.md
+    - GUI Application: tutorials/gui-application.md
+    - Advanced Features: tutorials/advanced-features.md
+  - Developer Guide:
+    - developer-guide/index.md
+    - Architecture: developer-guide/architecture.md
+    - Building: developer-guide/building.md
+    - Contributing: developer-guide/contributing.md
+    - Extending: developer-guide/extending.md
+  - Components:
+    - components/index.md
+    - CLI Parser: components/cli-parser.md
+    - Template System: components/template-system.md
+    - Configuration System: components/configuration-system.md
+    - Utility Classes: components/utility-classes.md
+    - Testing Framework: components/testing-framework.md
+    - Documentation Generator: components/documentation-generator.md
+  - API Reference:
+    - api-reference/index.md
+    - API Documentation: api-reference/api.md
+  - Reference:
+    - reference/index.md
+    - Recent Enhancements: reference/enhancements.md
+
+# Extra
+extra:
+  version:
+    provider: mike
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/cpp-scaffold/cpp-scaffold
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/cpp_scaffold
+  analytics:
+    provider: google
+    property: !ENV GOOGLE_ANALYTICS_KEY
+  consent:
+    title: Cookie consent
+    description: >-
+      We use cookies to recognize your repeated visits and preferences, as well
+      as to measure the effectiveness of our documentation and whether users
+      find what they're searching for. With your consent, you're helping us to
+      make our documentation better.
+
+# Development server
+dev_addr: 127.0.0.1:8000
+
+# Build directory
+site_dir: site
+
+# Documentation directory
+docs_dir: docs
+
+# Strict mode (disabled due to minor anchor issues)
+strict: false
+
+# Watch additional files
+watch:
+  - mkdocs.yml

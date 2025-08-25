@@ -378,7 +378,7 @@ bool NetworkTemplate::setupNetworkLibrary() {
       if (pos != std::string::npos) {
         pos = vcpkgJson.find("[", pos);
         if (pos != std::string::npos) {
-          std::string boostEntry = 
+          std::string boostEntry =
               "    {\n      \"name\": \"boost\",\n      \"features\": [\"asio\"]\n    },\n";
           vcpkgJson.insert(pos + 1, boostEntry);
           if (!FileUtils::writeToFile(vcpkgJsonPath, vcpkgJson)) {
@@ -417,7 +417,7 @@ bool NetworkTemplate::setupNetworkLibrary() {
       if (pos != std::string::npos) {
         pos = vcpkgJson.find("[", pos);
         if (pos != std::string::npos) {
-          std::string pocoEntry = 
+          std::string pocoEntry =
               "    {\n      \"name\": \"poco\",\n      \"features\": [\"netssl\"]\n    },\n";
           vcpkgJson.insert(pos + 1, pocoEntry);
           if (!FileUtils::writeToFile(vcpkgJsonPath, vcpkgJson)) {
@@ -558,7 +558,7 @@ add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
       testCmakeContent = R"(
 find_package(doctest REQUIRED)
 add_executable(${PROJECT_NAME}_tests network_test.cpp)
-target_link_libraries(${PROJECT_NAME}_tests PRIVATE 
+target_link_libraries(${PROJECT_NAME}_tests PRIVATE
     ${PROJECT_NAME}_lib
     doctest::doctest
 )
@@ -583,7 +583,7 @@ bool NetworkTemplate::setupCodeStyleTools() {
 
   // 使用基类提供的方法设置代码风格
   bool result = TemplateBase::setupCodeStyleConfig(projectPath);
-  
+
   // 如果基类实现不满足特定需求，可以在这里添加网络模板特有的代码风格配置
 
   return result;
@@ -591,10 +591,10 @@ bool NetworkTemplate::setupCodeStyleTools() {
 
 bool NetworkTemplate::setupEditorIntegrations() {
   std::string projectPath = options_.projectName;
-  
+
   // 使用基类提供的方法设置编辑器配置
   bool result = TemplateBase::setupEditorConfig(projectPath);
-  
+
   // 如果基类实现不满足特定需求，可以在这里添加网络模板特有的编辑器配置
 
   return result;
@@ -602,10 +602,10 @@ bool NetworkTemplate::setupEditorIntegrations() {
 
 bool NetworkTemplate::setupCICDIntegrations() {
   std::string projectPath = options_.projectName;
-  
+
   // 使用基类提供的方法设置CI/CD配置
   bool result = TemplateBase::setupCICD(projectPath);
-  
+
   // 如果基类实现不满足特定需求，可以在这里添加网络模板特有的CI/CD配置
 
   return result;
@@ -681,7 +681,7 @@ std::string NetworkTemplate::getServerHeaderContent() {
         std::vector<std::shared_ptr<asio::ip::tcp::socket>> clients_;
         std::thread worker_thread_;
         bool running_ = false;
-        
+
         void accept_connections();
         void handle_client(std::shared_ptr<asio::ip::tcp::socket> client_socket);)";
   } else if (options_.networkLibrary == "boost") {
@@ -693,7 +693,7 @@ namespace asio = boost::asio;)";
         std::vector<std::shared_ptr<asio::ip::tcp::socket>> clients_;
         std::thread worker_thread_;
         bool running_ = false;
-        
+
         void accept_connections();
         void handle_client(std::shared_ptr<asio::ip::tcp::socket> client_socket);)";
   } else if (options_.networkLibrary == "poco") {
@@ -707,7 +707,7 @@ namespace asio = boost::asio;)";
         std::unique_ptr<Poco::Net::SocketAcceptor<Server>> acceptor_;
         std::thread reactor_thread_;
         bool running_ = false;
-        
+
         void onClientConnection(const Poco::AutoPtr<Poco::Net::ReadableNotification>& notification);
         void onClientDisconnection(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& notification);)";
   }
@@ -727,26 +727,26 @@ class Server {{
 public:
     Server();
     ~Server();
-    
+
     // Start the server on the specified port
     void start(int port);
-    
+
     // Stop the server
     void stop();
-    
+
     // Send message to all connected clients
     void broadcast(const std::string& message);
-    
+
     // Set callback for new messages
     void setMessageCallback(std::function<void(const std::string&)> callback);
-    
+
 private:{}
-    
+
     std::function<void(const std::string&)> message_callback_;
 }};
 
-}} // namespace {})", 
-    networkLibraryIncludes, 
+}} // namespace {})",
+    networkLibraryIncludes,
     options_.projectName,
     networkLibraryMembers,
     options_.projectName);
@@ -778,13 +778,13 @@ void Server::start(int port) {{
         acceptor_.set_option(asio::ip::tcp::acceptor::reuse_address(true));
         acceptor_.bind(asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port));
         acceptor_.listen();
-        
+
         running_ = true;
         worker_thread_ = std::thread([this]() {{
             accept_connections();
             io_context_.run();
         }});
-        
+
         spdlog::info("Server started on port {{}}", port);
     }} catch (const std::exception& e) {{
         spdlog::error("Server start error: {{}}", e.what());
@@ -794,14 +794,14 @@ void Server::start(int port) {{
 
 void Server::stop() {{
     if (!running_) return;
-    
+
     running_ = false;
     io_context_.stop();
-    
+
     if (worker_thread_.joinable()) {{
         worker_thread_.join();
     }}
-    
+
     clients_.clear();
     spdlog::info("Server stopped");
 }}
@@ -822,7 +822,7 @@ void Server::setMessageCallback(std::function<void(const std::string&)> callback
 
 void Server::accept_connections() {{
     if (!running_) return;
-    
+
     auto client_socket = std::make_shared<asio::ip::tcp::socket>(io_context_);
     acceptor_.async_accept(*client_socket, [this, client_socket](const asio::error_code& error) {{
         if (!error) {{
@@ -830,7 +830,7 @@ void Server::accept_connections() {{
             clients_.push_back(client_socket);
             handle_client(client_socket);
         }}
-        
+
         // Continue accepting connections
         accept_connections();
     }});
@@ -838,20 +838,20 @@ void Server::accept_connections() {{
 
 void Server::handle_client(std::shared_ptr<asio::ip::tcp::socket> client_socket) {{
     auto buffer = std::make_shared<asio::streambuf>();
-    
-    asio::async_read_until(*client_socket, *buffer, '\n', 
+
+    asio::async_read_until(*client_socket, *buffer, '\n',
         [this, client_socket, buffer](const asio::error_code& error, std::size_t bytes_transferred) {{
             if (!error) {{
-                std::string message(asio::buffers_begin(buffer->data()), 
+                std::string message(asio::buffers_begin(buffer->data()),
                                    asio::buffers_begin(buffer->data()) + bytes_transferred);
                 message.pop_back(); // Remove the newline
-                
+
                 if (message_callback_) {{
                     message_callback_(message);
                 }}
-                
+
                 buffer->consume(bytes_transferred);
-                
+
                 // Continue reading from this client
                 handle_client(client_socket);
             }} else {{
@@ -892,13 +892,13 @@ void Server::start(int port) {{
         acceptor_.set_option(asio::ip::tcp::acceptor::reuse_address(true));
         acceptor_.bind(asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port));
         acceptor_.listen();
-        
+
         running_ = true;
         worker_thread_ = std::thread([this]() {{
             accept_connections();
             io_context_.run();
         }});
-        
+
         spdlog::info("Server started on port {{}}", port);
     }} catch (const std::exception& e) {{
         spdlog::error("Server start error: {{}}", e.what());
@@ -908,14 +908,14 @@ void Server::start(int port) {{
 
 void Server::stop() {{
     if (!running_) return;
-    
+
     running_ = false;
     io_context_.stop();
-    
+
     if (worker_thread_.joinable()) {{
         worker_thread_.join();
     }}
-    
+
     clients_.clear();
     spdlog::info("Server stopped");
 }}
@@ -936,7 +936,7 @@ void Server::setMessageCallback(std::function<void(const std::string&)> callback
 
 void Server::accept_connections() {{
     if (!running_) return;
-    
+
     auto client_socket = std::make_shared<asio::ip::tcp::socket>(io_context_);
     acceptor_.async_accept(*client_socket, [this, client_socket](const boost::system::error_code& error) {{
         if (!error) {{
@@ -944,7 +944,7 @@ void Server::accept_connections() {{
             clients_.push_back(client_socket);
             handle_client(client_socket);
         }}
-        
+
         // Continue accepting connections
         accept_connections();
     }});
@@ -952,20 +952,20 @@ void Server::accept_connections() {{
 
 void Server::handle_client(std::shared_ptr<asio::ip::tcp::socket> client_socket) {{
     auto buffer = std::make_shared<boost::asio::streambuf>();
-    
-    asio::async_read_until(*client_socket, *buffer, '\n', 
+
+    asio::async_read_until(*client_socket, *buffer, '\n',
         [this, client_socket, buffer](const boost::system::error_code& error, std::size_t bytes_transferred) {{
             if (!error) {{
-                std::string message(boost::asio::buffers_begin(buffer->data()), 
+                std::string message(boost::asio::buffers_begin(buffer->data()),
                                     boost::asio::buffers_begin(buffer->data()) + bytes_transferred);
                 message.pop_back(); // Remove the newline
-                
+
                 if (message_callback_) {{
                     message_callback_(message);
                 }}
-                
+
                 buffer->consume(bytes_transferred);
-                
+
                 // Continue reading from this client
                 handle_client(client_socket);
             }} else {{
@@ -1008,16 +1008,16 @@ void Server::start(int port) {{
         Poco::Net::SocketAddress address("0.0.0.0", port);
         server_socket_.bind(address);
         server_socket_.listen();
-        
+
         // Set up acceptor
         acceptor_ = std::make_unique<Poco::Net::SocketAcceptor<Server>>(
             *this, server_socket_, reactor_);
-        
+
         running_ = true;
         reactor_thread_ = std::thread([this]() {{
             reactor_.run();
         }});
-        
+
         spdlog::info("Server started on port {{}}", port);
     }} catch (const Poco::Exception& e) {{
         spdlog::error("Server start error: {{}}", e.displayText());
@@ -1027,14 +1027,14 @@ void Server::start(int port) {{
 
 void Server::stop() {{
     if (!running_) return;
-    
+
     running_ = false;
     reactor_.stop();
-    
+
     if (reactor_thread_.joinable()) {{
         reactor_thread_.join();
     }}
-    
+
     server_socket_.close();
     spdlog::info("Server stopped");
 }}
@@ -1055,7 +1055,7 @@ void Server::onClientConnection(const Poco::AutoPtr<Poco::Net::ReadableNotificat
         Poco::Net::SocketStream stream(socket);
         std::string message;
         std::getline(stream, message);
-        
+
         if (message_callback_) {{
             message_callback_(message);
         }}
@@ -1088,7 +1088,7 @@ std::string NetworkTemplate::getClientHeaderContent() {
         std::shared_ptr<asio::ip::tcp::socket> socket_;
         std::thread worker_thread_;
         bool connected_ = false;
-        
+
         void read_messages();)";
   } else if (options_.networkLibrary == "boost") {
     networkLibraryIncludes = R"(#include <boost/asio.hpp>
@@ -1098,7 +1098,7 @@ namespace asio = boost::asio;)";
         std::shared_ptr<asio::ip::tcp::socket> socket_;
         std::thread worker_thread_;
         bool connected_ = false;
-        
+
         void read_messages();)";
   } else if (options_.networkLibrary == "poco") {
     networkLibraryIncludes = R"(#include <Poco/Net/StreamSocket.h>
@@ -1107,7 +1107,7 @@ namespace asio = boost::asio;)";
         Poco::Net::StreamSocket socket_;
         std::thread reader_thread_;
         bool connected_ = false;
-        
+
         void read_messages();)";
   }
 
@@ -1125,29 +1125,29 @@ class Client {{
 public:
     Client();
     ~Client();
-    
+
     // Connect to a server
     void connect(const std::string& host, int port);
-    
+
     // Disconnect from the server
     void disconnect();
-    
+
     // Send a message to the server
     void sendMessage(const std::string& message);
-    
+
     // Set callback for received messages
     void setMessageCallback(std::function<void(const std::string&)> callback);
-    
+
     // Check if connected to the server
     bool isConnected() const;
-    
+
 private:{}
-    
+
     std::function<void(const std::string&)> message_callback_;
 }};
 
-}} // namespace {})", 
-    networkLibraryIncludes, 
+}} // namespace {})",
+    networkLibraryIncludes,
     options_.projectName,
     networkLibraryMembers,
     options_.projectName);
@@ -1178,16 +1178,16 @@ void Client::connect(const std::string& host, int port) {{
         socket_ = std::make_shared<asio::ip::tcp::socket>(io_context_);
         asio::ip::tcp::resolver resolver(io_context_);
         auto endpoints = resolver.resolve(host, std::to_string(port));
-        
+
         asio::connect(*socket_, endpoints);
         connected_ = true;
-        
+
         // Start worker thread for handling incoming messages
         worker_thread_ = std::thread([this]() {{
             read_messages();
             io_context_.run();
         }});
-        
+
         spdlog::info("Connected to server {{}}:{{}}", host, port);
     }} catch (const std::exception& e) {{
         spdlog::error("Connection error: {{}}", e.what());
@@ -1197,19 +1197,19 @@ void Client::connect(const std::string& host, int port) {{
 
 void Client::disconnect() {{
     if (!connected_) return;
-    
+
     connected_ = false;
-    
+
     if (socket_ && socket_->is_open()) {{
         socket_->close();
     }}
-    
+
     io_context_.stop();
-    
+
     if (worker_thread_.joinable()) {{
         worker_thread_.join();
     }}
-    
+
     spdlog::info("Disconnected from server");
 }}
 
@@ -1217,7 +1217,7 @@ void Client::sendMessage(const std::string& message) {{
     if (!connected_ || !socket_) {{
         throw std::runtime_error("Not connected to server");
     }}
-    
+
     try {{
         asio::write(*socket_, asio::buffer(message + "\n"));
         spdlog::info("Message sent: {{}}", message);
@@ -1237,22 +1237,22 @@ bool Client::isConnected() const {{
 
 void Client::read_messages() {{
     if (!connected_ || !socket_) return;
-    
+
     auto buffer = std::make_shared<asio::streambuf>();
-    
-    asio::async_read_until(*socket_, *buffer, '\n', 
+
+    asio::async_read_until(*socket_, *buffer, '\n',
         [this, buffer](const asio::error_code& error, std::size_t bytes_transferred) {{
             if (!error) {{
-                std::string message(asio::buffers_begin(buffer->data()), 
+                std::string message(asio::buffers_begin(buffer->data()),
                                    asio::buffers_begin(buffer->data()) + bytes_transferred);
                 message.pop_back(); // Remove the newline
-                
+
                 if (message_callback_) {{
                     message_callback_(message);
                 }}
-                
+
                 buffer->consume(bytes_transferred);
-                
+
                 // Continue reading messages
                 read_messages();
             }} else {{
@@ -1288,16 +1288,16 @@ void Client::connect(const std::string& host, int port) {{
         socket_ = std::make_shared<asio::ip::tcp::socket>(io_context_);
         asio::ip::tcp::resolver resolver(io_context_);
         auto endpoints = resolver.resolve(host, std::to_string(port));
-        
+
         asio::connect(*socket_, endpoints);
         connected_ = true;
-        
+
         // Start worker thread for handling incoming messages
         worker_thread_ = std::thread([this]() {{
             read_messages();
             io_context_.run();
         }});
-        
+
         spdlog::info("Connected to server {{}}:{{}}", host, port);
     }} catch (const std::exception& e) {{
         spdlog::error("Connection error: {{}}", e.what());
@@ -1307,19 +1307,19 @@ void Client::connect(const std::string& host, int port) {{
 
 void Client::disconnect() {{
     if (!connected_) return;
-    
+
     connected_ = false;
-    
+
     if (socket_ && socket_->is_open()) {{
         socket_->close();
     }}
-    
+
     io_context_.stop();
-    
+
     if (worker_thread_.joinable()) {{
         worker_thread_.join();
     }}
-    
+
     spdlog::info("Disconnected from server");
 }}
 
@@ -1327,7 +1327,7 @@ void Client::sendMessage(const std::string& message) {{
     if (!connected_ || !socket_) {{
         throw std::runtime_error("Not connected to server");
     }}
-    
+
     try {{
         asio::write(*socket_, asio::buffer(message + "\n"));
         spdlog::info("Message sent: {{}}", message);
@@ -1347,22 +1347,22 @@ bool Client::isConnected() const {{
 
 void Client::read_messages() {{
     if (!connected_ || !socket_) return;
-    
+
     auto buffer = std::make_shared<boost::asio::streambuf>();
-    
-    asio::async_read_until(*socket_, *buffer, '\n', 
+
+    asio::async_read_until(*socket_, *buffer, '\n',
         [this, buffer](const boost::system::error_code& error, std::size_t bytes_transferred) {{
             if (!error) {{
-                std::string message(boost::asio::buffers_begin(buffer->data()), 
+                std::string message(boost::asio::buffers_begin(buffer->data()),
                                     boost::asio::buffers_begin(buffer->data()) + bytes_transferred);
                 message.pop_back(); // Remove the newline
-                
+
                 if (message_callback_) {{
                     message_callback_(message);
                 }}
-                
+
                 buffer->consume(bytes_transferred);
-                
+
                 // Continue reading messages
                 read_messages();
             }} else {{
@@ -1401,12 +1401,12 @@ void Client::connect(const std::string& host, int port) {{
         socket_.connect(address);
         socket_.setNoDelay(true);
         connected_ = true;
-        
+
         // Start reader thread
         reader_thread_ = std::thread([this]() {{
             read_messages();
         }});
-        
+
         spdlog::info("Connected to server {}:{}", host, port);
     }} catch (const Poco::Exception& e) {{
         spdlog::error("Connection error: {{}}", e.displayText());
@@ -1416,14 +1416,14 @@ void Client::connect(const std::string& host, int port) {{
 
 void Client::disconnect() {{
     if (!connected_) return;
-    
+
     connected_ = false;
     socket_.close();
-    
+
     if (reader_thread_.joinable()) {{
         reader_thread_.join();
     }}
-    
+
     spdlog::info("Disconnected from server");
 }}
 
@@ -1431,7 +1431,7 @@ void Client::sendMessage(const std::string& message) {{
     if (!connected_) {{
         throw std::runtime_error("Not connected to server");
     }}
-    
+
     try {{
         Poco::Net::SocketStream stream(socket_);
         stream << message << std::endl;
@@ -1455,7 +1455,7 @@ void Client::read_messages() {{
     try {{
         Poco::Net::SocketStream stream(socket_);
         std::string message;
-        
+
         while (connected_ && std::getline(stream, message)) {{
             if (message_callback_) {{
                 message_callback_(message);
@@ -1541,7 +1541,7 @@ make
 ## 许可证
 
 本项目使用MIT许可证。详情请参阅LICENSE文件。
-)", 
+)",
     options_.projectName,
     options_.networkLibrary.value_or("Unknown"),
     options_.projectName,

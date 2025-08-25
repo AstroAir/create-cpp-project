@@ -61,7 +61,7 @@ bool CustomTemplate::setupTestFramework() {
 bool CustomTemplate::createTemplate() {
     try {
         spdlog::info("Creating custom template: {}", m_metadata.name);
-        
+
         // Create base template if specified
         if (!m_metadata.baseTemplate.empty()) {
             auto baseTemplate = createBaseTemplate();
@@ -77,22 +77,22 @@ bool CustomTemplate::createTemplate() {
                 }
             }
         }
-        
+
         // Create custom directories
         if (!createCustomDirectories(options_.projectName)) {
             spdlog::error("Failed to create custom directories");
             return false;
         }
-        
+
         // Create custom files
         if (!createCustomFiles(options_.projectName)) {
             spdlog::error("Failed to create custom files");
             return false;
         }
-        
+
         spdlog::info("Custom template created successfully");
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error creating custom template: {}", e.what());
         return false;
@@ -109,18 +109,18 @@ bool CustomTemplate::loadFromFile(const std::filesystem::path& templatePath) {
             spdlog::error("Template file does not exist: {}", templatePath.string());
             return false;
         }
-        
+
         std::ifstream file(templatePath);
         if (!file.is_open()) {
             spdlog::error("Failed to open template file: {}", templatePath.string());
             return false;
         }
-        
+
         json templateJson;
         file >> templateJson;
-        
+
         return fromJson(templateJson);
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error loading template from file: {}", e.what());
         return false;
@@ -131,19 +131,19 @@ bool CustomTemplate::saveToFile(const std::filesystem::path& templatePath) const
     try {
         // Ensure directory exists
         std::filesystem::create_directories(templatePath.parent_path());
-        
+
         std::ofstream file(templatePath);
         if (!file.is_open()) {
             spdlog::error("Failed to create template file: {}", templatePath.string());
             return false;
         }
-        
+
         json templateJson = toJson();
         file << templateJson.dump(2);
-        
+
         spdlog::info("Template saved to: {}", templatePath.string());
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error saving template to file: {}", e.what());
         return false;
@@ -167,7 +167,7 @@ bool CustomTemplate::addCustomFile(const std::string& relativePath, const std::s
     entry.relativePath = relativePath;
     entry.content = content;
     entry.isTemplate = content.find("{{") != std::string::npos; // Simple template detection
-    
+
     m_customFiles.push_back(entry);
     return true;
 }
@@ -175,7 +175,7 @@ bool CustomTemplate::addCustomFile(const std::string& relativePath, const std::s
 bool CustomTemplate::addCustomDirectory(const std::string& relativePath) {
     DirectoryEntry entry;
     entry.relativePath = relativePath;
-    
+
     m_customDirectories.push_back(entry);
     return true;
 }
@@ -201,34 +201,34 @@ bool CustomTemplate::validateTemplate() const {
     if (m_metadata.name.empty()) {
         return false;
     }
-    
+
     if (m_metadata.description.empty()) {
         return false;
     }
-    
+
     // Validate file paths
     for (const auto& file : m_customFiles) {
         if (file.relativePath.empty()) {
             return false;
         }
-        
+
         // Check for invalid characters
         if (file.relativePath.find("..") != std::string::npos) {
             return false;
         }
     }
-    
+
     // Validate directory paths
     for (const auto& dir : m_customDirectories) {
         if (dir.relativePath.empty()) {
             return false;
         }
-        
+
         if (dir.relativePath.find("..") != std::string::npos) {
             return false;
         }
     }
-    
+
     return true;
 }
 
@@ -238,36 +238,36 @@ std::string CustomTemplate::processTemplateContent(const std::string& content) c
 
 std::string CustomTemplate::replaceTemplateVariables(const std::string& content) const {
     std::string result = content;
-    
+
     // Replace standard variables
     result = utils::StringUtils::replace(result, "{{PROJECT_NAME}}", options_.projectName);
     result = utils::StringUtils::replace(result, "{{PROJECT_NAME_UPPER}}", utils::StringUtils::toUpper(options_.projectName));
     result = utils::StringUtils::replace(result, "{{PROJECT_NAME_LOWER}}", utils::StringUtils::toLower(options_.projectName));
-    
+
     // Replace custom variables
     for (const auto& [name, value] : m_metadata.variables) {
         std::string placeholder = "{{" + name + "}}";
         result = utils::StringUtils::replace(result, placeholder, value);
     }
-    
+
     // Replace current date/time
     auto now = std::chrono::system_clock::now();
     auto time_t = std::chrono::system_clock::to_time_t(now);
     auto tm = *std::localtime(&time_t);
-    
+
     char dateBuffer[32];
     std::strftime(dateBuffer, sizeof(dateBuffer), "%Y-%m-%d", &tm);
     result = utils::StringUtils::replace(result, "{{CURRENT_DATE}}", std::string(dateBuffer));
-    
+
     std::strftime(dateBuffer, sizeof(dateBuffer), "%Y", &tm);
     result = utils::StringUtils::replace(result, "{{CURRENT_YEAR}}", std::string(dateBuffer));
-    
+
     return result;
 }
 
 json CustomTemplate::toJson() const {
     json templateJson;
-    
+
     // Metadata
     templateJson["metadata"]["name"] = m_metadata.name;
     templateJson["metadata"]["description"] = m_metadata.description;
@@ -277,7 +277,7 @@ json CustomTemplate::toJson() const {
     templateJson["metadata"]["tags"] = m_metadata.tags;
     templateJson["metadata"]["variables"] = m_metadata.variables;
     templateJson["metadata"]["customProperties"] = m_metadata.customProperties;
-    
+
     // Files
     for (const auto& file : m_customFiles) {
         json fileJson;
@@ -287,7 +287,7 @@ json CustomTemplate::toJson() const {
         fileJson["metadata"] = file.metadata;
         templateJson["files"].push_back(fileJson);
     }
-    
+
     // Directories
     for (const auto& dir : m_customDirectories) {
         json dirJson;
@@ -295,7 +295,7 @@ json CustomTemplate::toJson() const {
         dirJson["metadata"] = dir.metadata;
         templateJson["directories"].push_back(dirJson);
     }
-    
+
     return templateJson;
 }
 
@@ -309,20 +309,20 @@ bool CustomTemplate::fromJson(const json& templateJson) {
             m_metadata.version = meta.value("version", "1.0.0");
             m_metadata.author = meta.value("author", "");
             m_metadata.baseTemplate = meta.value("baseTemplate", "");
-            
+
             if (meta.contains("tags")) {
                 m_metadata.tags = meta["tags"].get<std::vector<std::string>>();
             }
-            
+
             if (meta.contains("variables")) {
                 m_metadata.variables = meta["variables"].get<std::map<std::string, std::string>>();
             }
-            
+
             if (meta.contains("customProperties")) {
                 m_metadata.customProperties = meta["customProperties"];
             }
         }
-        
+
         // Load files
         if (templateJson.contains("files")) {
             m_customFiles.clear();
@@ -331,32 +331,32 @@ bool CustomTemplate::fromJson(const json& templateJson) {
                 file.relativePath = fileJson.value("relativePath", "");
                 file.content = fileJson.value("content", "");
                 file.isTemplate = fileJson.value("isTemplate", false);
-                
+
                 if (fileJson.contains("metadata")) {
                     file.metadata = fileJson["metadata"].get<std::map<std::string, std::string>>();
                 }
-                
+
                 m_customFiles.push_back(file);
             }
         }
-        
+
         // Load directories
         if (templateJson.contains("directories")) {
             m_customDirectories.clear();
             for (const auto& dirJson : templateJson["directories"]) {
                 DirectoryEntry dir;
                 dir.relativePath = dirJson.value("relativePath", "");
-                
+
                 if (dirJson.contains("metadata")) {
                     dir.metadata = dirJson["metadata"].get<std::map<std::string, std::string>>();
                 }
-                
+
                 m_customDirectories.push_back(dir);
             }
         }
-        
+
         return true;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error parsing template JSON: {}", e.what());
         return false;
@@ -366,37 +366,37 @@ bool CustomTemplate::fromJson(const json& templateJson) {
 bool CustomTemplate::createCustomFiles(const std::string& projectPath) const {
     for (const auto& file : m_customFiles) {
         std::string fullPath = utils::FileUtils::combinePath(projectPath, file.relativePath);
-        
+
         // Ensure directory exists
         std::filesystem::path filePath(fullPath);
         std::filesystem::create_directories(filePath.parent_path());
-        
+
         // Process content
         std::string content = file.isTemplate ? processTemplateContent(file.content) : file.content;
-        
+
         if (!utils::FileUtils::writeToFile(fullPath, content)) {
             spdlog::error("Failed to create custom file: {}", fullPath);
             return false;
         }
-        
+
         spdlog::debug("Created custom file: {}", fullPath);
     }
-    
+
     return true;
 }
 
 bool CustomTemplate::createCustomDirectories(const std::string& projectPath) const {
     for (const auto& dir : m_customDirectories) {
         std::string fullPath = utils::FileUtils::combinePath(projectPath, dir.relativePath);
-        
+
         if (!utils::FileUtils::createDirectory(fullPath)) {
             spdlog::error("Failed to create custom directory: {}", fullPath);
             return false;
         }
-        
+
         spdlog::debug("Created custom directory: {}", fullPath);
     }
-    
+
     return true;
 }
 
@@ -410,7 +410,7 @@ std::unique_ptr<TemplateBase> CustomTemplate::createBaseTemplate() const {
     } else if (m_metadata.baseTemplate == "network") {
         return std::make_unique<NetworkTemplate>(options_);
     }
-    
+
     return nullptr;
 }
 

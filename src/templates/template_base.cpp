@@ -264,15 +264,15 @@ bool TemplateBase::setupCICD(const std::string &projectPath) {
   }
 
   std::cout << "📦 设置CI/CD配置...\n";
-  
+
   bool result = CIConfig::createCIConfigs(projectPath, options_.ciOptions, options_);
-  
+
   if (result) {
     std::cout << "✅ CI/CD配置创建成功\n";
   } else {
     std::cerr << "❌ CI/CD配置创建失败\n";
   }
-  
+
   return result;
 }
 
@@ -283,15 +283,15 @@ bool TemplateBase::setupEditorConfig(const std::string &projectPath) {
   }
 
   std::cout << "📦 设置编辑器配置...\n";
-  
+
   bool result = EditorConfigManager::createEditorConfigs(projectPath, options_.editorOptions, options_);
-  
+
   if (result) {
     std::cout << "✅ 编辑器配置创建成功\n";
   } else {
     std::cerr << "❌ 编辑器配置创建失败\n";
   }
-  
+
   return result;
 }
 
@@ -302,15 +302,15 @@ bool TemplateBase::setupCodeStyleConfig(const std::string &projectPath) {
   }
 
   std::cout << "📦 设置代码风格配置...\n";
-  
+
   bool result = CodeStyleConfig::createCodeStyleConfig(projectPath, options_);
-  
+
   if (result) {
     std::cout << "✅ 代码风格配置创建成功\n";
   } else {
     std::cerr << "❌ 代码风格配置创建失败\n";
   }
-  
+
   return result;
 }
 
@@ -321,15 +321,15 @@ bool TemplateBase::setupDocConfig(const std::string &projectPath) {
   }
 
   std::cout << "📦 设置文档配置...\n";
-  
+
   bool result = DocConfig::createDocConfig(projectPath, options_);
-  
+
   if (result) {
     std::cout << "✅ 文档配置创建成功\n";
   } else {
     std::cerr << "❌ 文档配置创建失败\n";
   }
-  
+
   return result;
 }
 

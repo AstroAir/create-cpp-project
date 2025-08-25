@@ -15,37 +15,37 @@ public:
     static bool initializeRepository(const std::filesystem::path& projectPath);
     static bool isGitRepository(const std::filesystem::path& path);
     static bool hasGitInstalled();
-    
+
     // .gitignore management
-    static bool createGitignore(const std::filesystem::path& projectPath, 
+    static bool createGitignore(const std::filesystem::path& projectPath,
                                const std::string& templateType,
                                const std::string& buildSystem = "",
                                const std::string& packageManager = "");
-    
+
     // Git configuration
     static bool configureRepository(const std::filesystem::path& projectPath,
                                   const std::string& userName = "",
                                   const std::string& userEmail = "");
-    
+
     // Initial commit
     static bool createInitialCommit(const std::filesystem::path& projectPath,
                                    const std::string& message = "Initial commit");
-    
+
     // Branch management
     static bool createBranch(const std::filesystem::path& projectPath, const std::string& branchName);
     static bool switchBranch(const std::filesystem::path& projectPath, const std::string& branchName);
     static std::vector<std::string> listBranches(const std::filesystem::path& projectPath);
-    
+
     // Remote management
-    static bool addRemote(const std::filesystem::path& projectPath, 
-                         const std::string& remoteName, 
+    static bool addRemote(const std::filesystem::path& projectPath,
+                         const std::string& remoteName,
                          const std::string& remoteUrl);
     static std::vector<std::pair<std::string, std::string>> listRemotes(const std::filesystem::path& projectPath);
-    
+
     // Git hooks
     static bool installGitHooks(const std::filesystem::path& projectPath,
                                const std::vector<std::string>& hookTypes);
-    
+
     // Git attributes
     static bool createGitAttributes(const std::filesystem::path& projectPath);
 
@@ -82,10 +82,10 @@ public:
 
 private:
     // Execute git commands
-    static bool executeGitCommand(const std::filesystem::path& workingDir, 
+    static bool executeGitCommand(const std::filesystem::path& workingDir,
                                  const std::vector<std::string>& args,
                                  std::string* output = nullptr);
-    
+
     // .gitignore template generators
     static std::string getCppGitignoreTemplate();
     static std::string getCMakeGitignoreTemplate();
@@ -112,12 +112,12 @@ private:
     static std::string getTestingGitignoreTemplate();
     static std::string getCICDGitignoreTemplate();
     static std::string getOSGitignoreTemplate();
-    
+
     // Git hook templates
     static std::string getPreCommitHookTemplate();
     static std::string getPrePushHookTemplate();
     static std::string getCommitMsgHookTemplate();
-    
+
     // Git attributes template
     static std::string getGitAttributesTemplate();
 
@@ -145,27 +145,27 @@ public:
                           const std::vector<std::string>& files = {});
     static bool checkFormatting(const std::filesystem::path& projectPath,
                                const std::vector<std::string>& files = {});
-    
+
     // clang-tidy integration
     static bool createClangTidyConfig(const std::filesystem::path& projectPath,
                                      const std::vector<std::string>& checks = {});
     static bool runClangTidy(const std::filesystem::path& projectPath,
                             const std::vector<std::string>& files = {});
-    
+
     // cppcheck integration
     static bool runCppcheck(const std::filesystem::path& projectPath,
                            const std::vector<std::string>& files = {});
-    
+
     // Static analysis tools
     static bool createStaticAnalysisConfig(const std::filesystem::path& projectPath);
     static bool runStaticAnalysis(const std::filesystem::path& projectPath);
-    
+
     // EditorConfig
     static bool createEditorConfig(const std::filesystem::path& projectPath);
-    
+
     // Pre-commit hooks for code quality
     static bool setupPreCommitHooks(const std::filesystem::path& projectPath);
-    
+
 private:
     // Configuration templates
     static std::string getClangFormatTemplate(const std::string& style);
@@ -173,7 +173,7 @@ private:
     static std::string getEditorConfigTemplate();
     static std::string getCppcheckConfigTemplate();
     static std::string getPreCommitConfigTemplate();
-    
+
     // Tool detection
     static bool hasClangFormat();
     static bool hasClangTidy();
@@ -187,19 +187,19 @@ public:
     // Common workflows
     static bool setupGitFlow(const std::filesystem::path& projectPath);
     static bool setupGitHubFlow(const std::filesystem::path& projectPath);
-    
+
     // Issue templates
     static bool createIssueTemplates(const std::filesystem::path& projectPath);
     static bool createPullRequestTemplate(const std::filesystem::path& projectPath);
-    
+
     // GitHub Actions / GitLab CI integration
     static bool createGitHubWorkflows(const std::filesystem::path& projectPath,
                                      const std::vector<std::string>& workflows);
     static bool createGitLabCI(const std::filesystem::path& projectPath);
-    
+
     // Conventional commits
     static bool setupConventionalCommits(const std::filesystem::path& projectPath);
-    
+
 private:
     // Workflow templates
     static std::string getGitFlowConfig();

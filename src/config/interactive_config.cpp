@@ -15,13 +15,13 @@ std::string InteractiveConfigWizard::s_currentSection = "";
 
 bool InteractiveConfigWizard::runConfigurationWizard() {
     s_wizardRunning = true;
-    
+
     try {
         showWelcomeMessage();
-        
+
         std::vector<std::string> mainMenuOptions = {
             "Configure General Settings",
-            "Configure Default Options", 
+            "Configure Default Options",
             "Manage Profiles",
             "Manage Custom Templates",
             "Configure Advanced Settings",
@@ -29,10 +29,10 @@ bool InteractiveConfigWizard::runConfigurationWizard() {
             "Export/Import Configuration",
             "Exit"
         };
-        
+
         while (s_wizardRunning) {
             int choice = showMenu("Configuration Wizard", mainMenuOptions);
-            
+
             switch (choice) {
                 case 1:
                     configureGeneralSettings();
@@ -67,10 +67,10 @@ bool InteractiveConfigWizard::runConfigurationWizard() {
                     break;
             }
         }
-        
+
         showSuccess("Configuration wizard completed!");
         return true;
-        
+
     } catch (const std::exception& e) {
         showError("Error in configuration wizard: " + std::string(e.what()));
         s_wizardRunning = false;
@@ -80,44 +80,44 @@ bool InteractiveConfigWizard::runConfigurationWizard() {
 
 bool InteractiveConfigWizard::configureGeneralSettings() {
     showSectionHeader("General Settings");
-    
+
     auto& prefs = UserPreferences::getInstance();
-    
+
     try {
         // Auto save setting
         bool autoSave = prefs.getPreference<bool>("general.auto_save", true);
         autoSave = promptForBool("Enable auto-save for configuration changes?", autoSave);
         prefs.setPreference("general.auto_save", autoSave);
-        
+
         // Verbose logging
         bool verboseLogging = prefs.getPreference<bool>("general.verbose_logging", false);
         verboseLogging = promptForBool("Enable verbose logging?", verboseLogging);
         prefs.setPreference("general.verbose_logging", verboseLogging);
-        
+
         // Check for updates
         bool checkUpdates = prefs.getPreference<bool>("general.check_for_updates", true);
         checkUpdates = promptForBool("Automatically check for updates?", checkUpdates);
         prefs.setPreference("general.check_for_updates", checkUpdates);
-        
+
         // Default language
         std::vector<std::string> languages = {"en", "zh", "es", "jp", "de", "fr"};
         std::string currentLang = prefs.getPreference<std::string>("default.language", "en");
         std::string newLang = promptForChoice("Select default language:", languages, currentLang);
         prefs.setPreference("default.language", newLang);
-        
+
         // Git initialization default
         bool initGit = prefs.getPreference<bool>("default.init_git", true);
         initGit = promptForBool("Initialize Git repository by default?", initGit);
         prefs.setPreference("default.init_git", initGit);
-        
+
         if (autoSave) {
             prefs.savePreferences();
         }
-        
+
         showSuccess("General settings updated successfully!");
         showSectionFooter();
         return true;
-        
+
     } catch (const std::exception& e) {
         showError("Error configuring general settings: " + std::string(e.what()));
         showSectionFooter();
@@ -127,33 +127,33 @@ bool InteractiveConfigWizard::configureGeneralSettings() {
 
 bool InteractiveConfigWizard::configureDefaultOptions() {
     showSectionHeader("Default Project Options");
-    
+
     auto& prefs = UserPreferences::getInstance();
-    
+
     try {
         // Default template type
         std::vector<std::string> templates = {"console", "lib", "header-only-lib", "multi-executable", "gui", "network"};
         std::string currentTemplate = prefs.getPreference<std::string>("default.template_type", "console");
         std::string newTemplate = promptForChoice("Select default template type:", templates, currentTemplate);
         prefs.setPreference("default.template_type", newTemplate);
-        
+
         // Default build system
         std::vector<std::string> buildSystems = {"cmake", "meson", "bazel", "xmake", "premake"};
         std::string currentBuild = prefs.getPreference<std::string>("default.build_system", "cmake");
         std::string newBuild = promptForChoice("Select default build system:", buildSystems, currentBuild);
         prefs.setPreference("default.build_system", newBuild);
-        
+
         // Default package manager
         std::vector<std::string> packageManagers = {"vcpkg", "conan", "none"};
         std::string currentPackage = prefs.getPreference<std::string>("default.package_manager", "vcpkg");
         std::string newPackage = promptForChoice("Select default package manager:", packageManagers, currentPackage);
         prefs.setPreference("default.package_manager", newPackage);
-        
+
         // Include tests by default
         bool includeTests = prefs.getPreference<bool>("default.include_tests", false);
         includeTests = promptForBool("Include test framework by default?", includeTests);
         prefs.setPreference("default.include_tests", includeTests);
-        
+
         if (includeTests) {
             // Default test framework
             std::vector<std::string> testFrameworks = {"gtest", "catch2", "doctest", "boost"};
@@ -161,26 +161,26 @@ bool InteractiveConfigWizard::configureDefaultOptions() {
             std::string newTest = promptForChoice("Select default test framework:", testFrameworks, currentTest);
             prefs.setPreference("default.test_framework", newTest);
         }
-        
+
         // Include documentation by default
         bool includeDocs = prefs.getPreference<bool>("default.include_documentation", false);
         includeDocs = promptForBool("Include documentation by default?", includeDocs);
         prefs.setPreference("default.include_documentation", includeDocs);
-        
+
         // Include code style tools by default
         bool includeCodeStyle = prefs.getPreference<bool>("default.include_code_style_tools", false);
         includeCodeStyle = promptForBool("Include code style tools by default?", includeCodeStyle);
         prefs.setPreference("default.include_code_style_tools", includeCodeStyle);
-        
+
         // Save preferences if auto-save is enabled
         if (prefs.getPreference<bool>("general.auto_save", true)) {
             prefs.savePreferences();
         }
-        
+
         showSuccess("Default options updated successfully!");
         showSectionFooter();
         return true;
-        
+
     } catch (const std::exception& e) {
         showError("Error configuring default options: " + std::string(e.what()));
         showSectionFooter();
@@ -190,7 +190,7 @@ bool InteractiveConfigWizard::configureDefaultOptions() {
 
 bool InteractiveConfigWizard::manageProfiles() {
     showSectionHeader("Profile Management");
-    
+
     std::vector<std::string> profileMenuOptions = {
         "Create New Profile",
         "Edit Existing Profile",
@@ -200,10 +200,10 @@ bool InteractiveConfigWizard::manageProfiles() {
         "Import Profile",
         "Back to Main Menu"
     };
-    
+
     while (true) {
         int choice = showMenu("Profile Management", profileMenuOptions);
-        
+
         switch (choice) {
             case 1:
                 createNewProfile();
@@ -243,10 +243,10 @@ bool InteractiveConfigWizard::manageProfiles() {
 
 bool InteractiveConfigWizard::createNewProfile() {
     showSectionHeader("Create New Profile");
-    
+
     try {
         auto& configManager = ConfigManager::getInstance();
-        
+
         // Get profile name
         std::string profileName;
         while (true) {
@@ -259,25 +259,25 @@ bool InteractiveConfigWizard::createNewProfile() {
                 showError("Invalid profile name. Use only alphanumeric characters, underscores, and hyphens.");
                 continue;
             }
-            
+
             // Check if profile already exists
             auto existingProfiles = configManager.listProfiles();
             if (std::find(existingProfiles.begin(), existingProfiles.end(), profileName) != existingProfiles.end()) {
                 showError("Profile '" + profileName + "' already exists.");
                 continue;
             }
-            
+
             break;
         }
-        
+
         // Create CLI options based on current preferences
         auto& prefs = UserPreferences::getInstance();
         CliOptions options;
         options = prefs.applyPreferencesToOptions(options);
-        
+
         // Allow user to customize the profile
         showInfo("Configuring profile '" + profileName + "'...");
-        
+
         // Template type
         std::vector<std::string> templates = {"console", "lib", "header-only-lib", "multi-executable", "gui", "network"};
         std::string templateStr = std::string(enums::to_string(options.templateType));
@@ -286,7 +286,7 @@ bool InteractiveConfigWizard::createNewProfile() {
         if (templateType) {
             options.templateType = *templateType;
         }
-        
+
         // Build system
         std::vector<std::string> buildSystems = {"cmake", "meson", "bazel", "xmake", "premake"};
         std::string buildStr = std::string(enums::to_string(options.buildSystem));
@@ -295,7 +295,7 @@ bool InteractiveConfigWizard::createNewProfile() {
         if (buildSystem) {
             options.buildSystem = *buildSystem;
         }
-        
+
         // Package manager
         std::vector<std::string> packageManagers = {"vcpkg", "conan", "none"};
         std::string packageStr = std::string(enums::to_string(options.packageManager));
@@ -304,7 +304,7 @@ bool InteractiveConfigWizard::createNewProfile() {
         if (packageManager) {
             options.packageManager = *packageManager;
         }
-        
+
         // Tests
         options.includeTests = promptForBool("Include tests?", options.includeTests);
         if (options.includeTests) {
@@ -316,16 +316,16 @@ bool InteractiveConfigWizard::createNewProfile() {
                 options.testFramework = *testFramework;
             }
         }
-        
+
         // Documentation
         options.includeDocumentation = promptForBool("Include documentation?", options.includeDocumentation);
-        
+
         // Code style tools
         options.includeCodeStyleTools = promptForBool("Include code style tools?", options.includeCodeStyleTools);
-        
+
         // Git initialization
         options.initGit = promptForBool("Initialize Git repository?", options.initGit);
-        
+
         // Save the profile
         if (configManager.saveProfile(profileName, options)) {
             showSuccess("Profile '" + profileName + "' created successfully!");
@@ -333,10 +333,10 @@ bool InteractiveConfigWizard::createNewProfile() {
             showError("Failed to create profile '" + profileName + "'.");
             return false;
         }
-        
+
         showSectionFooter();
         return true;
-        
+
     } catch (const std::exception& e) {
         showError("Error creating profile: " + std::string(e.what()));
         showSectionFooter();
@@ -346,24 +346,24 @@ bool InteractiveConfigWizard::createNewProfile() {
 
 bool InteractiveConfigWizard::editExistingProfile() {
     showSectionHeader("Edit Existing Profile");
-    
+
     try {
         auto& configManager = ConfigManager::getInstance();
         auto profiles = configManager.listProfiles();
-        
+
         if (profiles.empty()) {
             showInfo("No profiles found. Create a profile first.");
             showSectionFooter();
             return true;
         }
-        
+
         // Select profile to edit
         std::string profileName = promptForChoice("Select profile to edit:", profiles);
         if (profileName.empty()) {
             showSectionFooter();
             return true;
         }
-        
+
         // Load the profile
         auto optionsOpt = configManager.loadProfile(profileName);
         if (!optionsOpt) {
@@ -371,20 +371,20 @@ bool InteractiveConfigWizard::editExistingProfile() {
             showSectionFooter();
             return false;
         }
-        
+
         CliOptions options = *optionsOpt;
-        
+
         showInfo("Editing profile '" + profileName + "'...");
-        
+
         // Edit options (similar to create profile, but with existing values)
         // This would be the same configuration flow as in createNewProfile
         // but starting with the loaded options
-        
+
         // For brevity, I'll just show a simple example
         options.includeTests = promptForBool("Include tests?", options.includeTests);
         options.includeDocumentation = promptForBool("Include documentation?", options.includeDocumentation);
         options.includeCodeStyleTools = promptForBool("Include code style tools?", options.includeCodeStyleTools);
-        
+
         // Save the updated profile
         if (configManager.saveProfile(profileName, options)) {
             showSuccess("Profile '" + profileName + "' updated successfully!");
@@ -392,10 +392,10 @@ bool InteractiveConfigWizard::editExistingProfile() {
             showError("Failed to update profile '" + profileName + "'.");
             return false;
         }
-        
+
         showSectionFooter();
         return true;
-        
+
     } catch (const std::exception& e) {
         showError("Error editing profile: " + std::string(e.what()));
         showSectionFooter();

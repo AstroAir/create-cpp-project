@@ -33,6 +33,11 @@ enum class EditorConfig { VSCode, CLion, VS, Vim, Emacs, Sublime };
 enum class CiSystem { GitHub, GitLab, Travis, AppVeyor, AzureDevOps, CircleCI };
 enum class Language { English, Chinese, Spanish, Japanese, German, French };
 
+// New enums for advanced configuration
+enum class CppStandard { Cpp11, Cpp14, Cpp17, Cpp20, Cpp23, Latest };
+enum class ProjectStructure { Minimal, Standard, Advanced, Custom };
+enum class CompilerFlags { Debug, Release, RelWithDebInfo, MinSizeRel, Custom };
+
 // Git workflow and configuration enums
 enum class GitWorkflow { None, GitFlow, GitHubFlow, GitLabFlow, Custom };
 enum class GitBranchStrategy { SingleBranch, FeatureBranches, GitFlow, Custom };
@@ -75,15 +80,34 @@ std::vector<std::string_view> all_languages();
 std::vector<std::string_view> all_git_workflows();
 std::vector<std::string_view> all_git_branch_strategies();
 std::vector<std::string_view> all_license_types();
+
+// New enum conversions for advanced configuration
+std::string_view to_string(CppStandard standard);
+std::optional<CppStandard> to_cpp_standard(std::string_view str);
+std::string_view to_string(ProjectStructure structure);
+std::optional<ProjectStructure> to_project_structure(std::string_view str);
+std::string_view to_string(CompilerFlags flags);
+std::optional<CompilerFlags> to_compiler_flags(std::string_view str);
+std::vector<std::string_view> all_cpp_standards();
+std::vector<std::string_view> all_project_structures();
+std::vector<std::string_view> all_compiler_flags();
+
 } // namespace enums
 
 // 增强的命令行选项结构
 struct CliOptions {
   std::string projectName;
+  std::string projectDescription; // New: Project description
   TemplateType templateType = TemplateType::Console;
   BuildSystem buildSystem = BuildSystem::CMake;
   PackageManager packageManager = PackageManager::Vcpkg;
   std::optional<std::string> networkLibrary; // 用于网络项目: asio, boost, poco
+
+  // Enhanced C++ configuration
+  CppStandard cppStandard = CppStandard::Cpp17;
+  ProjectStructure projectStructure = ProjectStructure::Standard;
+  CompilerFlags compilerFlags = CompilerFlags::Release;
+  std::vector<std::string> customCompilerFlags;
 
   bool includeTests = false;
   TestFramework testFramework = TestFramework::GTest;

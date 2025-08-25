@@ -323,3 +323,8 @@ coverage.info
 # CPP-Scaffold specific
 cpp-scaffold.log
 simple-test/build/
+
+site/
+test-embedded/
+test-webservice/
+TestApp/
