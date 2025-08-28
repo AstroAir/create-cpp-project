@@ -1,0 +1,10 @@
+{
+"name": "test_validation2",
+"version": "0.1.0",
+"dependencies": [
+ {
+"name": "gtest",
+"features": ["gmock"]
+}
+]
+}
