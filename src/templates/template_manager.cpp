@@ -4,6 +4,7 @@
 #include "gui_template.h"
 #include "library_template.h"
 #include "header_only_lib_template.h"
+#include "modules_template.h"
 // #include "multi_executable_template.h"
 #include "network_template.h"
 #include "custom_template.h"
@@ -29,6 +30,10 @@ TemplateManager::TemplateManager() {
 
   templateFactories_["header-only-lib"] = [](const CliOptions &options) {
     return std::make_unique<HeaderOnlyLibTemplate>(options);
+  };
+
+  templateFactories_["modules"] = [](const CliOptions &options) {
+    return std::make_unique<ModulesTemplate>(options);
   };
 
   // templateFactories_["multi-executable"] = [](const CliOptions &options) {

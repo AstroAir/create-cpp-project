@@ -89,7 +89,7 @@ ActionStatus PostCreationActions::validateProjectStructure(const CliOptions& opt
     // Check essential directories
     std::vector<std::string> requiredDirs = {"src", "include"};
     for (const auto& dir : requiredDirs) {
-      if (!validateDirectory(::utils::utils::FileUtils::combinePath(projectPath, dir))) {
+      if (!validateDirectory(::utils::FileUtils::combinePath(projectPath, dir))) {
         return false;
       }
     }
@@ -114,7 +114,7 @@ ActionStatus PostCreationActions::validateProjectStructure(const CliOptions& opt
     }
 
     for (const auto& file : requiredFiles) {
-      if (!validateFile(::utils::utils::FileUtils::combinePath(projectPath, file))) {
+      if (!validateFile(::utils::FileUtils::combinePath(projectPath, file))) {
         return false;
       }
     }
@@ -264,11 +264,12 @@ bool PostCreationActions::runCommand(const std::string& command, const std::stri
 }
 
 bool PostCreationActions::validateFile(const std::string& path, const std::string& expectedContent) {
-  return ::utils::utils::FileUtils::fileExists(path);
+  (void)expectedContent; // TODO: Implement content validation
+  return ::utils::FileUtils::fileExists(path);
 }
 
 bool PostCreationActions::validateDirectory(const std::string& path) {
-  return ::utils::utils::FileUtils::directoryExists(path);
+  return ::utils::FileUtils::directoryExists(path);
 }
 
 bool PostCreationActions::buildWithCMake(const std::string& projectPath) {

@@ -9,6 +9,7 @@ std::string_view to_string(TemplateType type) {
       {TemplateType::Console, "console"},
       {TemplateType::Lib, "lib"},
       {TemplateType::HeaderOnlyLib, "header-only-lib"},
+      {TemplateType::Modules, "modules"},
       {TemplateType::MultiExecutable, "multi-executable"},
       {TemplateType::Gui, "gui"},
       {TemplateType::Network, "network"},
@@ -27,6 +28,7 @@ std::optional<TemplateType> to_template_type(std::string_view str) {
       {"console", TemplateType::Console},
       {"lib", TemplateType::Lib},
       {"header-only-lib", TemplateType::HeaderOnlyLib},
+      {"modules", TemplateType::Modules},
       {"multi-executable", TemplateType::MultiExecutable},
       {"gui", TemplateType::Gui},
       {"network", TemplateType::Network},
@@ -82,7 +84,8 @@ std::string_view to_string(PackageManager manager) {
       {PackageManager::Spack, "spack"},
       {PackageManager::Hunter, "hunter"},
       {PackageManager::CPM, "cpm"},
-      {PackageManager::FetchContent, "fetchcontent"}};
+      {PackageManager::FetchContent, "fetchcontent"},
+      {PackageManager::MSYS2, "msys2"}};
   return map.at(manager);
 }
 
@@ -91,14 +94,14 @@ std::optional<PackageManager> to_package_manager(std::string_view str) {
       {"vcpkg", PackageManager::Vcpkg}, {"conan", PackageManager::Conan},
       {"none", PackageManager::None}, {"spack", PackageManager::Spack},
       {"hunter", PackageManager::Hunter}, {"cpm", PackageManager::CPM},
-      {"fetchcontent", PackageManager::FetchContent}};
+      {"fetchcontent", PackageManager::FetchContent}, {"msys2", PackageManager::MSYS2}};
 
   auto it = map.find(str);
   return it != map.end() ? std::optional<PackageManager>{it->second} : std::nullopt;
 }
 
 std::vector<std::string_view> all_package_managers() {
-  return {"vcpkg", "conan", "none", "spack", "hunter", "cpm", "fetchcontent"};
+  return {"vcpkg", "conan", "none", "spack", "hunter", "cpm", "fetchcontent", "msys2"};
 }
 
 // Test framework conversions

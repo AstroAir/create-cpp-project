@@ -2,6 +2,7 @@
 #include "../utils/file_utils.h"
 #include "../utils/string_utils.h"
 #include "../utils/terminal_utils.h"
+#include "../cli/types/cli_enums.h"
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
 #include <iostream>
@@ -70,7 +71,7 @@ bool MultiExecutableTemplate::create() {
   std::cout << "  2. Review the generated executables in src/\n";
   std::cout << "  3. Customize the shared library in lib/\n";
 
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (cli_enums::to_string(options_.buildSystem) == "cmake") {
     std::cout << "  4. Build the project:\n";
     std::cout << "     mkdir build && cd build\n";
     std::cout << "     cmake .. && make\n";
@@ -210,7 +211,7 @@ bool MultiExecutableTemplate::setupExecutables() {
 
 bool MultiExecutableTemplate::createBuildSystem() {
   std::string projectPath = options_.projectName;
-  std::string buildSystem = std::string(enums::to_string(options_.buildSystem));
+  std::string buildSystem = std::string(cli_enums::to_string(options_.buildSystem));
 
   if (buildSystem == "cmake") {
     std::string cmakePath = FileUtils::combinePath(projectPath, "CMakeLists.txt");
@@ -243,7 +244,7 @@ bool MultiExecutableTemplate::createBuildSystem() {
 
 bool MultiExecutableTemplate::setupPackageManager() {
   std::string projectPath = options_.projectName;
-  std::string packageManager = std::string(enums::to_string(options_.packageManager));
+  std::string packageManager = std::string(cli_enums::to_string(options_.packageManager));
 
   if (packageManager == "vcpkg") {
     std::string vcpkgPath = FileUtils::combinePath(projectPath, "vcpkg.json");
@@ -268,10 +269,10 @@ bool MultiExecutableTemplate::setupTestFramework() {
   }
 
   std::string projectPath = options_.projectName;
-  std::string testFramework = std::string(enums::to_string(options_.testFramework));
+  std::string testFramework = std::string(cli_enums::to_string(options_.testFramework));
 
   // Create test CMakeLists.txt if using CMake
-  if (enums::to_string(options_.buildSystem) == "cmake") {
+  if (cli_enums::to_string(options_.buildSystem) == "cmake") {
     std::string testCMakePath = FileUtils::combinePath(
         FileUtils::combinePath(projectPath, "tests"), "CMakeLists.txt");
     std::string testCMakeContent;
@@ -410,9 +411,9 @@ int main(int argc, char* argv[]) {{
 }
 
 std::string MultiExecutableTemplate::getClientExecutableContent() {
-  return fmt::format(R"(#include <iostream>
+  return fmt::format(R"DELIM(#include <iostream>
 #include <string>
-#include <{}_lib.h>
+#include <{0}_lib.h>
 #include <utils.h>
 #include <version.h>
 
@@ -440,7 +441,7 @@ int main(int argc, char* argv[]) {{
                 printUsage(argv[0]);
                 return 0;
             }} else if (arg == "-v" || arg == "--version") {{
-                std::cout << "{} Client v" << {}::getVersion() << std::endl;
+                std::cout << "{0} Client v" << {0}::getVersion() << std::endl;
                 return 0;
             }} else if (arg == "-c" || arg == "--connect") {{
                 shouldConnect = true;
@@ -461,11 +462,11 @@ int main(int argc, char* argv[]) {{
             }}
         }}
 
-        std::cout << "{} Client Application" << std::endl;
-        std::cout << "Version: " << {}::getVersion() << std::endl;
+        std::cout << "{0} Client Application" << std::endl;
+        std::cout << "Version: " << {0}::getVersion() << std::endl;
 
         // Initialize the core library
-        {}::Core core;
+        {0}::Core core;
         if (!core.initialize()) {{
             std::cerr << "Failed to initialize core library" << std::endl;
             return 1;
@@ -496,15 +497,15 @@ int main(int argc, char* argv[]) {{
         return 1;
     }}
 }}
-)", options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName);
+)DELIM", options_.projectName);
 }
 
 std::string MultiExecutableTemplate::getServerExecutableContent() {
-  return fmt::format(R"(#include <iostream>
+  return fmt::format(R"DELIM(#include <iostream>
 #include <string>
 #include <thread>
 #include <chrono>
-#include <{}_lib.h>
+#include <{0}_lib.h>
 #include <utils.h>
 #include <version.h>
 
@@ -530,7 +531,7 @@ int main(int argc, char* argv[]) {{
                 printUsage(argv[0]);
                 return 0;
             }} else if (arg == "-v" || arg == "--version") {{
-                std::cout << "{} Server v" << {}::getVersion() << std::endl;
+                std::cout << "{0} Server v" << {0}::getVersion() << std::endl;
                 return 0;
             }} else if (arg == "-p" || arg == "--port") {{
                 if (i + 1 < argc) {{
@@ -544,12 +545,12 @@ int main(int argc, char* argv[]) {{
             }}
         }}
 
-        std::cout << "{} Server Application" << std::endl;
-        std::cout << "Version: " << {}::getVersion() << std::endl;
+        std::cout << "{0} Server Application" << std::endl;
+        std::cout << "Version: " << {0}::getVersion() << std::endl;
         std::cout << "Starting server on port " << port << std::endl;
 
         // Initialize the core library
-        {}::Core core;
+        {0}::Core core;
         if (!core.initialize()) {{
             std::cerr << "Failed to initialize core library" << std::endl;
             return 1;
@@ -594,7 +595,7 @@ int main(int argc, char* argv[]) {{
         return 1;
     }}
 }}
-)", options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName);
+)DELIM", options_.projectName);
 }
 
 std::string MultiExecutableTemplate::getToolExecutableContent() {
@@ -718,7 +719,7 @@ bool isDebugBuild();
 }
 
 std::string MultiExecutableTemplate::getSharedLibrarySourceContent() {
-  return fmt::format(R"(#include "{}_lib.h"
+  return fmt::format(R"DELIM(#include "{}_lib.h"
 #include "utils.h"
 #include "version.h"
 #include <iostream>
@@ -797,8 +798,8 @@ bool isDebugBuild() {{
 #endif
 }}
 
-}} // namespace {}
-)", options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName);
+}} // namespace {{}}
+)DELIM", options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName);
 }
 
 std::string MultiExecutableTemplate::getUtilsHeaderContent() {
@@ -1202,3 +1203,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
     options_.projectName, options_.projectName, options_.projectName, options_.projectName,
     options_.projectName, options_.projectName, options_.projectName, options_.projectName,
     options_.projectName, options_.projectName);
+}

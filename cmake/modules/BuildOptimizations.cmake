@@ -9,7 +9,7 @@ function(setup_build_optimization_options)
     option(ENABLE_LTO "Enable Link Time Optimization" OFF)
     option(ENABLE_BUILD_PROFILING "Enable build time profiling" OFF)
     option(ENABLE_SANITIZERS "Enable sanitizers in debug builds" OFF)
-    option(ENABLE_FAT_LTO_OBJECTS "Enable -ffat-lto-objects flag (GCC only)" ON)
+    option(ENABLE_FAT_LTO_OBJECTS "Enable -ffat-lto-objects flag (GCC only, may not be supported on all targets)" OFF)
 endfunction()
 
 # ccache Configuration

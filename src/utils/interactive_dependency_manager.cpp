@@ -1,6 +1,7 @@
 #include "interactive_dependency_manager.h"
 #include "terminal_utils.h"
 #include "../cli/input/user_input.h"
+#include "../cli/types/cli_enums.h"
 #include "file_utils.h"
 #include <iostream>
 #include <algorithm>
@@ -63,8 +64,12 @@ DependencySelection InteractiveDependencyManager::runInteractiveDependencySelect
         switch (choice) {
             case 0: { // Browse by Category
                 std::vector<std::string> categories = getAvailableCategories();
+                std::vector<std::string_view> categoryViews;
+                for (const auto& cat : categories) {
+                    categoryViews.push_back(cat);
+                }
                 std::string selectedCategory = UserInput::readChoiceWithStyle(
-                    "Select category", categories, categories[0], Color::BrightMagenta);
+                    "Select category", categoryViews, categories[0], Color::BrightMagenta);
 
                 auto categoryDeps = browseDependenciesByCategory(selectedCategory);
                 auto newSelections = selectDependenciesInteractively(categoryDeps, selectedDependencies);
@@ -112,7 +117,7 @@ DependencySelection InteractiveDependencyManager::runInteractiveDependencySelect
                 auto recommended = getRecommendedDependencies(options.templateType);
                 if (!recommended.empty()) {
                     TerminalUtils::showInfo("Recommended dependencies for " +
-                                          std::string(enums::to_string(options.templateType)) + " projects:");
+                                          std::string(cli_enums::to_string(options.templateType)) + " projects:");
                     auto newSelections = selectDependenciesInteractively(recommended, selectedDependencies);
 
                     // Merge selections
@@ -852,7 +857,7 @@ PackageManager InteractiveDependencyManager::selectPackageManagerInteractively(
 
     std::vector<std::string_view> pmNames;
     for (const auto& pm : available) {
-        pmNames.push_back(enums::to_string(pm));
+        pmNames.push_back(cli_enums::to_string(pm));
     }
 
     std::string selected = UserInput::readChoiceWithStyle(
@@ -862,7 +867,7 @@ PackageManager InteractiveDependencyManager::selectPackageManagerInteractively(
         Color::BrightCyan
     );
 
-    auto selectedPM = enums::to_package_manager(selected);
+    auto selectedPM = cli_enums::to_package_manager(selected);
     return selectedPM ? *selectedPM : PackageManager::Vcpkg;
 }
 

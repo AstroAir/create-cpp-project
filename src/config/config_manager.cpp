@@ -271,6 +271,11 @@ void ConfigManager::setEnvironmentOverride(const std::string& key, const std::st
 }
 
 std::filesystem::path ConfigManager::getConfigDirectory() {
+    // Check for environment variable override first (for testing)
+    const char* overrideDir = std::getenv("CPP_SCAFFOLD_CONFIG_DIR");
+    if (overrideDir) {
+        return std::filesystem::path(overrideDir);
+    }
     return utils::getUserConfigDirectory() / "cpp-scaffold";
 }
 

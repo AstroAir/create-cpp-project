@@ -315,6 +315,7 @@ bool CliValidator::isTestFrameworkCompatible(TestFramework test, BuildSystem bui
 }
 
 bool CliValidator::isCiSystemCompatible(CiSystem ci, BuildSystem build) {
+  (void)build; // TODO: Implement build system specific CI compatibility checks
   // GitHub Actions and GitLab CI work with all build systems
   if (ci == CiSystem::GitHub || ci == CiSystem::GitLab) return true;
 

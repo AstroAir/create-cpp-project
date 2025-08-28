@@ -268,18 +268,21 @@ std::string ConfigValidator::getCurrentPlatform() const {
 }
 
 bool ConfigValidator::checkBuildToolAvailability(BuildSystem buildSystem) const {
+    (void)buildSystem; // TODO: Implement build tool availability checks
     // This would typically check if the build tools are installed
     // For now, return true as a placeholder
     return true;
 }
 
 bool ConfigValidator::checkCompilerAvailability(BuildSystem buildSystem) const {
+    (void)buildSystem; // TODO: Implement compiler availability checks
     // This would typically check for GCC, Clang, MSVC availability
     // For now, return true as a placeholder
     return true;
 }
 
 bool ConfigValidator::checkPackageManagerAvailability(PackageManager packageManager) const {
+    (void)packageManager; // TODO: Implement package manager availability checks
     // This would typically check if vcpkg, conan, etc. are installed
     // For now, return true as a placeholder
     return true;

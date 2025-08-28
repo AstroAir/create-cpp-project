@@ -3,6 +3,8 @@
 #include "templates/template_manager.h"
 #include "utils/progress_indicator.h"
 #include "utils/interactive_menu.h"
+#include "utils/enhanced_terminal.h"
+#include "utils/enhanced_wizard.h"
 #include "config/config_manager.h"
 #include "testing/test_framework_manager.h"
 #include "documentation/doc_generator.h"
@@ -112,13 +114,17 @@ int main(int argc, char *argv[]) {
     spdlog::info("CPP-Scaffold is starting...");
     spdlog::debug("Parsing command line arguments");
 
-    // Demonstrate advanced features if in verbose mode
-    if (false) { // Set to true to enable demonstration
-      demonstrateAdvancedFeatures();
-    }
+    // Get enhanced terminal instance
+    auto& terminal = utils::EnhancedTerminal::getInstance();
 
     // Parse command line arguments
     CliOptions options = argument_parser::parseArguments(argc, argv);
+
+    // If no arguments provided, run interactive wizard
+    if (argc <= 1) {
+      auto& wizard = utils::EnhancedWizard::getInstance();
+      options = wizard.runInteractiveWizard();
+    }
 
     // Reconfigure logging level if verbose mode is enabled
     if (options.verbose) {
@@ -142,16 +148,18 @@ int main(int argc, char *argv[]) {
       return 0;
     }
 
-    // Create project
-    spdlog::info("Creating project: {}", options.projectName);
-    spdlog::debug(
-        "Project configuration: Type={}, Build System={}, Package Manager={}",
-        cli_enums::to_string(options.templateType), cli_enums::to_string(options.buildSystem), cli_enums::to_string(options.packageManager));
+    // Start enhanced project creation experience
+    terminal.startProjectCreation(options);
 
+    // Create project with enhanced progress indication
     TemplateManager templateManager;
     spdlog::debug("Template manager initialized");
 
     bool success = templateManager.createProject(options);
+
+    // Finish with enhanced completion screen
+    terminal.finishProjectCreation(options, success);
+
     if (!success) {
       spdlog::error("Project creation failed");
       return 1;
@@ -160,11 +168,19 @@ int main(int argc, char *argv[]) {
     spdlog::info("Project {} created successfully!", options.projectName);
   } catch (const std::exception &e) {
     spdlog::critical("A critical error occurred: {}", e.what());
-    std::cerr << "Error: " << e.what() << std::endl;
+
+    // Show enhanced error screen
+    auto& terminal = utils::EnhancedTerminal::getInstance();
+    terminal.showErrorScreen(e.what(), "Check the log file for more details");
+
     return 1;
   } catch (...) {
     spdlog::critical("An unknown critical error occurred");
-    std::cerr << "An unknown error occurred" << std::endl;
+
+    // Show enhanced error screen
+    auto& terminal = utils::EnhancedTerminal::getInstance();
+    terminal.showErrorScreen("An unknown error occurred", "Please report this issue on GitHub");
+
     return 1;
   }
 

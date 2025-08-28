@@ -337,6 +337,7 @@ bool TemplateDiscovery::validatePackageManagerCompatibility(const TemplateMetada
 }
 
 bool TemplateDiscovery::checkPlatformSupport(const TemplateMetadata& metadata) {
+    (void)metadata; // TODO: Implement platform-specific requirement checks
     // For now, assume all templates support current platform
     // In a real implementation, this would check platform-specific requirements
     return true;

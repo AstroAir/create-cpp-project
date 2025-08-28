@@ -74,6 +74,18 @@ std::vector<std::string_view> all_compiler_flags();
 
 // ProjectWizard class is now available in wizard/project_wizard.h
 
-// CliParser class is now available in cli_parser_new.h
+// CliParser class declaration
+class CliParser {
+public:
+    static CliOptions parse(int argc, char* argv[]);
+    static CliOptions promptUserForOptions(const CliOptions& defaultOptions = {});
+    static bool validateOptions(CliOptions& options);
+    static CliOptions runInteractiveMode();
+    static CliOptions getSystemSuggestedDefaults();
+    static CliOptions loadDefaultConfiguration();
+    static bool validateProjectName(const std::string& name);
+    static bool validateProjectPath(const std::string& path);
+    static void handleParsingError(const std::string& error);
+};
 
 // fmt formatters are now imported from types/cli_enums.h

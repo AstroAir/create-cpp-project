@@ -325,6 +325,13 @@ bool GuiTemplate::setupPackageManager() {
             getConanfileContent())) {
       return false;
     }
+  } else if (to_string(options_.packageManager) == "msys2") {
+    // 创建PKGBUILD
+    if (!FileUtils::writeToFile(
+            FileUtils::combinePath(projectPath, "PKGBUILD"),
+            getMSYS2PKGBUILDContent())) {
+      return false;
+    }
   }
 
   return true;
@@ -2467,6 +2474,84 @@ spdlog/1.10.0
   }
 
   return content;
+}
+
+std::string GuiTemplate::getMSYS2PKGBUILDContent() {
+  std::string testDependencies;
+  if (options_.includeTests) {
+    if (to_string(options_.testFramework) == "gtest") {
+      testDependencies = "  \"${MINGW_PACKAGE_PREFIX}-gtest\"";
+    } else if (to_string(options_.testFramework) == "catch2") {
+      testDependencies = "  \"${MINGW_PACKAGE_PREFIX}-catch2\"";
+    }
+  }
+
+  std::string guiDependencies;
+  if (guiFramework_ == "qt") {
+    guiDependencies = "  \"${MINGW_PACKAGE_PREFIX}-qt6-base\"\n  \"${MINGW_PACKAGE_PREFIX}-qt6-tools\"";
+  } else if (guiFramework_ == "wxwidgets") {
+    guiDependencies = "  \"${MINGW_PACKAGE_PREFIX}-wxwidgets\"";
+  } else if (guiFramework_ == "gtk") {
+    guiDependencies = "  \"${MINGW_PACKAGE_PREFIX}-gtk3\"";
+  }
+
+  std::string pkgbuildContent =
+    "# Maintainer: Your Name <your.email@example.com>\n"
+    "_realname=" + options_.projectName + "\n"
+    "pkgbase=mingw-w64-${_realname}\n"
+    "pkgname=\"${MINGW_PACKAGE_PREFIX}-${_realname}\"\n"
+    "pkgver=1.0.0\n"
+    "pkgrel=1\n"
+    "pkgdesc=\"A C++ GUI application (mingw-w64)\"\n"
+    "arch=(\"any\")\n"
+    "mingw_arch=(\"mingw32\" \"mingw64\" \"ucrt64\" \"clang64\" \"clangarm64\")\n"
+    "url=\"https://github.com/yourname/" + options_.projectName + "\"\n"
+    "license=(\"MIT\")\n"
+    "makedepends=(\n"
+    "  \"${MINGW_PACKAGE_PREFIX}-cc\"\n"
+    "  \"${MINGW_PACKAGE_PREFIX}-cmake\"\n"
+    "  \"${MINGW_PACKAGE_PREFIX}-ninja\"\n"
+    ")\n"
+    "depends=(\n"
+    "  \"${MINGW_PACKAGE_PREFIX}-gcc-libs\"\n" +
+    guiDependencies + "\n" +
+    testDependencies + "\n"
+    ")\n"
+    "source=(\"${_realname}-${pkgver}.tar.gz\")\n"
+    "sha256sums=(\"SKIP\")\n\n"
+    "build() {\n"
+    "  cd \"${srcdir}/${_realname}-${pkgver}\"\n"
+    "  \n"
+    "  mkdir -p build && cd build\n"
+    "  \n"
+    "  MSYS2_ARG_CONV_EXCL=\"-DCMAKE_INSTALL_PREFIX=\" \\\n"
+    "  ${MINGW_PREFIX}/bin/cmake.exe \\\n"
+    "    -GNinja \\\n"
+    "    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \\\n"
+    "    -DCMAKE_BUILD_TYPE=Release \\\n"
+    "    ..\n"
+    "  \n"
+    "  ${MINGW_PREFIX}/bin/cmake.exe --build .\n"
+    "}\n\n"
+    "check() {\n"
+    "  cd \"${srcdir}/${_realname}-${pkgver}/build\"\n"
+    "  \n"
+    "  # Run tests if available\n"
+    "  if [ -f \"test_" + options_.projectName + "\" ]; then\n"
+    "    ./test_" + options_.projectName + "\n"
+    "  fi\n"
+    "}\n\n"
+    "package() {\n"
+    "  cd \"${srcdir}/${_realname}-${pkgver}/build\"\n"
+    "  \n"
+    "  DESTDIR=\"${pkgdir}\" ${MINGW_PREFIX}/bin/cmake.exe --install .\n"
+    "  \n"
+    "  # Install license\n"
+    "  install -Dm644 \"${srcdir}/${_realname}-${pkgver}/LICENSE\" \\\n"
+    "    \"${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE\"\n"
+    "}\n";
+
+  return pkgbuildContent;
 }
 
 std::string GuiTemplate::getGTestContent() {

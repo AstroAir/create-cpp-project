@@ -17,6 +17,7 @@ include(Testing)
 include(TestingEnhanced)
 include(DevTools)
 include(Packaging)
+include(PackageTesting)
 
 # Configure global settings
 setup_platform_support()
@@ -39,6 +40,7 @@ collect_sources(CLI_SOURCES
 create_library(cpp_scaffold_cli
     SOURCES ${CLI_SOURCES}
     INCLUDE_DIRS src
+    LINK_LIBRARIES cpp_scaffold_utils cpp_scaffold_config
     FOLDER "Components"
 )
 link_core_dependencies(cpp_scaffold_cli)
@@ -64,6 +66,7 @@ collect_sources(UTILS_SOURCES
 create_library(cpp_scaffold_utils
     SOURCES ${UTILS_SOURCES}
     INCLUDE_DIRS src
+    LINK_LIBRARIES cpp_scaffold_cli
     FOLDER "Components"
 )
 link_core_dependencies(cpp_scaffold_utils)
@@ -76,7 +79,7 @@ collect_sources(CONFIG_SOURCES
 create_library(cpp_scaffold_config
     SOURCES ${CONFIG_SOURCES}
     INCLUDE_DIRS src
-    LINK_LIBRARIES cpp_scaffold_utils
+    LINK_LIBRARIES cpp_scaffold_cli cpp_scaffold_utils
     FOLDER "Components"
 )
 link_core_dependencies(cpp_scaffold_config)
@@ -107,13 +110,18 @@ create_library(cpp_scaffold_documentation
 )
 link_core_dependencies(cpp_scaffold_documentation)
 
-# Main executable target (simplified for build test)
+# Main executable target
 create_executable(cpp-scaffold
-    SOURCES src/main_simple.cpp
+    SOURCES src/main.cpp
     OUTPUT_NAME "cpp-scaffold"
     INCLUDE_DIRS src
     LINK_LIBRARIES
-        # Only link spdlog for the simple version
+        cpp_scaffold_cli
+        cpp_scaffold_templates
+        cpp_scaffold_utils
+        cpp_scaffold_config
+        cpp_scaffold_testing
+        cpp_scaffold_documentation
     FOLDER "Executables"
 )
 

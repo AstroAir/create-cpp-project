@@ -96,6 +96,9 @@ bool DependencyManager::installDependencies(const CliOptions& options) {
     case PackageManager::FetchContent:
       TerminalUtils::showNpmStyleProgress("Installing dependencies", 60, "Configuring FetchContent");
       return setupFetchContent(options.projectName);
+    case PackageManager::MSYS2:
+      TerminalUtils::showNpmStyleProgress("Installing dependencies", 60, "Configuring MSYS2");
+      return setupMSYS2(options.projectName);
     default:
       TerminalUtils::showNpmStyleWarning("No package manager selected", "Dependencies will need to be installed manually");
       return true;
@@ -191,6 +194,14 @@ bool DependencyManager::installDependencies(const CliOptions& options) {
       deps.push_back(createDependency("gmock", "1.13.0", "Google Mock framework", {}, false, false,
                       "https://github.com/google/googletest", "BSD-3-Clause", "Testing"));
       break;
+
+    case TemplateType::Modules:
+      // C++20 modules projects typically need modern tooling and utilities
+      deps.push_back(createDependency("fmt", "10.1.1", "Modern formatting library", {}, true, true,
+                      "https://github.com/fmtlib/fmt", "MIT", "Utility"));
+      deps.push_back(createDependency("catch2", "3.4.0", "Modern testing framework", {}, false, true,
+                      "https://github.com/catchorg/Catch2", "BSL-1.0", "Testing"));
+      break;
   }
 
   return deps;
@@ -259,6 +270,37 @@ bool DependencyManager::setupConan(const ::std::string& projectPath) {
   (void)projectPath; // Suppress unused parameter warning
 
   TerminalUtils::showSuccess("Conan found and configured");
+  return true;
+}
+
+bool DependencyManager::setupMSYS2(const ::std::string& projectPath) {
+  TerminalUtils::showInfo("Setting up MSYS2 integration...");
+
+  // Check if pacman is available (indicates MSYS2 environment)
+  std::string pacmanCheck = executeCommand("pacman --version");
+  if (pacmanCheck.empty()) {
+    TerminalUtils::showWarning("MSYS2/pacman not found. Please install MSYS2 first.");
+    TerminalUtils::showInfo("Download from: https://www.msys2.org/");
+    return false;
+  }
+
+  // Check if we're in a MinGW environment
+  std::string mingwCheck = executeCommand("echo $MINGW_PREFIX");
+  if (mingwCheck.empty()) {
+    TerminalUtils::showWarning("Not in a MinGW environment. Please use MinGW64 or MinGW32 shell.");
+    TerminalUtils::showInfo("Launch MSYS2 MinGW64 shell for 64-bit builds or MinGW32 for 32-bit builds.");
+    return false;
+  }
+
+  // Update package database
+  TerminalUtils::showInfo("Updating MSYS2 package database...");
+  std::string updateResult = executeCommand("pacman -Sy");
+
+  // TODO: Use projectPath for project-specific MSYS2 setup
+  (void)projectPath; // Suppress unused parameter warning
+
+  TerminalUtils::showSuccess("MSYS2 found and configured");
+  TerminalUtils::showInfo("PKGBUILD file will be generated for package creation");
   return true;
 }
 

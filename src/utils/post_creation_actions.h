@@ -108,3 +108,5 @@ private:
   std::unordered_map<std::string, bool> enabledActions_;
   std::function<void(const std::string&, int)> progressCallback_;
 };
+
+} // namespace utils

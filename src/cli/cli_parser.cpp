@@ -1,6 +1,10 @@
 #include "cli_parser.h"
 #include "../config/config_manager.h"
 #include "../utils/terminal_utils.h"
+#include "parsing/argument_parser.h"
+#include "input/user_input.h"
+#include "commands/command_handlers.h"
+#include "wizard/project_wizard.h"
 #include <iostream>
 #include <spdlog/spdlog.h>
 

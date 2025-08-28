@@ -128,6 +128,7 @@ public:
   bool setupHunter(const std::string& projectPath);
   bool setupCpm(const std::string& projectPath);
   bool setupFetchContent(const std::string& projectPath);
+  bool setupMSYS2(const std::string& projectPath);
 
   // Enhanced configuration management
   bool generateVcpkgJson(const std::string& projectPath, const std::vector<Dependency>& deps);

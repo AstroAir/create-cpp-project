@@ -278,19 +278,19 @@ function(load_dependencies_from_manifest)
                 if(EXISTS "${CMAKE_SOURCE_DIR}/deps_cache/json_https___github_com_nlohmann_json_git_v3.11.3")
                     message(STATUS "Using cached nlohmann_json")
                     include(FetchContent)
-                    FetchContent_Declare(json
+                    FetchContent_Declare(nlohmann_json
                         SOURCE_DIR "${CMAKE_SOURCE_DIR}/deps_cache/json_https___github_com_nlohmann_json_git_v3.11.3"
                     )
-                    FetchContent_MakeAvailable(json)
+                    FetchContent_MakeAvailable(nlohmann_json)
                 else()
                     message(STATUS "Fetching nlohmann_json from GitHub")
                     include(FetchContent)
-                    FetchContent_Declare(json
+                    FetchContent_Declare(nlohmann_json
                         GIT_REPOSITORY https://github.com/nlohmann/json.git
                         GIT_TAG v3.11.3
                         SOURCE_DIR "${CMAKE_SOURCE_DIR}/deps_cache/json_https___github_com_nlohmann_json_git_v3.11.3"
                     )
-                    FetchContent_MakeAvailable(json)
+                    FetchContent_MakeAvailable(nlohmann_json)
                 endif()
             endif()
         else()

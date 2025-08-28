@@ -1,7 +1,9 @@
 #include "template_customizer.h"
 #include "../utils/terminal_utils.h"
-#include "../utils/user_input.h"
+#include "../cli/input/user_input.h"
 #include "../utils/file_utils.h"
+#include "../utils/string_utils.h"
+#include "../cli/types/cli_enums.h"
 #include <iostream>
 #include <fstream>
 #include <regex>
@@ -59,7 +61,7 @@ TemplateCustomization TemplateCustomizer::customizeTemplate(
 
     if (options.includeTests) {
         enabledFeatures.push_back("testing");
-        enabledFeatures.push_back("test-" + std::string(enums::to_string(options.testFramework)));
+        enabledFeatures.push_back("test-" + std::string(cli_enums::to_string(options.testFramework)));
     }
 
     if (options.includeDocumentation) {
@@ -77,12 +79,12 @@ TemplateCustomization TemplateCustomizer::customizeTemplate(
 
     // Add CI/CD features
     for (const auto& ci : options.ciOptions) {
-        enabledFeatures.push_back("ci-" + std::string(enums::to_string(ci)));
+        enabledFeatures.push_back("ci-" + std::string(cli_enums::to_string(ci)));
     }
 
     // Add editor configurations
     for (const auto& editor : options.editorOptions) {
-        enabledFeatures.push_back("editor-" + std::string(enums::to_string(editor)));
+        enabledFeatures.push_back("editor-" + std::string(cli_enums::to_string(editor)));
     }
 
     // Select template files based on enabled features
@@ -220,13 +222,13 @@ std::unordered_map<std::string, std::string> TemplateCustomizer::generatePlaceho
     placeholders["PROJECT_NAME_CPP_UPPER"] = StringUtils::toUpper(cppName);
 
     // Build system and configuration
-    placeholders["BUILD_SYSTEM"] = std::string(enums::to_string(options.buildSystem));
-    placeholders["PACKAGE_MANAGER"] = std::string(enums::to_string(options.packageManager));
-    placeholders["CPP_STANDARD"] = std::string(enums::to_string(options.cppStandard));
+    placeholders["BUILD_SYSTEM"] = std::string(cli_enums::to_string(options.buildSystem));
+    placeholders["PACKAGE_MANAGER"] = std::string(cli_enums::to_string(options.packageManager));
+    placeholders["CPP_STANDARD"] = std::string(cli_enums::to_string(options.cppStandard));
 
     // Extract numeric part of C++ standard
-    std::string cppStdStr = std::string(enums::to_string(options.cppStandard));
-    if (cppStdStr.starts_with("c++")) {
+    std::string cppStdStr = std::string(cli_enums::to_string(options.cppStandard));
+    if (cppStdStr.substr(0, 3) == "c++") {
         placeholders["CPP_STANDARD_NUM"] = cppStdStr.substr(3);
     } else {
         placeholders["CPP_STANDARD_NUM"] = "17"; // Default fallback
@@ -234,7 +236,7 @@ std::unordered_map<std::string, std::string> TemplateCustomizer::generatePlaceho
 
     // Testing configuration
     if (options.includeTests) {
-        placeholders["TEST_FRAMEWORK"] = std::string(enums::to_string(options.testFramework));
+        placeholders["TEST_FRAMEWORK"] = std::string(cli_enums::to_string(options.testFramework));
         placeholders["ENABLE_TESTING"] = "ON";
     } else {
         placeholders["ENABLE_TESTING"] = "OFF";
@@ -259,7 +261,7 @@ std::unordered_map<std::string, std::string> TemplateCustomizer::generatePlaceho
 
     // License information
     if (options.licenseType != LicenseType::None) {
-        placeholders["LICENSE_TYPE"] = std::string(enums::to_string(options.licenseType));
+        placeholders["LICENSE_TYPE"] = std::string(cli_enums::to_string(options.licenseType));
         placeholders["ENABLE_LICENSE"] = "true";
     } else {
         placeholders["ENABLE_LICENSE"] = "false";
@@ -332,7 +334,7 @@ const TemplateCustomization* TemplateCustomizer::getTemplate(TemplateType type) 
 
     for (const auto& template_ : s_registeredTemplates) {
         // Compare by template name since we don't have a direct type field
-        std::string typeName = std::string(enums::to_string(type));
+        std::string typeName = std::string(cli_enums::to_string(type));
         if (template_.templateName == typeName) {
             return &template_;
         }

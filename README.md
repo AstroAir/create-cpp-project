@@ -11,14 +11,41 @@ A powerful, modern C++ project scaffolding tool that helps developers quickly cr
 
 ### Installation
 
+**Quick Install (Recommended):**
+
+```bash
+# Linux/macOS
+curl -sSL https://raw.githubusercontent.com/cpp-scaffold/cpp-scaffold/main/scripts/web-install.sh | bash
+
+# Windows (PowerShell)
+iwr -useb https://raw.githubusercontent.com/cpp-scaffold/cpp-scaffold/main/scripts/install.ps1 | iex
+```
+
+**Package Managers:**
+
+```bash
+# Homebrew (macOS/Linux)
+brew install cpp-scaffold
+
+# Chocolatey (Windows)
+choco install cpp-scaffold
+
+# Winget (Windows)
+winget install cpp-scaffold
+```
+
+**Build from Source:**
+
 ```bash
 # Clone and build
 git clone https://github.com/cpp-scaffold/cpp-scaffold.git
 cd cpp-scaffold
-mkdir build && cd build
-cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
-ninja
+cmake --preset release
+cmake --build --preset release
+cmake --install build --prefix /usr/local
 ```
+
+📖 **[Complete Installation Guide](docs/installation/README.md)**
 
 ### Create Your First Project
 
@@ -140,21 +167,25 @@ requirements.txt                # Python dependencies for docs
 ## 💡 Examples
 
 ### Console Application
+
 ```bash
 cpp-scaffold MyTool --type console --build cmake --package vcpkg --test gtest --ci github
 ```
 
 ### C++ Library
+
 ```bash
 cpp-scaffold MyLib --type lib --build cmake --package conan --test catch2 --docs
 ```
 
 ### Qt GUI Application
+
 ```bash
 cpp-scaffold MyGuiApp --type gui --framework qt --build cmake --package vcpkg --editor vscode
 ```
 
 ### Web Service
+
 ```bash
 cpp-scaffold MyAPI --type webservice --build cmake --package conan --test gtest --ci github,gitlab
 ```

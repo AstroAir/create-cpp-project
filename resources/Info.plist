@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>English</string>
+    <key>CFBundleExecutable</key>
+    <string>cpp-scaffold</string>
+    <key>CFBundleGetInfoString</key>
+    <string>CPP-Scaffold - C++ Project Scaffolding Tool</string>
+    <key>CFBundleIconFile</key>
+    <string>icon.icns</string>
+    <key>CFBundleIdentifier</key>
+    <string>org.cpp-scaffold.cpp-scaffold</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleLongVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundleName</key>
+    <string>CPP-Scaffold</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundleSignature</key>
+    <string>CPPS</string>
+    <key>CFBundleVersion</key>
+    <string>1.0.0</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>Copyright © 2024 CPP-Scaffold Team. All rights reserved.</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.14</string>
+    <key>NSRequiresAquaSystemAppearance</key>
+    <false/>
+</dict>
+</plist>

@@ -3,6 +3,8 @@
 #include "../../utils/terminal_utils.h"
 #include "../../utils/file_utils.h"
 #include "../../utils/string_utils.h"
+#include "../../utils/enhanced_terminal.h"
+#include "../../utils/enhanced_wizard.h"
 #include "../../config/config_manager.h"
 #include "../../config/interactive_config.h"
 #include "../../config/project_profiles.h"
@@ -17,6 +19,7 @@ namespace cli_commands {
 
 // Show help information
 void showHelp(Language lang) {
+  (void)lang; // TODO: Implement localization support
   std::cout << TerminalUtils::colorize("**CPP-Scaffold - C++ Project Scaffolding Tool**",
                                        utils::Color::BrightCyan)
             << "\n\n";
@@ -33,12 +36,14 @@ void showHelp(Language lang) {
   std::cout << TerminalUtils::colorize("**Options:**", utils::Color::BrightYellow)
             << "\n";
   fmt::print("  -t, --template <type>        Project template type: console, lib, header-only-lib, "
-             "multi-executable, gui, network, embedded, webservice, gameengine, "
+             "modules, multi-executable, gui, network, embedded, webservice, gameengine, "
              "qt-app, sfml-app, boost-app, test-project\n");
   fmt::print("  -b, --build <system>         Build system: cmake, meson, bazel, "
              "xmake, premake, make, ninja\n");
   fmt::print("  -p, --package <manager>      Package manager: vcpkg, conan, none, "
-             "spack, hunter\n");
+             "spack, hunter, cpm, fetchcontent, msys2\n");
+  fmt::print("  --std <standard>             C++ standard: cpp11, cpp14, cpp17, cpp20, cpp23 "
+             "(modules require cpp20+)\n");
   fmt::print(
       "  --network-lib <library>      Network library for network projects: asio, boost, poco\n");
   fmt::print("  --tests [framework]          Include test framework: gtest, catch2, "
@@ -96,6 +101,8 @@ void showHelp(Language lang) {
              "--package vcpkg --tests\n");
   fmt::print("  cpp-scaffold new my-lib -t lib -b cmake -p none --docs "
              "--code-style\n");
+  fmt::print("  cpp-scaffold create my-modules-app --template modules --build cmake "
+             "--package vcpkg --tests\n");
   fmt::print(
       "  cpp-scaffold create my-app --ci github --ci gitlab --editor vscode\n");
   fmt::print("  cpp-scaffold create my-app --profile webservice\n");
@@ -372,15 +379,9 @@ CliOptions getSystemSuggestedDefaults() {
 
 // Run interactive mode
 CliOptions runInteractiveMode() {
-  showCliHeader();
-
-  std::cout << TerminalUtils::colorize("Welcome to Interactive Mode!", utils::Color::BrightGreen) << "\n\n";
-
-  // Use the interactive configuration system
-  config::InteractiveConfigWizard::runConfigurationWizard();
-
-  // Return default options for now
-  return getSystemSuggestedDefaults();
+  // Use the enhanced wizard for a better user experience
+  auto& wizard = utils::EnhancedWizard::getInstance();
+  return wizard.runInteractiveWizard();
 }
 
 } // namespace cli_commands

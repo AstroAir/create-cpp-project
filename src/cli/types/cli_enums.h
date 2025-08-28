@@ -11,6 +11,7 @@ enum class TemplateType {
   Console,
   Lib,
   HeaderOnlyLib,
+  Modules,
   MultiExecutable,
   Gui,
   Network,
@@ -40,7 +41,8 @@ enum class PackageManager {
   Spack,
   Hunter,
   CPM,
-  FetchContent
+  FetchContent,
+  MSYS2
 };
 
 enum class TestFramework {

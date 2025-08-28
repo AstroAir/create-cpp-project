@@ -32,8 +32,8 @@ ArchiveUtils::ExtractionResult ArchiveUtils::extractArchive(const std::filesyste
         std::filesystem::create_directories(targetPath);
 
         ArchiveFormat format = detectFormat(archivePath);
-        
-        spdlog::info("Extracting {} archive: {} to {}", 
+
+        spdlog::info("Extracting {} archive: {} to {}",
                     formatToString(format), archivePath.string(), targetPath.string());
 
         switch (format) {
@@ -188,21 +188,22 @@ std::string ArchiveUtils::formatToString(ArchiveFormat format) {
 ArchiveUtils::ExtractionResult ArchiveUtils::extractZip(const std::filesystem::path& archivePath,
                                                        const std::filesystem::path& targetPath,
                                                        const ProgressCallback& progressCallback) {
+    (void)progressCallback; // TODO: Implement progress callback support
     if (!hasUnzip()) {
         return {false, "unzip command not available", {}, 0, 0};
     }
 
     std::string command = "unzip -o \"" + archivePath.string() + "\" -d \"" + targetPath.string() + "\"";
-    
+
     if (executeCommand(command)) {
         ExtractionResult result;
         result.success = true;
-        
+
         // Get list of extracted files
         auto contents = listArchiveContents(archivePath);
         result.extractedFiles = contents;
         result.totalFiles = contents.size();
-        
+
         spdlog::info("Successfully extracted {} files from ZIP archive", result.totalFiles);
         return result;
     }
@@ -213,20 +214,21 @@ ArchiveUtils::ExtractionResult ArchiveUtils::extractZip(const std::filesystem::p
 ArchiveUtils::ExtractionResult ArchiveUtils::extractTarGz(const std::filesystem::path& archivePath,
                                                          const std::filesystem::path& targetPath,
                                                          const ProgressCallback& progressCallback) {
+    (void)progressCallback; // TODO: Implement progress callback support
     if (!hasTar()) {
         return {false, "tar command not available", {}, 0, 0};
     }
 
     std::string command = "tar -xzf \"" + archivePath.string() + "\" -C \"" + targetPath.string() + "\"";
-    
+
     if (executeCommand(command)) {
         ExtractionResult result;
         result.success = true;
-        
+
         auto contents = listArchiveContents(archivePath);
         result.extractedFiles = contents;
         result.totalFiles = contents.size();
-        
+
         spdlog::info("Successfully extracted {} files from TAR.GZ archive", result.totalFiles);
         return result;
     }
@@ -237,20 +239,21 @@ ArchiveUtils::ExtractionResult ArchiveUtils::extractTarGz(const std::filesystem:
 ArchiveUtils::ExtractionResult ArchiveUtils::extractTarBz2(const std::filesystem::path& archivePath,
                                                           const std::filesystem::path& targetPath,
                                                           const ProgressCallback& progressCallback) {
+    (void)progressCallback; // TODO: Implement progress callback support
     if (!hasTar()) {
         return {false, "tar command not available", {}, 0, 0};
     }
 
     std::string command = "tar -xjf \"" + archivePath.string() + "\" -C \"" + targetPath.string() + "\"";
-    
+
     if (executeCommand(command)) {
         ExtractionResult result;
         result.success = true;
-        
+
         auto contents = listArchiveContents(archivePath);
         result.extractedFiles = contents;
         result.totalFiles = contents.size();
-        
+
         spdlog::info("Successfully extracted {} files from TAR.BZ2 archive", result.totalFiles);
         return result;
     }
@@ -261,20 +264,21 @@ ArchiveUtils::ExtractionResult ArchiveUtils::extractTarBz2(const std::filesystem
 ArchiveUtils::ExtractionResult ArchiveUtils::extractTarXz(const std::filesystem::path& archivePath,
                                                          const std::filesystem::path& targetPath,
                                                          const ProgressCallback& progressCallback) {
+    (void)progressCallback; // TODO: Implement progress callback support
     if (!hasTar()) {
         return {false, "tar command not available", {}, 0, 0};
     }
 
     std::string command = "tar -xJf \"" + archivePath.string() + "\" -C \"" + targetPath.string() + "\"";
-    
+
     if (executeCommand(command)) {
         ExtractionResult result;
         result.success = true;
-        
+
         auto contents = listArchiveContents(archivePath);
         result.extractedFiles = contents;
         result.totalFiles = contents.size();
-        
+
         spdlog::info("Successfully extracted {} files from TAR.XZ archive", result.totalFiles);
         return result;
     }
@@ -285,20 +289,21 @@ ArchiveUtils::ExtractionResult ArchiveUtils::extractTarXz(const std::filesystem:
 ArchiveUtils::ExtractionResult ArchiveUtils::extractSevenZip(const std::filesystem::path& archivePath,
                                                             const std::filesystem::path& targetPath,
                                                             const ProgressCallback& progressCallback) {
+    (void)progressCallback; // TODO: Implement progress callback support
     if (!hasSevenZip()) {
         return {false, "7z command not available", {}, 0, 0};
     }
 
     std::string command = "7z x \"" + archivePath.string() + "\" -o\"" + targetPath.string() + "\" -y";
-    
+
     if (executeCommand(command)) {
         ExtractionResult result;
         result.success = true;
-        
+
         auto contents = listArchiveContents(archivePath);
         result.extractedFiles = contents;
         result.totalFiles = contents.size();
-        
+
         spdlog::info("Successfully extracted {} files from 7Z archive", result.totalFiles);
         return result;
     }
@@ -309,20 +314,21 @@ ArchiveUtils::ExtractionResult ArchiveUtils::extractSevenZip(const std::filesyst
 ArchiveUtils::ExtractionResult ArchiveUtils::extractTar(const std::filesystem::path& archivePath,
                                                        const std::filesystem::path& targetPath,
                                                        const ProgressCallback& progressCallback) {
+    (void)progressCallback; // TODO: Implement progress callback support
     if (!hasTar()) {
         return {false, "tar command not available", {}, 0, 0};
     }
 
     std::string command = "tar -xf \"" + archivePath.string() + "\" -C \"" + targetPath.string() + "\"";
-    
+
     if (executeCommand(command)) {
         ExtractionResult result;
         result.success = true;
-        
+
         auto contents = listArchiveContents(archivePath);
         result.extractedFiles = contents;
         result.totalFiles = contents.size();
-        
+
         spdlog::info("Successfully extracted {} files from TAR archive", result.totalFiles);
         return result;
     }
@@ -349,7 +355,7 @@ bool ArchiveUtils::executeCommand(const std::string& command, std::string* outpu
 #else
         FILE* pipe = popen((command + " 2>/dev/null").c_str(), "r");
 #endif
-        
+
         if (!pipe) {
             return false;
         }
@@ -368,9 +374,9 @@ bool ArchiveUtils::executeCommand(const std::string& command, std::string* outpu
 #else
         int exitCode = pclose(pipe);
 #endif
-        
+
         return exitCode == 0;
-        
+
     } catch (const std::exception& e) {
         spdlog::error("Error executing command: {}", e.what());
         return false;
@@ -381,16 +387,16 @@ std::vector<std::string> ArchiveUtils::parseFileList(const std::string& output, 
     std::vector<std::string> files;
     std::istringstream stream(output);
     std::string line;
-    
+
     while (std::getline(stream, line)) {
         // Simple parsing - extract filenames based on format
         if (format == ArchiveFormat::ZIP) {
             // Skip header lines and extract filename from unzip -l output
-            if (line.find("Archive:") == std::string::npos && 
+            if (line.find("Archive:") == std::string::npos &&
                 line.find("Length") == std::string::npos &&
                 line.find("----") == std::string::npos &&
                 !line.empty()) {
-                
+
                 // Extract filename (last part after spaces)
                 size_t lastSpace = line.find_last_of(' ');
                 if (lastSpace != std::string::npos && lastSpace < line.length() - 1) {
@@ -404,7 +410,7 @@ std::vector<std::string> ArchiveUtils::parseFileList(const std::string& output, 
             }
         }
     }
-    
+
     return files;
 }
 

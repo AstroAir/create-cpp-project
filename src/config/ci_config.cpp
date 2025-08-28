@@ -12,6 +12,12 @@ bool CIConfig::createCIConfig(const std::string &projectPath,
                               const CliOptions &options) {
   spdlog::info("Creating CI/CD configuration for: " + ciType);
 
+  // Validate project path
+  if (projectPath.empty()) {
+    spdlog::error("Project path cannot be empty");
+    return false;
+  }
+
   if (ciType == "github") {
     return createGitHubActionsConfig(projectPath, options);
   } else if (ciType == "gitlab") {

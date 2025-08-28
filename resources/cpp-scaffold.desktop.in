@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=@PROJECT_NAME@
+Comment=@CPACK_PACKAGE_DESCRIPTION_SUMMARY@
+Exec=@PROJECT_NAME@ %F
+Icon=@PROJECT_NAME@
+Terminal=false
+StartupNotify=true
+Categories=Development;IDE;
+Keywords=cpp;cmake;scaffolding;development;build-tools;
+MimeType=text/x-c++;text/x-c;text/x-chdr;text/x-c++hdr;text/x-c++src;text/x-csrc;

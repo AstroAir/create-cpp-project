@@ -201,6 +201,7 @@ public:
                       Color borderColor = Color::BrightCyan);
   static void showTwoColumnLayout(const std::vector<std::pair<std::string, std::string>> &items);
   static void showFeatureList(const std::vector<std::pair<std::string, std::string>> &features);
+  static void showSectionSeparator();
 
   // NPM-style CLI enhancements
   static void showNpmStyleHeader(const std::string &toolName, const std::string &version = "");

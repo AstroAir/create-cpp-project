@@ -240,6 +240,17 @@ bool parseBuildOptions(CliOptions& options, const std::vector<std::string>& args
     return true;
   }
 
+  if (arg == "--std") {
+    if (hasValue(args, index)) {
+      std::string stdStr = getNextValue(args, index);
+      auto cppStandard = cli_enums::to_cpp_standard(stdStr);
+      if (cppStandard) {
+        options.cppStandard = *cppStandard;
+      }
+    }
+    return true;
+  }
+
   if (arg == "--network-lib") {
     if (hasValue(args, index)) {
       options.networkLibrary = getNextValue(args, index);

@@ -1,11 +1,13 @@
 #include "user_experience.h"
 #include "terminal_utils.h"
 #include "file_utils.h"
+#include "../cli/types/cli_enums.h"
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 
 namespace utils {
 
@@ -130,7 +132,7 @@ CliOptions UserExperienceManager::runGuidedSetup() {
     int templateChoice = ux_utils::askChoice("Select template", {}, 0) - 1;
     if (templateChoice >= 0 && templateChoice < static_cast<int>(templateOptions.size())) {
         std::string selectedTemplate = templateOptions[templateChoice].first;
-        auto templateType = enums::to_template_type(selectedTemplate);
+        auto templateType = cli_enums::to_template_type(selectedTemplate);
         if (templateType) {
             options.templateType = *templateType;
             TerminalUtils::showNpmStyleSuccess("Template selected", selectedTemplate);
@@ -162,7 +164,7 @@ CliOptions UserExperienceManager::runGuidedSetup() {
     int buildChoice = ux_utils::askChoice("Select build system", {}, 1) - 1;
     if (buildChoice >= 0 && buildChoice < static_cast<int>(buildSystemOptions.size())) {
         std::string selectedBuild = buildSystemOptions[buildChoice].first;
-        auto buildSystem = enums::to_build_system(selectedBuild);
+        auto buildSystem = cli_enums::to_build_system(selectedBuild);
         if (buildSystem) {
             options.buildSystem = *buildSystem;
             TerminalUtils::showNpmStyleSuccess("Build system selected", selectedBuild);
@@ -194,7 +196,7 @@ CliOptions UserExperienceManager::runGuidedSetup() {
     int packageChoice = ux_utils::askChoice("Select package manager", {}, 1) - 1;
     if (packageChoice >= 0 && packageChoice < static_cast<int>(packageOptions.size())) {
         std::string selectedPackage = packageOptions[packageChoice].first;
-        auto packageManager = enums::to_package_manager(selectedPackage);
+        auto packageManager = cli_enums::to_package_manager(selectedPackage);
         if (packageManager) {
             options.packageManager = *packageManager;
             TerminalUtils::showNpmStyleSuccess("Package manager selected", selectedPackage);
@@ -235,9 +237,9 @@ CliOptions UserExperienceManager::runGuidedSetup() {
     // Show configuration summary
     TerminalUtils::showWizardSummary({
         {"Project Name", options.projectName},
-        {"Template", std::string(enums::to_string(options.templateType))},
-        {"Build System", std::string(enums::to_string(options.buildSystem))},
-        {"Package Manager", std::string(enums::to_string(options.packageManager))},
+        {"Template", std::string(cli_enums::to_string(options.templateType))},
+        {"Build System", std::string(cli_enums::to_string(options.buildSystem))},
+        {"Package Manager", std::string(cli_enums::to_string(options.packageManager))},
         {"Include Tests", options.includeTests ? "Yes" : "No"},
         {"Include Docs", options.includeDocumentation ? "Yes" : "No"},
         {"Code Style Tools", options.includeCodeStyleTools ? "Yes" : "No"},
@@ -338,7 +340,7 @@ void UserExperienceManager::showPostCreationGuide(const CliOptions& options) {
     std::cout << "    cpp-scaffold examples   # Browse example projects\n\n";
 
     if (ux_utils::askYesNo("Would you like to see a quick tutorial for your project type?", false)) {
-        std::string tutorialName = "basic-" + std::string(enums::to_string(options.templateType));
+        std::string tutorialName = "basic-" + std::string(cli_enums::to_string(options.templateType));
         runTutorial(tutorialName);
     }
 }
@@ -395,11 +397,11 @@ void UserExperienceManager::initializeHelpEntries() {
 void UserExperienceManager::initializeCompletionData() {
     // Command completions
     std::vector<CompletionSuggestion> commandCompletions = {
-        {"create", "Create a new C++ project", "commands", 10, true},
-        {"list", "List available templates and options", "commands", 8, true},
-        {"validate", "Validate project structure", "commands", 6, true},
-        {"config", "Configure default settings", "commands", 7, true},
-        {"help", "Show help information", "commands", 9, true}
+        {"create", "Create a new C++ project", "commands", 10, true, {}},
+        {"list", "List available templates and options", "commands", 8, true, {}},
+        {"validate", "Validate project structure", "commands", 6, true, {}},
+        {"config", "Configure default settings", "commands", 7, true, {}},
+        {"help", "Show help information", "commands", 9, true, {}}
     };
 
     completionData_["commands"] = commandCompletions;

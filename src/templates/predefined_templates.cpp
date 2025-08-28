@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 
     return 0;
 })",
-            true, false, "Main application entry point"
+            true, false, "Main application entry point", {}, nullptr
         },
         {
             "include/{{PROJECT_NAME_CPP}}/version.h",
@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
 namespace {{PROJECT_NAME_CPP}} {
     const char* getVersion();
 })",
-            true, false, "Version information header"
+            true, false, "Version information header", {}, nullptr
         },
         {
             "src/version.cpp",
@@ -70,7 +70,7 @@ namespace {{PROJECT_NAME_CPP}} {
         return {{PROJECT_NAME_CPP_UPPER}}_VERSION;
     }
 })",
-            true, false, "Version implementation"
+            true, false, "Version implementation", {}, nullptr
         },
         {
             "CMakeLists.txt",
@@ -103,7 +103,7 @@ add_subdirectory(tests)
 
 # Install target
 install(TARGETS {{PROJECT_NAME}} DESTINATION bin))",
-            true, false, "CMake build configuration", {"cmake"}
+            true, false, "CMake build configuration", {"cmake"}, nullptr
         },
         {
             "README.md",
@@ -133,7 +133,7 @@ This project is licensed under the {{LICENSE_TYPE}} License.
 {{#IF !ENABLE_LICENSE}}
 All rights reserved.
 {{/IF}})",
-            true, false, "Project documentation"
+            true, false, "Project documentation", {}, nullptr
         }
     };
 
@@ -212,7 +212,7 @@ namespace {{PROJECT_NAME_CPP}} {
     };
 
 } // namespace {{PROJECT_NAME_CPP}})",
-            true, false, "Main library header"
+            true, false, "Main library header", {}, nullptr
         },
         {
             "src/{{PROJECT_NAME_CPP}}.cpp",
@@ -241,7 +241,7 @@ namespace {{PROJECT_NAME_CPP}} {
     }
 
 } // namespace {{PROJECT_NAME_CPP}})",
-            true, false, "Main library implementation"
+            true, false, "Main library implementation", {}, nullptr
         },
         {
             "CMakeLists.txt",
@@ -288,7 +288,7 @@ install(EXPORT {{PROJECT_NAME}}Targets
     NAMESPACE {{PROJECT_NAME}}::
     DESTINATION lib/cmake/{{PROJECT_NAME}}
 ))",
-            true, false, "CMake build configuration", {"cmake"}
+            true, false, "CMake build configuration", {"cmake"}, nullptr
         }
     };
 

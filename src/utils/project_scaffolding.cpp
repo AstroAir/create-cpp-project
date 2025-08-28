@@ -1,6 +1,7 @@
 #include "project_scaffolding.h"
 #include "file_utils.h"
 #include "terminal_utils.h"
+#include "../cli/types/cli_enums.h"
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
 #include <algorithm>
@@ -408,8 +409,8 @@ std::map<std::string, std::string> ProjectScaffolding::createGlobalPlaceholders(
     placeholders["AUTHOR_EMAIL"] = options.gitUserEmail.empty() ? "author@example.com" : options.gitUserEmail;
     placeholders["CURRENT_YEAR"] = "2024"; // Would be dynamic in real implementation
     placeholders["CPP_STANDARD"] = "17"; // Would be configurable
-    placeholders["BUILD_SYSTEM"] = std::string(enums::to_string(options.buildSystem));
-    placeholders["PACKAGE_MANAGER"] = std::string(enums::to_string(options.packageManager));
+    placeholders["BUILD_SYSTEM"] = std::string(cli_enums::to_string(options.buildSystem));
+    placeholders["PACKAGE_MANAGER"] = std::string(cli_enums::to_string(options.packageManager));
 
     return placeholders;
 }

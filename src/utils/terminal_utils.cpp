@@ -1037,6 +1037,10 @@ void TerminalUtils::showFeatureList(const std::vector<std::pair<std::string, std
     }
 }
 
+void TerminalUtils::showSectionSeparator() {
+    std::cout << colorize(std::string(60, '-'), Color::BrightBlack) << std::endl;
+}
+
 // NPM-style CLI enhancements
 void TerminalUtils::showNpmStyleHeader(const std::string& toolName, const std::string& version) {
     if (!supportsAnsi()) {

@@ -3,12 +3,13 @@
 #include "../utils/terminal_utils.h"
 #include <spdlog/spdlog.h>
 #include <filesystem>
+#include <iostream>
 
 GitRepositoryTemplate::GitRepositoryTemplate(const CliOptions& options)
     : TemplateBase(options), repositoryCloned_(false), authenticationSetup_(false) {
-    
+
     // Set up paths
-    tempClonePath_ = std::filesystem::temp_directory_path() / 
+    tempClonePath_ = std::filesystem::temp_directory_path() /
                     ("cpp_scaffold_clone_" + std::to_string(std::time(nullptr)));
     finalProjectPath_ = std::filesystem::current_path() / options.projectName;
 }
@@ -16,7 +17,7 @@ GitRepositoryTemplate::GitRepositoryTemplate(const CliOptions& options)
 bool GitRepositoryTemplate::create() {
     try {
         spdlog::info("🚀 Creating project from Git repository...");
-        
+
         // Validate repository URL
         if (!options_.gitRepositoryUrl) {
             spdlog::error("No Git repository URL provided");
@@ -72,7 +73,7 @@ bool GitRepositoryTemplate::create() {
         }
 
         spdlog::info("\n🎉 Project created successfully from Git repository!\n");
-        
+
         // Print usage instructions
         std::cout << fmt::format("cd {}\n", options_.projectName);
         std::cout << "# Review the project structure and build instructions\n";
@@ -116,12 +117,12 @@ bool GitRepositoryTemplate::setupTestFramework() {
 bool GitRepositoryTemplate::cloneRepository() {
     try {
         std::string repoUrl = getRepositoryUrl();
-        
+
         // Create temporary directory
         std::filesystem::create_directories(tempClonePath_.parent_path());
 
         bool success = false;
-        
+
         if (hasAuthentication()) {
             success = utils::GitUtils::cloneRepositoryWithAuth(
                 repoUrl,
@@ -191,7 +192,7 @@ bool GitRepositoryTemplate::processClonedRepository() {
 }
 
 bool GitRepositoryTemplate::validateRepositoryStructure() {
-    return std::filesystem::exists(finalProjectPath_) && 
+    return std::filesystem::exists(finalProjectPath_) &&
            std::filesystem::is_directory(finalProjectPath_);
 }
 
@@ -214,14 +215,14 @@ bool GitRepositoryTemplate::setupProjectFromRepository() {
         if (options_.initGit && !options_.preserveGitHistory) {
             if (utils::GitUtils::initializeRepository(finalProjectPath_)) {
                 spdlog::info("Initialized new Git repository");
-                
+
                 // Configure Git if user info provided
                 if (!options_.gitUserName.empty() || !options_.gitUserEmail.empty()) {
-                    utils::GitUtils::configureRepository(finalProjectPath_, 
-                                                        options_.gitUserName, 
+                    utils::GitUtils::configureRepository(finalProjectPath_,
+                                                        options_.gitUserName,
                                                         options_.gitUserEmail);
                 }
-                
+
                 // Add remote if provided
                 if (!options_.gitRemoteUrl.empty()) {
                     utils::GitUtils::addRemote(finalProjectPath_, "origin", options_.gitRemoteUrl);
@@ -262,8 +263,8 @@ std::filesystem::path GitRepositoryTemplate::getFinalProjectPath() const {
 }
 
 bool GitRepositoryTemplate::hasAuthentication() const {
-    return options_.gitUsername.has_value() || 
-           options_.gitPassword.has_value() || 
+    return options_.gitUsername.has_value() ||
+           options_.gitPassword.has_value() ||
            options_.sshKeyPath.has_value();
 }
 
@@ -286,7 +287,7 @@ bool GitRepositoryTemplate::isCppProject(const std::filesystem::path& repoPath) 
             for (const auto& entry : std::filesystem::recursive_directory_iterator(repoPath)) {
                 if (entry.is_regular_file()) {
                     std::string ext = entry.path().extension().string();
-                    if (ext == ".cpp" || ext == ".hpp" || ext == ".cc" || 
+                    if (ext == ".cpp" || ext == ".hpp" || ext == ".cc" ||
                         ext == ".h" || ext == ".cxx") {
                         return true;
                     }
@@ -314,11 +315,12 @@ bool GitRepositoryTemplate::hasValidStructure(const std::filesystem::path& repoP
     } catch (const std::exception&) {
         return false;
     }
-    
+
     return false;
 }
 
 bool GitRepositoryTemplate::adaptProjectName(const std::filesystem::path& repoPath) {
+    (void)repoPath; // TODO: Implement project name adaptation logic
     // This could involve updating CMakeLists.txt, package.json, etc.
     // For now, just log the action
     spdlog::info("Adapting project name to: {}", options_.projectName);
@@ -326,12 +328,14 @@ bool GitRepositoryTemplate::adaptProjectName(const std::filesystem::path& repoPa
 }
 
 bool GitRepositoryTemplate::updateProjectConfiguration(const std::filesystem::path& repoPath) {
+    (void)repoPath; // TODO: Implement project configuration update logic
     // Update build system configuration based on CLI options
     spdlog::info("Updating project configuration based on CLI options");
     return true;
 }
 
 bool GitRepositoryTemplate::mergeWithTemplateOptions(const std::filesystem::path& repoPath) {
+    (void)repoPath; // TODO: Implement template options merging logic
     // Merge CLI options with existing project configuration
     spdlog::info("Merging template options with existing project configuration");
     return true;

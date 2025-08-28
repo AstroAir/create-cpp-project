@@ -147,6 +147,14 @@ function(configure_release_optimizations target)
             OUTPUT_STRIP_TRAILING_WHITESPACE
         )
 
+        # Detect Windows GCC variants (MinGW-w64, etc.)
+        execute_process(
+            COMMAND ${CMAKE_CXX_COMPILER} -dumpmachine
+            OUTPUT_VARIABLE COMPILER_TARGET_TRIPLET
+            ERROR_QUIET
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+
         # Check if compiler supports -ffat-lto-objects flag
         # Use appropriate null device for the platform
         if(WIN32)
@@ -155,15 +163,24 @@ function(configure_release_optimizations target)
             set(NULL_DEVICE "/dev/null")
         endif()
 
+        # More robust test: try to compile a simple program with the flag
+        # This catches cases where the flag is accepted during preprocessing but fails during compilation
+        set(TEST_SOURCE_FILE "${CMAKE_BINARY_DIR}/test_fat_lto_objects.cpp")
+        file(WRITE "${TEST_SOURCE_FILE}" "int main(){return 0;}")
+
         execute_process(
-            COMMAND ${CMAKE_CXX_COMPILER} -ffat-lto-objects -E -x c++ ${NULL_DEVICE}
+            COMMAND ${CMAKE_CXX_COMPILER} -ffat-lto-objects -c "${TEST_SOURCE_FILE}" -o "${CMAKE_BINARY_DIR}/test_fat_lto_objects.o"
             OUTPUT_QUIET
             ERROR_QUIET
             RESULT_VARIABLE FAT_LTO_OBJECTS_SUPPORTED
         )
 
+        # Clean up test files
+        file(REMOVE "${TEST_SOURCE_FILE}")
+        file(REMOVE "${CMAKE_BINARY_DIR}/test_fat_lto_objects.o")
+
         if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" AND NOT COMPILER_VERSION_OUTPUT MATCHES "clang")
-            # True GCC compiler
+            # True GCC compiler (including MinGW-w64)
             set(GCC_OPTIMIZATION_FLAGS
                 -O3
                 -march=native
@@ -172,15 +189,35 @@ function(configure_release_optimizations target)
                 -fuse-linker-plugin
             )
 
-            # Only add -ffat-lto-objects if enabled and supported (GCC-specific and not on all targets)
+            # Detect if this is a Windows GCC variant
+            set(IS_WINDOWS_GCC FALSE)
+            if(WIN32 OR COMPILER_TARGET_TRIPLET MATCHES "mingw|w64")
+                set(IS_WINDOWS_GCC TRUE)
+            endif()
+
+            # Only add -ffat-lto-objects if enabled and supported
+            # This flag is GCC-specific and may not be supported on all targets/versions
             if(ENABLE_FAT_LTO_OBJECTS AND FAT_LTO_OBJECTS_SUPPORTED EQUAL 0)
                 list(APPEND GCC_OPTIMIZATION_FLAGS -ffat-lto-objects)
-                message(STATUS "Using GCC-specific optimizations with LTO and fat objects for ${target}")
+                if(IS_WINDOWS_GCC)
+                    message(STATUS "Using Windows GCC (${COMPILER_TARGET_TRIPLET}) optimizations with LTO and fat objects for ${target}")
+                else()
+                    message(STATUS "Using GCC-specific optimizations with LTO and fat objects for ${target}")
+                endif()
             elseif(NOT ENABLE_FAT_LTO_OBJECTS)
-                message(STATUS "Using GCC-specific optimizations with LTO (fat objects disabled by option) for ${target}")
+                if(IS_WINDOWS_GCC)
+                    message(STATUS "Using Windows GCC (${COMPILER_TARGET_TRIPLET}) optimizations with LTO (fat objects disabled by option) for ${target}")
+                else()
+                    message(STATUS "Using GCC-specific optimizations with LTO (fat objects disabled by option) for ${target}")
+                endif()
             else()
-                message(STATUS "Using GCC-specific optimizations with LTO (fat objects not supported on this target) for ${target}")
-                message(STATUS "Note: If you're seeing clang errors about -ffat-lto-objects, disable with -DENABLE_FAT_LTO_OBJECTS=OFF")
+                if(IS_WINDOWS_GCC)
+                    message(STATUS "Using Windows GCC (${COMPILER_TARGET_TRIPLET}) optimizations with LTO (fat objects not supported) for ${target}")
+                else()
+                    message(STATUS "Using GCC-specific optimizations with LTO (fat objects not supported on this compiler/target) for ${target}")
+                endif()
+                message(STATUS "Compiler: ${CMAKE_CXX_COMPILER}")
+                message(STATUS "Note: If you're seeing errors about -ffat-lto-objects, disable with -DENABLE_FAT_LTO_OBJECTS=OFF")
             endif()
 
             target_compile_options(${target} PRIVATE ${GCC_OPTIMIZATION_FLAGS})

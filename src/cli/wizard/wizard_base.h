@@ -18,10 +18,10 @@ public:
   virtual std::string getStepDescription() const = 0;
 
   // Check if this step should be skipped based on current options
-  virtual bool shouldSkip(const CliOptions& options) const { return false; }
+  virtual bool shouldSkip(const CliOptions& options) const { (void)options; return false; }
 
   // Validate the configuration for this step
-  virtual bool validate(const CliOptions& options) const { return true; }
+  virtual bool validate(const CliOptions& options) const { (void)options; return true; }
 };
 
 // Wizard progress tracking

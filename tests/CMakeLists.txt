@@ -31,6 +31,12 @@ setup_complete_testing(
         test_template_edge_cases.cpp
         test_cli_edge_cases.cpp
         test_file_utils_edge_cases.cpp
+        # New comprehensive test files
+        test_config_manager.cpp
+        test_config_validator.cpp
+        test_ci_config.cpp
+        test_doc_generator.cpp
+        test_test_framework_manager.cpp
     INCLUDE_DIRS ../src
     LINK_LIBRARIES cpp_scaffold_test_lib
 )

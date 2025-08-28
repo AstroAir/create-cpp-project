@@ -431,16 +431,19 @@ bool ArchiveTemplate::hasValidStructure(const std::filesystem::path& projectPath
 }
 
 bool ArchiveTemplate::adaptProjectName(const std::filesystem::path& projectPath) {
+    (void)projectPath; // TODO: Implement project name adaptation logic
     spdlog::info("Adapting project name to: {}", options_.projectName);
     return true;
 }
 
 bool ArchiveTemplate::updateProjectConfiguration(const std::filesystem::path& projectPath) {
+    (void)projectPath; // TODO: Implement project configuration update logic
     spdlog::info("Updating project configuration based on CLI options");
     return true;
 }
 
 bool ArchiveTemplate::mergeWithTemplateOptions(const std::filesystem::path& projectPath) {
+    (void)projectPath; // TODO: Implement template options merging logic
     spdlog::info("Merging template options with existing project configuration");
     return true;
 }

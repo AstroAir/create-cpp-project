@@ -937,6 +937,7 @@ bool GitUtils::createLicenseFile(const std::filesystem::path& projectPath,
                                 const std::string& projectName,
                                 const std::string& author,
                                 const std::string& year) {
+    (void)projectName; // TODO: Use project name in license templates
     try {
         std::string licenseContent;
         std::string currentYear = year.empty() ? "2024" : year;

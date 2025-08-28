@@ -148,6 +148,9 @@ public:
         const std::string& projectPath
     );
 
+    // Display functions
+    static void showDependencySelectionSummary(const DependencySelection& selection);
+
 private:
     // Internal data structures
     static std::vector<InteractiveDependency> s_dependencyDatabase;

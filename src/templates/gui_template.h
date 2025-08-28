@@ -34,6 +34,7 @@ private:
   std::string getBazelContent();
   std::string getVcpkgJsonContent();
   std::string getConanfileContent();
+  std::string getMSYS2PKGBUILDContent();
   std::string getGTestContent();
   std::string getCatch2Content();
   std::string getDocTestContent();
