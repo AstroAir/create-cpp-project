@@ -84,6 +84,7 @@ makepkg -s
 ```
 
 This will:
+
 - Download and verify dependencies
 - Extract the source archive
 - Run the build() function
@@ -108,6 +109,7 @@ msys2_console_example
 The generated `PKGBUILD` file contains:
 
 ### Package Metadata
+
 - `_realname`: Base package name
 - `pkgname`: Full MSYS2 package name with prefix
 - `pkgver`/`pkgrel`: Version information
@@ -116,10 +118,12 @@ The generated `PKGBUILD` file contains:
 - `mingw_arch`: Supported MinGW architectures
 
 ### Dependencies
+
 - `makedepends`: Build-time dependencies (compiler, cmake, ninja)
 - `depends`: Runtime dependencies (gcc-libs, gtest for testing)
 
 ### Build Functions
+
 - `build()`: Compiles the project using CMake and Ninja
 - `check()`: Runs tests if available
 - `package()`: Installs files to the package directory

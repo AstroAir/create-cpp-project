@@ -400,6 +400,59 @@ DirectoryStructure ProjectScaffolding::createStandardLayout() {
     return root;
 }
 
+DirectoryStructure ProjectScaffolding::createMSYS2Layout() {
+    DirectoryStructure root;
+    root.path = "";
+    root.description = "MSYS2 project root";
+
+    // Source directory
+    DirectoryStructure src;
+    src.path = "src";
+    src.description = "Source code";
+    src.required = true;
+
+    // Include directory
+    DirectoryStructure include;
+    include.path = "include";
+    include.description = "Public headers";
+    include.required = true;
+
+    // Tests directory
+    DirectoryStructure tests;
+    tests.path = "tests";
+    tests.description = "Unit tests";
+    tests.createGitkeep = true;
+
+    // Documentation directory
+    DirectoryStructure docs;
+    docs.path = "docs";
+    docs.description = "Documentation";
+    docs.createGitkeep = true;
+
+    // MSYS2-specific directories
+    DirectoryStructure msys2;
+    msys2.path = "msys2";
+    msys2.description = "MSYS2 packaging files";
+    msys2.required = true;
+
+    // Scripts directory for MSYS2 build scripts
+    DirectoryStructure scripts;
+    scripts.path = "scripts";
+    scripts.description = "Build and packaging scripts";
+    scripts.createGitkeep = true;
+    scripts.defaultFiles = {"build.sh", "package.sh"};
+
+    // Resources directory for MSYS2 resources
+    DirectoryStructure resources;
+    resources.path = "resources";
+    resources.description = "Application resources";
+    resources.createGitkeep = true;
+
+    root.subdirectories = {src, include, tests, docs, msys2, scripts, resources};
+
+    return root;
+}
+
 std::map<std::string, std::string> ProjectScaffolding::createGlobalPlaceholders(const CliOptions& options) {
     std::map<std::string, std::string> placeholders;
 

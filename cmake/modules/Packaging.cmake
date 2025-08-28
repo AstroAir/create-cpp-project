@@ -711,3 +711,197 @@ function(configure_msys2_packaging project_name)
 
     message(STATUS "MSYS2 packaging configured for ${project_name}")
 endfunction()
+
+# Enhanced MSYS2 packaging with template support
+function(configure_enhanced_msys2_packaging project_name project_type)
+    # Call basic MSYS2 configuration
+    configure_msys2_packaging(${project_name})
+
+    # Set project type-specific configurations
+    if(project_type STREQUAL "console")
+        set(CPACK_MSYS2_PACKAGE_DESCRIPTION "A C++ console application (mingw-w64)" PARENT_SCOPE)
+        set(CPACK_MSYS2_PACKAGE_SECTION "devel" PARENT_SCOPE)
+    elseif(project_type STREQUAL "library")
+        set(CPACK_MSYS2_PACKAGE_DESCRIPTION "A C++ library (mingw-w64)" PARENT_SCOPE)
+        set(CPACK_MSYS2_PACKAGE_SECTION "libs" PARENT_SCOPE)
+        # Add development package for libraries
+        set(CPACK_MSYS2_CREATE_DEV_PACKAGE TRUE PARENT_SCOPE)
+    elseif(project_type STREQUAL "gui")
+        set(CPACK_MSYS2_PACKAGE_DESCRIPTION "A C++ GUI application (mingw-w64)" PARENT_SCOPE)
+        set(CPACK_MSYS2_PACKAGE_SECTION "x11" PARENT_SCOPE)
+    else()
+        set(CPACK_MSYS2_PACKAGE_DESCRIPTION "A C++ application (mingw-w64)" PARENT_SCOPE)
+        set(CPACK_MSYS2_PACKAGE_SECTION "devel" PARENT_SCOPE)
+    endif()
+
+    # Generate PKGBUILD file
+    generate_pkgbuild_file(${project_name} ${project_type})
+
+    message(STATUS "Enhanced MSYS2 packaging configured for ${project_name} (${project_type})")
+endfunction()
+
+# Generate PKGBUILD file for MSYS2
+function(generate_pkgbuild_file project_name project_type)
+    # Create PKGBUILD content based on project type
+    set(PKGBUILD_CONTENT "# Maintainer: Your Name <your.email@example.com>\n")
+    string(APPEND PKGBUILD_CONTENT "_realname=${project_name}\n")
+    string(APPEND PKGBUILD_CONTENT "pkgbase=mingw-w64-\${_realname}\n")
+    string(APPEND PKGBUILD_CONTENT "pkgname=\"\${MINGW_PACKAGE_PREFIX}-\${_realname}\"\n")
+    string(APPEND PKGBUILD_CONTENT "pkgver=1.0.0\n")
+    string(APPEND PKGBUILD_CONTENT "pkgrel=1\n")
+
+    # Set description based on project type
+    if(project_type STREQUAL "console")
+        string(APPEND PKGBUILD_CONTENT "pkgdesc=\"A C++ console application (mingw-w64)\"\n")
+    elseif(project_type STREQUAL "library")
+        string(APPEND PKGBUILD_CONTENT "pkgdesc=\"A C++ library (mingw-w64)\"\n")
+    elseif(project_type STREQUAL "gui")
+        string(APPEND PKGBUILD_CONTENT "pkgdesc=\"A C++ GUI application (mingw-w64)\"\n")
+    else()
+        string(APPEND PKGBUILD_CONTENT "pkgdesc=\"A C++ application (mingw-w64)\"\n")
+    endif()
+
+    string(APPEND PKGBUILD_CONTENT "arch=('any')\n")
+    string(APPEND PKGBUILD_CONTENT "mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')\n")
+    string(APPEND PKGBUILD_CONTENT "license=('MIT')\n")
+    string(APPEND PKGBUILD_CONTENT "url=\"https://github.com/yourname/\${_realname}\"\n")
+    string(APPEND PKGBUILD_CONTENT "depends=(\"\${MINGW_PACKAGE_PREFIX}-gcc-libs\")\n")
+    string(APPEND PKGBUILD_CONTENT "makedepends=(\"\${MINGW_PACKAGE_PREFIX}-cc\"\n")
+    string(APPEND PKGBUILD_CONTENT "             \"\${MINGW_PACKAGE_PREFIX}-cmake\"\n")
+    string(APPEND PKGBUILD_CONTENT "             \"\${MINGW_PACKAGE_PREFIX}-ninja\")\n")
+    string(APPEND PKGBUILD_CONTENT "source=(\"\${_realname}-\${pkgver}.tar.gz\")\n")
+    string(APPEND PKGBUILD_CONTENT "sha256sums=('SKIP')\n\n")
+
+    # Add build function
+    string(APPEND PKGBUILD_CONTENT "build() {\n")
+    string(APPEND PKGBUILD_CONTENT "  cd \"\${srcdir}/\${_realname}-\${pkgver}\"\n")
+    string(APPEND PKGBUILD_CONTENT "  mkdir -p build && cd build\n\n")
+    string(APPEND PKGBUILD_CONTENT "  \${MINGW_PREFIX}/bin/cmake.exe \\\n")
+    string(APPEND PKGBUILD_CONTENT "    -G \"Ninja\" \\\n")
+    string(APPEND PKGBUILD_CONTENT "    -DCMAKE_BUILD_TYPE=Release \\\n")
+    string(APPEND PKGBUILD_CONTENT "    -DCMAKE_INSTALL_PREFIX=\"\${MINGW_PREFIX}\" \\\n")
+
+    # Add project type-specific build options
+    if(project_type STREQUAL "library")
+        string(APPEND PKGBUILD_CONTENT "    -DBUILD_SHARED_LIBS=ON \\\n")
+    endif()
+
+    string(APPEND PKGBUILD_CONTENT "    ..\n\n")
+    string(APPEND PKGBUILD_CONTENT "  \${MINGW_PREFIX}/bin/cmake.exe --build .\n")
+    string(APPEND PKGBUILD_CONTENT "}\n\n")
+
+    # Add check function for testing
+    string(APPEND PKGBUILD_CONTENT "check() {\n")
+    string(APPEND PKGBUILD_CONTENT "  cd \"\${srcdir}/\${_realname}-\${pkgver}/build\"\n")
+    string(APPEND PKGBUILD_CONTENT "  \${MINGW_PREFIX}/bin/cmake.exe --build . --target test || true\n")
+    string(APPEND PKGBUILD_CONTENT "}\n\n")
+
+    # Add package function
+    string(APPEND PKGBUILD_CONTENT "package() {\n")
+    string(APPEND PKGBUILD_CONTENT "  cd \"\${srcdir}/\${_realname}-\${pkgver}/build\"\n")
+    string(APPEND PKGBUILD_CONTENT "  DESTDIR=\"\${pkgdir}\" \${MINGW_PREFIX}/bin/cmake.exe --install .\n")
+
+    # Add license installation
+    string(APPEND PKGBUILD_CONTENT "\n  # Install license\n")
+    string(APPEND PKGBUILD_CONTENT "  install -Dm644 \"\${srcdir}/\${_realname}-\${pkgver}/LICENSE\" \\\n")
+    string(APPEND PKGBUILD_CONTENT "    \"\${pkgdir}\${MINGW_PREFIX}/share/licenses/\${_realname}/LICENSE\"\n")
+    string(APPEND PKGBUILD_CONTENT "}\n")
+
+    # Write PKGBUILD file
+    file(WRITE "${CMAKE_SOURCE_DIR}/PKGBUILD" "${PKGBUILD_CONTENT}")
+
+    message(STATUS "Generated PKGBUILD file for ${project_name}")
+endfunction()
+
+# Add MSYS2 dependencies based on project requirements
+function(add_msys2_dependencies project_name)
+    # Check for common dependencies and add them to PKGBUILD
+    set(MSYS2_DEPS "")
+    set(MSYS2_MAKEDEPS "")
+
+    # Base dependencies
+    list(APPEND MSYS2_DEPS "\${MINGW_PACKAGE_PREFIX}-gcc-libs")
+    list(APPEND MSYS2_MAKEDEPS "\${MINGW_PACKAGE_PREFIX}-cc")
+    list(APPEND MSYS2_MAKEDEPS "\${MINGW_PACKAGE_PREFIX}-cmake")
+    list(APPEND MSYS2_MAKEDEPS "\${MINGW_PACKAGE_PREFIX}-ninja")
+
+    # Check for test frameworks
+    if(ENABLE_TESTING)
+        if(DEFINED GTEST_FOUND OR TARGET gtest)
+            list(APPEND MSYS2_MAKEDEPS "\${MINGW_PACKAGE_PREFIX}-gtest")
+        endif()
+        if(DEFINED Catch2_FOUND OR TARGET Catch2::Catch2)
+            list(APPEND MSYS2_MAKEDEPS "\${MINGW_PACKAGE_PREFIX}-catch2")
+        endif()
+    endif()
+
+    # Check for GUI frameworks
+    if(DEFINED Qt6_FOUND OR TARGET Qt6::Core)
+        list(APPEND MSYS2_DEPS "\${MINGW_PACKAGE_PREFIX}-qt6-base")
+        list(APPEND MSYS2_MAKEDEPS "\${MINGW_PACKAGE_PREFIX}-qt6-tools")
+    endif()
+
+    if(DEFINED PkgConfig_FOUND)
+        find_package(PkgConfig QUIET)
+        if(PKG_CONFIG_FOUND)
+            pkg_check_modules(GTK3 QUIET gtk+-3.0)
+            if(GTK3_FOUND)
+                list(APPEND MSYS2_DEPS "\${MINGW_PACKAGE_PREFIX}-gtk3")
+            endif()
+        endif()
+    endif()
+
+    # Set the dependencies as cache variables
+    set(CPACK_MSYS2_PACKAGE_DEPENDS "${MSYS2_DEPS}" CACHE STRING "MSYS2 package dependencies")
+    set(CPACK_MSYS2_PACKAGE_MAKEDEPENDS "${MSYS2_MAKEDEPS}" CACHE STRING "MSYS2 package make dependencies")
+
+    message(STATUS "MSYS2 dependencies configured for ${project_name}")
+endfunction()
+
+# Create MSYS2 build scripts
+function(create_msys2_build_scripts project_name)
+    # Create build script
+    set(BUILD_SCRIPT_CONTENT "#!/bin/bash\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "# MSYS2 build script for ${project_name}\n\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "set -e\n\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "# Check MSYS2 environment\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "if [[ -z \"\$MSYSTEM\" ]]; then\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "    echo \"Error: Not in MSYS2 environment\"\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "    exit 1\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "fi\n\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "echo \"Building ${project_name} in \$MSYSTEM environment\"\n\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "# Create build directory\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "mkdir -p build\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "cd build\n\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "# Configure with CMake\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "\$MINGW_PREFIX/bin/cmake.exe \\\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "    -G \"Ninja\" \\\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "    -DCMAKE_BUILD_TYPE=Release \\\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "    -DCMAKE_INSTALL_PREFIX=\"\$MINGW_PREFIX\" \\\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "    ..\n\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "# Build\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "\$MINGW_PREFIX/bin/cmake.exe --build .\n\n")
+    string(APPEND BUILD_SCRIPT_CONTENT "echo \"Build completed successfully\"\n")
+
+    file(WRITE "${CMAKE_SOURCE_DIR}/scripts/build.sh" "${BUILD_SCRIPT_CONTENT}")
+
+    # Create package script
+    set(PACKAGE_SCRIPT_CONTENT "#!/bin/bash\n")
+    string(APPEND PACKAGE_SCRIPT_CONTENT "# MSYS2 package creation script for ${project_name}\n\n")
+    string(APPEND PACKAGE_SCRIPT_CONTENT "set -e\n\n")
+    string(APPEND PACKAGE_SCRIPT_CONTENT "# Check if PKGBUILD exists\n")
+    string(APPEND PACKAGE_SCRIPT_CONTENT "if [[ ! -f \"PKGBUILD\" ]]; then\n")
+    string(APPEND PACKAGE_SCRIPT_CONTENT "    echo \"Error: PKGBUILD not found\"\n")
+    string(APPEND PACKAGE_SCRIPT_CONTENT "    exit 1\n")
+    string(APPEND PACKAGE_SCRIPT_CONTENT "fi\n\n")
+    string(APPEND PACKAGE_SCRIPT_CONTENT "echo \"Creating MSYS2 package for ${project_name}\"\n\n")
+    string(APPEND PACKAGE_SCRIPT_CONTENT "# Create source archive\n")
+    string(APPEND PACKAGE_SCRIPT_CONTENT "tar -czf \"${project_name}-1.0.0.tar.gz\" --exclude=build --exclude=.git .\n\n")
+    string(APPEND PACKAGE_SCRIPT_CONTENT "# Build package\n")
+    string(APPEND PACKAGE_SCRIPT_CONTENT "makepkg -s\n\n")
+    string(APPEND PACKAGE_SCRIPT_CONTENT "echo \"Package created successfully\"\n")
+
+    file(WRITE "${CMAKE_SOURCE_DIR}/scripts/package.sh" "${PACKAGE_SCRIPT_CONTENT}")
+
+    message(STATUS "MSYS2 build scripts created for ${project_name}")
+endfunction()

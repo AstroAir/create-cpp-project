@@ -120,7 +120,7 @@ CommentPragmas: '^ IWYU pragma:'
 # =============================================================================
 
 # Modern C++ features
-Standard: Cpp20
+Standard: c++20
 
 # Template formatting
 AlwaysBreakTemplateDeclarations: Yes

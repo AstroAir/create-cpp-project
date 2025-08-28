@@ -8,6 +8,7 @@ function(configure_cpp_standard target)
     # C++20 can be enabled via option for testing
     option(ENABLE_CPP20 "Enable C++20 standard (experimental)" OFF)
     option(ENABLE_STRICT_WARNINGS "Enable strict warning mode" OFF)
+    option(ENABLE_MSYS2_OPTIMIZATIONS "Enable MSYS2-specific optimizations" OFF)
 
     if(ENABLE_CPP20)
         if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.29)
@@ -263,6 +264,143 @@ function(configure_debug_optimizations target)
                 /Od  # Disable optimizations
                 /Zi  # Debug information
             )
+        endif()
+    endif()
+endfunction()
+
+# MSYS2-specific compiler configuration
+function(configure_msys2_compiler target)
+    # Detect MSYS2 environment
+    if(DEFINED ENV{MSYSTEM} OR DEFINED ENV{MINGW_PREFIX})
+        message(STATUS "Configuring MSYS2-specific compiler settings for ${target}")
+
+        # MSYS2 environment variables
+        set(MSYSTEM $ENV{MSYSTEM})
+        set(MINGW_PREFIX $ENV{MINGW_PREFIX})
+
+        # Set MSYS2-specific definitions
+        target_compile_definitions(${target} PRIVATE
+            MSYS2_BUILD=1
+            MINGW_BUILD=1
+        )
+
+        # Add MSYS2 system information
+        if(MSYSTEM)
+            target_compile_definitions(${target} PRIVATE MSYSTEM="${MSYSTEM}")
+        endif()
+
+        # Configure MinGW-specific settings
+        if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+            # GCC in MSYS2 environment
+            target_compile_options(${target} PRIVATE
+                -pipe                    # Use pipes instead of temporary files
+                -fno-keep-inline-dllexport  # Don't keep inline dllexport functions
+            )
+
+            # Windows-specific optimizations for MinGW
+            if(CMAKE_BUILD_TYPE STREQUAL "Release")
+                target_compile_options(${target} PRIVATE
+                    -ffunction-sections     # Place functions in separate sections
+                    -fdata-sections        # Place data in separate sections
+                )
+                target_link_options(${target} PRIVATE
+                    -Wl,--gc-sections      # Remove unused sections
+                    -Wl,--strip-all        # Strip all symbols
+                )
+            endif()
+
+        elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+            # Clang in MSYS2 environment
+            target_compile_options(${target} PRIVATE
+                -fms-extensions         # Enable Microsoft extensions
+                -fms-compatibility      # Enable MS compatibility mode
+            )
+        endif()
+
+        # MSYS2 library paths
+        if(MINGW_PREFIX)
+            target_include_directories(${target} SYSTEM PRIVATE
+                "${MINGW_PREFIX}/include"
+            )
+            target_link_directories(${target} PRIVATE
+                "${MINGW_PREFIX}/lib"
+            )
+        endif()
+
+        # Windows-specific libraries for MSYS2
+        target_link_libraries(${target} PRIVATE
+            ws2_32      # Winsock
+            shlwapi     # Shell API
+            advapi32    # Advanced API
+        )
+
+        # Set proper Windows subsystem
+        if(WIN32 AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+            set_target_properties(${target} PROPERTIES
+                WIN32_EXECUTABLE TRUE
+            )
+        endif()
+
+    else()
+        message(STATUS "Not in MSYS2 environment, skipping MSYS2-specific configuration")
+    endif()
+endfunction()
+
+# Apply MSYS2 optimizations if enabled
+function(apply_msys2_optimizations target)
+    if(ENABLE_MSYS2_OPTIMIZATIONS AND (DEFINED ENV{MSYSTEM} OR DEFINED ENV{MINGW_PREFIX}))
+        message(STATUS "Applying MSYS2-specific optimizations to ${target}")
+
+        # MSYS2-specific optimization flags
+        if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+            target_compile_options(${target} PRIVATE
+                -march=native           # Optimize for current CPU
+                -mtune=native          # Tune for current CPU
+                -ffast-math            # Fast math optimizations
+                -funroll-loops         # Unroll loops
+            )
+
+            # Link-time optimizations for release builds
+            if(CMAKE_BUILD_TYPE STREQUAL "Release")
+                target_compile_options(${target} PRIVATE -flto)
+                target_link_options(${target} PRIVATE -flto)
+            endif()
+        endif()
+
+        # Static linking for better portability in MSYS2
+        if(CMAKE_BUILD_TYPE STREQUAL "Release")
+            target_link_options(${target} PRIVATE
+                -static-libgcc
+                -static-libstdc++
+            )
+        endif()
+    endif()
+endfunction()
+
+# Configure MSYS2 environment variables and paths
+function(setup_msys2_environment)
+    if(DEFINED ENV{MSYSTEM} OR DEFINED ENV{MINGW_PREFIX})
+        # Set MSYS2 environment variables
+        set(MSYS2_DETECTED TRUE PARENT_SCOPE)
+        set(MSYSTEM $ENV{MSYSTEM} PARENT_SCOPE)
+        set(MINGW_PREFIX $ENV{MINGW_PREFIX} PARENT_SCOPE)
+
+        # Add MSYS2 paths to CMAKE_PREFIX_PATH
+        if(DEFINED ENV{MINGW_PREFIX})
+            list(APPEND CMAKE_PREFIX_PATH $ENV{MINGW_PREFIX})
+            set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} PARENT_SCOPE)
+        endif()
+
+        # Set MSYS2-specific install prefix
+        if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+            if(DEFINED ENV{MINGW_PREFIX})
+                set(CMAKE_INSTALL_PREFIX $ENV{MINGW_PREFIX} PARENT_SCOPE)
+            endif()
+        endif()
+
+        message(STATUS "MSYS2 environment detected: ${MSYSTEM}")
+        if(DEFINED ENV{MINGW_PREFIX})
+            message(STATUS "MINGW_PREFIX: $ENV{MINGW_PREFIX}")
         endif()
     endif()
 endfunction()

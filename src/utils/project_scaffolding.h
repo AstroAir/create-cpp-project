@@ -164,6 +164,7 @@ private:
   DirectoryStructure createMonorepoLayout();
   DirectoryStructure createHeaderOnlyLayout();
   DirectoryStructure createModernLayout();
+  DirectoryStructure createMSYS2Layout();
 
   // Template content generators
   std::string generateReadmeContent(const CliOptions& options);

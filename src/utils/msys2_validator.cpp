@@ -339,3 +339,161 @@ bool MSYS2Validator::isPackageInstalled(const std::string& packageName) {
 
     return !output.empty();
 }
+
+MSYS2Validator::ValidationResult MSYS2Validator::validatePKGBUILDSyntax(const std::string& pkgbuildPath) {
+    ValidationResult result;
+    result.isValid = true;
+
+    if (!std::filesystem::exists(pkgbuildPath)) {
+        result.errors.push_back("PKGBUILD file not found: " + pkgbuildPath);
+        result.isValid = false;
+        return result;
+    }
+
+    std::ifstream file(pkgbuildPath);
+    if (!file.is_open()) {
+        result.errors.push_back("Cannot open PKGBUILD file: " + pkgbuildPath);
+        result.isValid = false;
+        return result;
+    }
+
+    std::string content((std::istreambuf_iterator<char>(file)),
+                       std::istreambuf_iterator<char>());
+    file.close();
+
+    return validatePKGBUILDContent(content);
+}
+
+MSYS2Validator::ValidationResult MSYS2Validator::validateBuildProcess(const std::string& projectPath) {
+    ValidationResult result;
+    result.isValid = true;
+
+    // Check if CMakeLists.txt exists
+    std::string cmakeFile = projectPath + "/CMakeLists.txt";
+    if (!std::filesystem::exists(cmakeFile)) {
+        result.errors.push_back("CMakeLists.txt not found in project root");
+        result.isValid = false;
+    }
+
+    // Check if source directory exists
+    std::string srcDir = projectPath + "/src";
+    if (!std::filesystem::exists(srcDir)) {
+        result.warnings.push_back("Source directory 'src' not found");
+    }
+
+    // Check for PKGBUILD
+    std::string pkgbuildFile = projectPath + "/PKGBUILD";
+    if (!std::filesystem::exists(pkgbuildFile)) {
+        result.errors.push_back("PKGBUILD file not found in project root");
+        result.isValid = false;
+    } else {
+        // Validate PKGBUILD syntax
+        auto pkgbuildResult = validatePKGBUILDSyntax(pkgbuildFile);
+        result.errors.insert(result.errors.end(), pkgbuildResult.errors.begin(), pkgbuildResult.errors.end());
+        result.warnings.insert(result.warnings.end(), pkgbuildResult.warnings.begin(), pkgbuildResult.warnings.end());
+        if (!pkgbuildResult.isValid) {
+            result.isValid = false;
+        }
+    }
+
+    // Check build tools availability
+    auto buildToolsResult = validateBuildTools();
+    if (!buildToolsResult.isValid) {
+        result.errors.push_back("Required build tools not available");
+        result.isValid = false;
+    }
+
+    return result;
+}
+
+MSYS2Validator::ValidationResult MSYS2Validator::testPackageBuild(const std::string& projectPath) {
+    ValidationResult result;
+    result.isValid = true;
+
+    // First validate the build process
+    auto buildValidation = validateBuildProcess(projectPath);
+    if (!buildValidation.isValid) {
+        result.errors.insert(result.errors.end(), buildValidation.errors.begin(), buildValidation.errors.end());
+        result.warnings.insert(result.warnings.end(), buildValidation.warnings.begin(), buildValidation.warnings.end());
+        result.isValid = false;
+        return result;
+    }
+
+    // Change to project directory
+    std::filesystem::path originalPath = std::filesystem::current_path();
+    std::filesystem::current_path(projectPath);
+
+    try {
+        // Test makepkg --printsrcinfo (syntax check)
+        std::string makepkgTest = executeCommand("makepkg --printsrcinfo");
+        if (makepkgTest.empty()) {
+            result.errors.push_back("makepkg --printsrcinfo failed - PKGBUILD syntax error");
+            result.isValid = false;
+        } else {
+            result.suggestions.push_back("PKGBUILD syntax validation passed");
+        }
+
+        // Test source preparation (if possible)
+        if (std::filesystem::exists("PKGBUILD")) {
+            std::string sourceTest = executeCommand("makepkg --nobuild --noextract --nodeps");
+            if (!sourceTest.empty() && sourceTest.find("error") == std::string::npos) {
+                result.suggestions.push_back("Source preparation test passed");
+            } else {
+                result.warnings.push_back("Source preparation test had issues");
+            }
+        }
+
+    } catch (const std::exception& e) {
+        result.warnings.push_back("Package build test encountered error: " + std::string(e.what()));
+    }
+
+    // Restore original directory
+    std::filesystem::current_path(originalPath);
+
+    return result;
+}
+
+MSYS2Validator::ValidationResult MSYS2Validator::validateProjectStructure(const std::string& projectPath) {
+    ValidationResult result;
+    result.isValid = true;
+
+    // Check essential directories
+    std::vector<std::string> requiredDirs = {"src"};
+    std::vector<std::string> recommendedDirs = {"include", "tests", "docs"};
+
+    for (const auto& dir : requiredDirs) {
+        std::string dirPath = projectPath + "/" + dir;
+        if (!std::filesystem::exists(dirPath)) {
+            result.errors.push_back("Required directory missing: " + dir);
+            result.isValid = false;
+        }
+    }
+
+    for (const auto& dir : recommendedDirs) {
+        std::string dirPath = projectPath + "/" + dir;
+        if (!std::filesystem::exists(dirPath)) {
+            result.warnings.push_back("Recommended directory missing: " + dir);
+        }
+    }
+
+    // Check essential files
+    std::vector<std::string> requiredFiles = {"CMakeLists.txt", "PKGBUILD"};
+    std::vector<std::string> recommendedFiles = {"README.md", "LICENSE"};
+
+    for (const auto& file : requiredFiles) {
+        std::string filePath = projectPath + "/" + file;
+        if (!std::filesystem::exists(filePath)) {
+            result.errors.push_back("Required file missing: " + file);
+            result.isValid = false;
+        }
+    }
+
+    for (const auto& file : recommendedFiles) {
+        std::string filePath = projectPath + "/" + file;
+        if (!std::filesystem::exists(filePath)) {
+            result.warnings.push_back("Recommended file missing: " + file);
+        }
+    }
+
+    return result;
+}

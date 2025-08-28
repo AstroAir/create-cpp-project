@@ -41,6 +41,7 @@ partitions/
 ## Module Partition Types
 
 ### 1. Interface Partitions
+
 Export public APIs for specific functionality:
 
 ```cpp
@@ -55,6 +56,7 @@ export namespace graphics::geometry {
 ```
 
 ### 2. Implementation Partitions
+
 Internal implementation details:
 
 ```cpp
@@ -69,6 +71,7 @@ namespace graphics::impl {
 ```
 
 ### 3. Primary Module Interface
+
 Combines and re-exports partitions:
 
 ```cpp
@@ -95,6 +98,7 @@ import :impl_utils;
 ## Advanced Patterns
 
 ### Template Partitions
+
 ```cpp
 // graphics-templates.cppm
 export module graphics:templates;
@@ -109,6 +113,7 @@ public:
 ```
 
 ### Concept Exports
+
 ```cpp
 // graphics-concepts.cppm
 export module graphics:concepts;
@@ -121,6 +126,7 @@ concept Drawable = requires(T t) {
 ```
 
 ### Nested Partitions
+
 ```cpp
 // graphics-rendering-opengl.cppm
 export module graphics:rendering.opengl;
@@ -174,21 +180,25 @@ int main() {
 ## Organization Benefits
 
 ### 1. Logical Separation
+
 - Related functionality grouped together
 - Clear module boundaries
 - Easier to understand and maintain
 
 ### 2. Compilation Efficiency
+
 - Only recompile affected partitions
 - Better incremental builds
 - Reduced compilation dependencies
 
 ### 3. Team Development
+
 - Different teams can work on different partitions
 - Clear ownership boundaries
 - Reduced merge conflicts
 
 ### 4. Testing Isolation
+
 - Test partitions independently
 - Better test organization
 - Easier to achieve full coverage
@@ -196,11 +206,13 @@ int main() {
 ## Best Practices
 
 ### 1. Partition Design
+
 - Keep partitions focused and cohesive
 - Minimize dependencies between partitions
 - Use implementation partitions for internal details
 
 ### 2. Naming Conventions
+
 ```cpp
 module_name:public_partition     // Interface partition
 module_name:impl_partition       // Implementation partition
@@ -208,11 +220,13 @@ module_name:detail_partition     // Internal details
 ```
 
 ### 3. Dependency Management
+
 - Avoid circular dependencies between partitions
 - Use forward declarations when possible
 - Keep implementation partitions private
 
 ### 4. Export Strategy
+
 - Export only what clients need
 - Use selective exports from partitions
 - Re-export through primary module interface

@@ -95,7 +95,7 @@ The project uses FetchContent with a custom caching system (deps_cache/) to avoi
 
 ## Project Structure
 
-```
+```txt
 src/
 ├── cli/                    # Command-line interface
 ├── templates/              # Project template implementations  

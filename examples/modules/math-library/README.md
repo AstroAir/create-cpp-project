@@ -46,17 +46,20 @@ math-library/
 ## Mathematical Operations Included
 
 ### Basic Operations (`math_basic`)
+
 - Addition, subtraction, multiplication, division
 - Power and root operations
 - Factorial and combinations
 
 ### Advanced Operations (`math_advanced`)
+
 - Trigonometric functions
 - Logarithmic functions
 - Statistical operations
 - Linear algebra basics
 
 ### Constants (`math_constants`)
+
 - Mathematical constants (π, e, φ, etc.)
 - Physical constants
 - Conversion factors

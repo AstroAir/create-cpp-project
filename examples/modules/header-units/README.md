@@ -47,6 +47,7 @@ header-units/
 ## Migration Phases
 
 ### Phase 1: Header Units for Standard Library
+
 ```cpp
 // Before
 #include <vector>
@@ -60,6 +61,7 @@ import <iostream>;
 ```
 
 ### Phase 2: Header Units for Third-Party Libraries
+
 ```cpp
 // Before
 #include <fmt/format.h>
@@ -71,6 +73,7 @@ import <spdlog/spdlog.h>;
 ```
 
 ### Phase 3: Convert Own Headers to Header Units
+
 ```cpp
 // Before
 #include "utility.h"
@@ -80,6 +83,7 @@ import "utility.h";
 ```
 
 ### Phase 4: Refactor to Proper Modules
+
 ```cpp
 // Before
 import "utility.h";
@@ -107,6 +111,7 @@ cmake --build .
 ## Usage Examples
 
 ### Mixed Usage in main.cpp
+
 ```cpp
 // Standard library as header units
 import <iostream>;
@@ -138,12 +143,14 @@ int main() {
 ## Performance Benefits
 
 ### Compilation Time Comparison
+
 - **Traditional Headers**: ~2.5s for clean build
 - **Header Units**: ~1.8s for clean build  
 - **Modules**: ~1.2s for clean build
 - **Mixed Approach**: ~1.5s for clean build
 
 ### Memory Usage
+
 - **Traditional**: High due to repeated parsing
 - **Header Units**: Medium, some reuse
 - **Modules**: Low, efficient representation
