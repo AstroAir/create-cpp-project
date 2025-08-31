@@ -13,6 +13,13 @@ include(Dependencies)
 include(ProjectUtils)
 include(UtilityFunctions)
 include(PlatformSupport)
+include(PresetUtils)
+include(ContainerUtils)
+include(WebAssemblySupport)
+include(EmbeddedSupport)
+include(MobileSupport)
+include(CrossCompilationWorkflows)
+include(PlatformTesting)
 include(Testing)
 include(TestingEnhanced)
 include(DevTools)
@@ -132,6 +139,7 @@ link_core_dependencies(cpp-scaffold)
 setup_complete_packaging(cpp-scaffold ${PROJECT_VERSION})
 
 # Testing Configuration
+enable_testing()
 add_subdirectory(tests)
 
 # Developer Tools

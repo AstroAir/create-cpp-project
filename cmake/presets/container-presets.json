@@ -1,0 +1,193 @@
+{
+    "version": 6,
+    "configurePresets": [
+        {
+            "name": "container-base",
+            "displayName": "Container Base Configuration",
+            "description": "Base configuration for container-based builds",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_VERBOSE_MAKEFILE": "ON",
+                "ENABLE_CCACHE": "ON",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            },
+            "environment": {
+                "DEBIAN_FRONTEND": "noninteractive"
+            }
+        },
+        {
+            "name": "ubuntu-container",
+            "displayName": "Ubuntu Container Configuration",
+            "description": "Build using Ubuntu development container",
+            "inherits": ["container-base"],
+            "binaryDir": "${sourceDir}/build-ubuntu-container",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CONTAINER_BUILD": "ON",
+                "CONTAINER_IMAGE": "cpp-scaffold:ubuntu-dev"
+            }
+        },
+        {
+            "name": "ubuntu-container-debug",
+            "displayName": "Ubuntu Container Debug Configuration",
+            "description": "Debug build using Ubuntu development container",
+            "inherits": ["container-base"],
+            "binaryDir": "${sourceDir}/build-ubuntu-container-debug",
+            "cacheVariables": {
+                "CONTAINER_BUILD": "ON",
+                "CONTAINER_IMAGE": "cpp-scaffold:ubuntu-dev"
+            }
+        },
+        {
+            "name": "alpine-container-config",
+            "displayName": "Alpine Container Configuration",
+            "description": "Build using Alpine minimal container",
+            "inherits": ["container-base"],
+            "binaryDir": "${sourceDir}/build-alpine-container",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CONTAINER_BUILD": "ON",
+                "CONTAINER_IMAGE": "cpp-scaffold:alpine-minimal"
+            }
+        },
+        {
+            "name": "alpine-container-debug",
+            "displayName": "Alpine Container Debug Configuration",
+            "description": "Debug build using Alpine minimal container",
+            "inherits": ["container-base"],
+            "binaryDir": "${sourceDir}/build-alpine-container-debug",
+            "cacheVariables": {
+                "CONTAINER_BUILD": "ON",
+                "CONTAINER_IMAGE": "cpp-scaffold:alpine-minimal"
+            }
+        },
+        {
+            "name": "android-container",
+            "displayName": "Android Container Configuration",
+            "description": "Android build using specialized container",
+            "inherits": ["container-base"],
+            "binaryDir": "${sourceDir}/build-android-container",
+            "cacheVariables": {
+                "CONTAINER_BUILD": "ON",
+                "CONTAINER_IMAGE": "cpp-scaffold:android-dev"
+            }
+        },
+        {
+            "name": "wasm-container",
+            "displayName": "WebAssembly Container Configuration",
+            "description": "WebAssembly build using Emscripten container",
+            "inherits": ["container-base"],
+            "binaryDir": "${sourceDir}/build-wasm-container",
+            "cacheVariables": {
+                "CONTAINER_BUILD": "ON",
+                "CONTAINER_IMAGE": "cpp-scaffold:wasm-dev"
+            }
+        },
+        {
+            "name": "ci-container",
+            "displayName": "CI Container Configuration",
+            "description": "CI/CD optimized container build",
+            "inherits": ["container-base"],
+            "binaryDir": "${sourceDir}/build-ci-container",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CONTAINER_BUILD": "ON",
+                "CONTAINER_IMAGE": "cpp-scaffold:ci-builder",
+                "BUILD_TESTING": "ON"
+            }
+        },
+        {
+            "name": "multi-platform-container",
+            "displayName": "Multi-Platform Container Configuration",
+            "description": "Build for multiple platforms using containers",
+            "inherits": ["container-base"],
+            "binaryDir": "${sourceDir}/build-multi-platform",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CONTAINER_BUILD": "ON",
+                "MULTI_PLATFORM_BUILD": "ON"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "ubuntu-container",
+            "configurePreset": "ubuntu-container",
+
+            "displayName": "Ubuntu Container Build",
+            "description": "Build using Ubuntu container"
+        },
+        {
+            "name": "ubuntu-container-debug",
+            "configurePreset": "ubuntu-container-debug",
+
+            "displayName": "Ubuntu Container Debug Build",
+            "description": "Debug build using Ubuntu container"
+        },
+        {
+            "name": "alpine-container-build",
+            "configurePreset": "alpine-container-config",
+
+            "displayName": "Alpine Container Build",
+            "description": "Build using Alpine container"
+        },
+        {
+            "name": "alpine-container-debug",
+            "configurePreset": "alpine-container-debug",
+
+            "displayName": "Alpine Container Debug Build",
+            "description": "Debug build using Alpine container"
+        },
+        {
+            "name": "android-container",
+            "configurePreset": "android-container",
+
+            "displayName": "Android Container Build",
+            "description": "Build using Android container"
+        },
+        {
+            "name": "wasm-container",
+            "configurePreset": "wasm-container",
+
+            "displayName": "WebAssembly Container Build",
+            "description": "Build using WebAssembly container"
+        },
+        {
+            "name": "ci-container",
+            "configurePreset": "ci-container",
+
+            "displayName": "CI Container Build",
+            "description": "CI/CD build using container"
+        },
+        {
+            "name": "multi-platform-container",
+            "configurePreset": "multi-platform-container",
+
+            "displayName": "Multi-Platform Container Build",
+            "description": "Multi-platform build using containers"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "ubuntu-container",
+            "configurePreset": "ubuntu-container-debug",
+
+            "displayName": "Ubuntu Container Tests",
+            "description": "Run tests in Ubuntu container"
+        },
+        {
+            "name": "alpine-container-test",
+            "configurePreset": "alpine-container-debug",
+
+            "displayName": "Alpine Container Tests",
+            "description": "Run tests in Alpine container"
+        },
+        {
+            "name": "ci-container",
+            "configurePreset": "ci-container",
+
+            "displayName": "CI Container Tests",
+            "description": "Run tests in CI container with parallel execution"
+        }
+    ]
+}

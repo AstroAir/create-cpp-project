@@ -22,21 +22,17 @@ setup_complete_testing(
     TEST_LIBRARY_NAME cpp_scaffold_test_lib
     COMPREHENSIVE_TEST_NAME all_tests
     TEST_FILES
-        test_file_utils.cpp
-        test_string_utils.cpp
-        test_cli_parser.cpp
-        test_template_manager.cpp
-        test_terminal_utils.cpp
-        test_integration.cpp
-        test_template_edge_cases.cpp
-        test_cli_edge_cases.cpp
-        test_file_utils_edge_cases.cpp
-        # New comprehensive test files
-        test_config_manager.cpp
-        test_config_validator.cpp
-        test_ci_config.cpp
-        test_doc_generator.cpp
-        test_test_framework_manager.cpp
+        unit/utils/test_file_utils.cpp
+        unit/utils/test_string_utils.cpp
+        unit/cli/test_cli_parser.cpp
+        unit/templates/test_template_manager.cpp
+        unit/utils/test_terminal_utils.cpp
+        integration/test_end_to_end.cpp
+        unit/config/test_config_manager.cpp
+        unit/config/test_config_validator.cpp
+        unit/config/test_ci_config.cpp
+        unit/documentation/test_doc_generator.cpp
+        unit/testing/test_test_framework_manager.cpp
     INCLUDE_DIRS ../src
     LINK_LIBRARIES cpp_scaffold_test_lib
 )

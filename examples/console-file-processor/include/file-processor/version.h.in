@@ -1,0 +1,14 @@
+/**
+ * @file version.h
+ * @brief Version information for File Processor
+ * 
+ * @author CPP-Scaffold Generated
+ * @version @PROJECT_VERSION@
+ */
+
+#pragma once
+
+#define FILE_PROCESSOR_VERSION "@PROJECT_VERSION@"
+#define FILE_PROCESSOR_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
+#define FILE_PROCESSOR_VERSION_MINOR @PROJECT_VERSION_MINOR@
+#define FILE_PROCESSOR_VERSION_PATCH @PROJECT_VERSION_PATCH@

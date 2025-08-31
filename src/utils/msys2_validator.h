@@ -1,18 +1,18 @@
 #pragma once
 
+#include <map>
+#include <optional>
 #include <string>
 #include <vector>
-#include <optional>
-#include <map>
 
 /**
  * @brief MSYS2 package validation and testing utilities
- * 
+ *
  * This class provides functionality to validate PKGBUILD files,
  * test MSYS2 build processes, and ensure MSYS2 environment compatibility.
  */
 class MSYS2Validator {
-public:
+   public:
     struct ValidationResult {
         bool isValid;
         std::vector<std::string> errors;
@@ -26,6 +26,7 @@ public:
         std::string buildOutput;
         std::string testOutput;
         std::vector<std::string> errors;
+        std::vector<std::string> suggestions;
     };
 
     /**
@@ -89,7 +90,28 @@ public:
      */
     static ValidationResult validateBuildTools();
 
-private:
+    /**
+     * @brief Validate build process for a project
+     * @param projectPath Path to the project directory
+     * @return ValidationResult with build process validation results
+     */
+    static ValidationResult validateBuildProcess(const std::string& projectPath);
+
+    /**
+     * @brief Test package build in MSYS2 environment
+     * @param projectPath Path to the project directory
+     * @return ValidationResult with package build test results
+     */
+    static ValidationResult testPackageBuild(const std::string& projectPath);
+
+    /**
+     * @brief Validate project structure for MSYS2 compatibility
+     * @param projectPath Path to the project directory
+     * @return ValidationResult with project structure validation results
+     */
+    static ValidationResult validateProjectStructure(const std::string& projectPath);
+
+   private:
     /**
      * @brief Execute a command and capture output
      * @param command Command to execute
@@ -115,12 +137,14 @@ private:
      * @param pkgbuildVars Parsed PKGBUILD variables
      * @return ValidationResult for required fields
      */
-    static ValidationResult validateRequiredFields(const std::map<std::string, std::string>& pkgbuildVars);
+    static ValidationResult validateRequiredFields(
+            const std::map<std::string, std::string>& pkgbuildVars);
 
     /**
      * @brief Validate PKGBUILD array fields (depends, makedepends, etc.)
      * @param pkgbuildVars Parsed PKGBUILD variables
      * @return ValidationResult for array fields
      */
-    static ValidationResult validateArrayFields(const std::map<std::string, std::string>& pkgbuildVars);
+    static ValidationResult validateArrayFields(
+            const std::map<std::string, std::string>& pkgbuildVars);
 };

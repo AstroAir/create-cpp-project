@@ -1,0 +1,126 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 20,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "displayName": "Base Configuration",
+            "description": "Base configuration with common settings",
+            "hidden": true,
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_COLOR_DIAGNOSTICS": "ON"
+            },
+            "environment": {
+                "CCACHE_BASEDIR": "${sourceDir}",
+                "CCACHE_SLOPPINESS": "pch_defines,time_macros"
+            }
+        },
+        {
+            "name": "base-debug",
+            "displayName": "Base Debug Configuration",
+            "description": "Base debug configuration with common debug settings",
+            "hidden": true,
+            "inherits": "base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "BUILD_TESTING": "ON"
+            }
+        },
+        {
+            "name": "base-release",
+            "displayName": "Base Release Configuration",
+            "description": "Base release configuration with common release settings",
+            "hidden": true,
+            "inherits": "base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "BUILD_TESTING": "OFF"
+            }
+        },
+        {
+            "name": "base-optimized",
+            "displayName": "Base Optimized Configuration",
+            "description": "Base configuration with optimization features enabled",
+            "hidden": true,
+            "inherits": "base",
+            "cacheVariables": {
+                "ENABLE_PRECOMPILED_HEADERS": "ON",
+                "ENABLE_CCACHE": "ON",
+                "ENABLE_UNITY_BUILD": "ON"
+            }
+        },
+        {
+            "name": "base-development",
+            "displayName": "Base Development Configuration",
+            "description": "Base configuration for development with enhanced diagnostics",
+            "hidden": true,
+            "inherits": "base",
+            "cacheVariables": {
+                "ENABLE_PRECOMPILED_HEADERS": "ON",
+                "ENABLE_CCACHE": "ON",
+                "CMAKE_VERBOSE_MAKEFILE": "OFF"
+            }
+        },
+        {
+            "name": "base-ci",
+            "displayName": "Base CI Configuration",
+            "description": "Base configuration for CI/CD environments",
+            "hidden": true,
+            "inherits": "base",
+            "cacheVariables": {
+                "ENABLE_CCACHE": "OFF",
+                "CMAKE_VERBOSE_MAKEFILE": "ON",
+                "BUILD_TESTING": "ON"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "base-build",
+            "displayName": "Base Build",
+            "description": "Base build configuration",
+            "hidden": true,
+            "jobs": 0
+        },
+        {
+            "name": "base-build-verbose",
+            "displayName": "Base Verbose Build",
+            "description": "Base build configuration with verbose output",
+            "hidden": true,
+            "jobs": 0,
+            "verbose": true
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "base-test",
+            "displayName": "Base Test Configuration",
+            "description": "Base test configuration with common settings",
+            "hidden": true,
+            "output": {
+                "outputOnFailure": true,
+                "verbosity": "default"
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false
+            }
+        },
+        {
+            "name": "base-test-parallel",
+            "displayName": "Base Parallel Test Configuration",
+            "description": "Base test configuration with parallel execution",
+            "hidden": true,
+            "inherits": "base-test",
+            "execution": {
+                "jobs": 0
+            }
+        }
+    ]
+}

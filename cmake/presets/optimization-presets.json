@@ -1,0 +1,146 @@
+{
+    "version": 6,
+    "configurePresets": [
+        {
+            "name": "fast-build-base",
+            "displayName": "Fast Build Base Configuration",
+            "description": "Base configuration optimized for build speed",
+            "hidden": true,
+            "cacheVariables": {
+                "ENABLE_PRECOMPILED_HEADERS": "ON",
+                "ENABLE_UNITY_BUILD": "ON",
+                "ENABLE_CCACHE": "ON",
+                "CMAKE_UNITY_BUILD_BATCH_SIZE": "16"
+            }
+        },
+        {
+            "name": "lto-base",
+            "displayName": "LTO Base Configuration",
+            "description": "Base configuration with Link Time Optimization",
+            "hidden": true,
+            "cacheVariables": {
+                "ENABLE_LTO": "ON",
+                "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON"
+            }
+        },
+        {
+            "name": "sanitizer-base",
+            "displayName": "Sanitizer Base Configuration",
+            "description": "Base configuration with sanitizers enabled",
+            "hidden": true,
+            "cacheVariables": {
+                "ENABLE_SANITIZERS": "ON",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "profiling-base",
+            "displayName": "Profiling Base Configuration",
+            "description": "Base configuration for build time profiling",
+            "hidden": true,
+            "cacheVariables": {
+                "ENABLE_BUILD_PROFILING": "ON",
+                "ENABLE_CCACHE": "OFF"
+            }
+        },
+        {
+            "name": "minimal-base",
+            "displayName": "Minimal Base Configuration",
+            "description": "Base configuration with minimal features",
+            "hidden": true,
+            "cacheVariables": {
+                "ENABLE_PRECOMPILED_HEADERS": "OFF",
+                "ENABLE_UNITY_BUILD": "OFF",
+                "ENABLE_CCACHE": "OFF",
+                "ENABLE_LTO": "OFF"
+            }
+        },
+        {
+            "name": "size-optimized-base",
+            "displayName": "Size Optimized Base Configuration",
+            "description": "Base configuration optimized for binary size",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "MinSizeRel",
+                "ENABLE_LTO": "ON",
+                "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON"
+            }
+        },
+        {
+            "name": "performance-base",
+            "displayName": "Performance Base Configuration",
+            "description": "Base configuration optimized for runtime performance",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "ENABLE_LTO": "ON",
+                "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON",
+                "ENABLE_NATIVE_OPTIMIZATIONS": "ON"
+            }
+        },
+        {
+            "name": "container-optimization-base",
+            "displayName": "Container Optimization Base Configuration",
+            "description": "Base optimization configuration for container-based builds",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_VERBOSE_MAKEFILE": "ON",
+                "ENABLE_CCACHE": "OFF"
+            },
+            "environment": {
+                "DEBIAN_FRONTEND": "noninteractive"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "fast-build-preset",
+            "displayName": "Fast Build",
+            "description": "Build preset optimized for speed",
+            "hidden": true,
+            "jobs": 0,
+            "targets": ["all"]
+        },
+        {
+            "name": "clean-build-preset",
+            "displayName": "Clean Build",
+            "description": "Build preset that cleans before building",
+            "hidden": true,
+            "jobs": 0,
+            "cleanFirst": true
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "sanitizer-test-base",
+            "displayName": "Sanitizer Test Base",
+            "description": "Base test configuration with sanitizers",
+            "hidden": true,
+            "output": {
+                "outputOnFailure": true,
+                "verbosity": "extra"
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": true
+            }
+        },
+        {
+            "name": "performance-test-base",
+            "displayName": "Performance Test Base",
+            "description": "Base test configuration for performance testing",
+            "hidden": true,
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "ignore",
+                "stopOnFailure": false,
+                "repeat": {
+                    "mode": "until-pass",
+                    "count": 3
+                }
+            }
+        }
+    ]
+}

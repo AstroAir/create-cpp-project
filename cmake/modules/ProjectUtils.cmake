@@ -198,6 +198,23 @@ function(create_test_executable target_name)
     configure_unity_build(${target_name})
     configure_test_precompiled_headers(${target_name})
 
+    # Register the test with CTest
+    add_test(NAME ${target_name} COMMAND ${target_name})
+
+    # Set working directory if specified
+    if(TEST_WORKING_DIRECTORY)
+        set_tests_properties(${target_name} PROPERTIES
+            WORKING_DIRECTORY ${TEST_WORKING_DIRECTORY}
+        )
+    endif()
+
+    # Set discovery timeout if specified
+    if(TEST_DISCOVERY_TIMEOUT)
+        set_tests_properties(${target_name} PROPERTIES
+            TIMEOUT ${TEST_DISCOVERY_TIMEOUT}
+        )
+    endif()
+
     # Configure test discovery
     include(GoogleTest)
     set(DISCOVERY_TIMEOUT_VAL 30)

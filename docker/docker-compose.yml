@@ -1,0 +1,145 @@
+# Docker Compose configuration for C++ development environments
+# This file defines multiple development environments for different use cases
+
+version: '3.8'
+
+services:
+  # Ubuntu development environment (full-featured)
+  ubuntu-dev:
+    build:
+      context: ..
+      dockerfile: docker/ubuntu-dev.Dockerfile
+    image: cpp-scaffold:ubuntu-dev
+    container_name: cpp-scaffold-ubuntu-dev
+    volumes:
+      - ..:/workspace:cached
+      - ccache-ubuntu:/root/.ccache
+      - vcpkg-ubuntu:/opt/vcpkg/buildtrees
+      - vcpkg-downloads:/opt/vcpkg/downloads
+    environment:
+      - USER_ID=${USER_ID:-1000}
+      - GROUP_ID=${GROUP_ID:-1000}
+      - GIT_USER_NAME=${GIT_USER_NAME:-Developer}
+      - GIT_USER_EMAIL=${GIT_USER_EMAIL:-dev@example.com}
+      - CCACHE_MAX_SIZE=5G
+      - VCPKG_ROOT=/opt/vcpkg
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    networks:
+      - cpp-dev-network
+
+  # Alpine minimal environment (lightweight)
+  alpine-minimal:
+    build:
+      context: ..
+      dockerfile: docker/alpine-minimal.Dockerfile
+    image: cpp-scaffold:alpine-minimal
+    container_name: cpp-scaffold-alpine-minimal
+    volumes:
+      - ..:/workspace:cached
+      - ccache-alpine:/root/.ccache
+      - vcpkg-alpine:/opt/vcpkg/buildtrees
+      - vcpkg-downloads:/opt/vcpkg/downloads
+    environment:
+      - USER_ID=${USER_ID:-1000}
+      - GROUP_ID=${GROUP_ID:-1000}
+      - GIT_USER_NAME=${GIT_USER_NAME:-Developer}
+      - GIT_USER_EMAIL=${GIT_USER_EMAIL:-dev@example.com}
+      - CCACHE_MAX_SIZE=2G
+      - VCPKG_ROOT=/opt/vcpkg
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    networks:
+      - cpp-dev-network
+
+  # Cross-compilation environment for Android
+  android-dev:
+    build:
+      context: ..
+      dockerfile: docker/android-dev.Dockerfile
+    image: cpp-scaffold:android-dev
+    container_name: cpp-scaffold-android-dev
+    volumes:
+      - ..:/workspace:cached
+      - ccache-android:/root/.ccache
+      - android-ndk:/opt/android-ndk
+    environment:
+      - USER_ID=${USER_ID:-1000}
+      - GROUP_ID=${GROUP_ID:-1000}
+      - ANDROID_NDK_ROOT=/opt/android-ndk
+      - CCACHE_MAX_SIZE=3G
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    networks:
+      - cpp-dev-network
+
+  # WebAssembly development environment
+  wasm-dev:
+    build:
+      context: ..
+      dockerfile: docker/wasm-dev.Dockerfile
+    image: cpp-scaffold:wasm-dev
+    container_name: cpp-scaffold-wasm-dev
+    volumes:
+      - ..:/workspace:cached
+      - ccache-wasm:/root/.ccache
+      - emsdk:/opt/emsdk
+    environment:
+      - USER_ID=${USER_ID:-1000}
+      - GROUP_ID=${GROUP_ID:-1000}
+      - EMSDK=/opt/emsdk
+      - CCACHE_MAX_SIZE=2G
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    networks:
+      - cpp-dev-network
+
+  # CI/CD environment (optimized for automated builds)
+  ci-builder:
+    build:
+      context: ..
+      dockerfile: docker/ci-builder.Dockerfile
+    image: cpp-scaffold:ci-builder
+    container_name: cpp-scaffold-ci-builder
+    volumes:
+      - ..:/workspace:cached
+      - ccache-ci:/root/.ccache
+    environment:
+      - CI=true
+      - CCACHE_MAX_SIZE=1G
+      - CMAKE_VERBOSE_MAKEFILE=ON
+    working_dir: /workspace
+    networks:
+      - cpp-dev-network
+
+# Named volumes for persistent data
+volumes:
+  ccache-ubuntu:
+    driver: local
+  ccache-alpine:
+    driver: local
+  ccache-android:
+    driver: local
+  ccache-wasm:
+    driver: local
+  ccache-ci:
+    driver: local
+  vcpkg-ubuntu:
+    driver: local
+  vcpkg-alpine:
+    driver: local
+  vcpkg-downloads:
+    driver: local
+  android-ndk:
+    driver: local
+  emsdk:
+    driver: local
+
+# Network for inter-container communication
+networks:
+  cpp-dev-network:
+    driver: bridge

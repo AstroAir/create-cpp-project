@@ -1,12 +1,16 @@
 #include "msys2_validator.h"
+
+#include <algorithm>
+#include <cstdlib>
+#include <iostream>
+#include <map>
+#include <regex>
+#include <sstream>
+
 #include "file_utils.h"
 #include "terminal_utils.h"
-#include <iostream>
-#include <sstream>
-#include <regex>
-#include <map>
-#include <cstdlib>
-#include <algorithm>
+
+using namespace utils;
 
 MSYS2Validator::ValidationResult MSYS2Validator::validatePKGBUILD(const std::string& pkgbuildPath) {
     ValidationResult result;
@@ -19,7 +23,7 @@ MSYS2Validator::ValidationResult MSYS2Validator::validatePKGBUILD(const std::str
     }
 
     // Read file content
-    std::string content = FileUtils::readFile(pkgbuildPath);
+    std::string content = FileUtils::readFromFile(pkgbuildPath);
     if (content.empty()) {
         result.errors.push_back("Failed to read PKGBUILD file or file is empty");
         return result;
@@ -28,15 +32,18 @@ MSYS2Validator::ValidationResult MSYS2Validator::validatePKGBUILD(const std::str
     return validatePKGBUILDContent(content);
 }
 
-MSYS2Validator::ValidationResult MSYS2Validator::validatePKGBUILDContent(const std::string& pkgbuildContent) {
+MSYS2Validator::ValidationResult MSYS2Validator::validatePKGBUILDContent(
+        const std::string& pkgbuildContent) {
     ValidationResult result;
     result.isValid = true;
 
     // Validate syntax
     auto syntaxResult = validatePKGBUILDSyntax(pkgbuildContent);
-    result.errors.insert(result.errors.end(), syntaxResult.errors.begin(), syntaxResult.errors.end());
-    result.warnings.insert(result.warnings.end(), syntaxResult.warnings.begin(), syntaxResult.warnings.end());
-    
+    result.errors.insert(result.errors.end(), syntaxResult.errors.begin(),
+                         syntaxResult.errors.end());
+    result.warnings.insert(result.warnings.end(), syntaxResult.warnings.begin(),
+                           syntaxResult.warnings.end());
+
     if (!syntaxResult.isValid) {
         result.isValid = false;
     }
@@ -46,9 +53,11 @@ MSYS2Validator::ValidationResult MSYS2Validator::validatePKGBUILDContent(const s
 
     // Validate required fields
     auto fieldsResult = validateRequiredFields(pkgbuildVars);
-    result.errors.insert(result.errors.end(), fieldsResult.errors.begin(), fieldsResult.errors.end());
-    result.warnings.insert(result.warnings.end(), fieldsResult.warnings.begin(), fieldsResult.warnings.end());
-    
+    result.errors.insert(result.errors.end(), fieldsResult.errors.begin(),
+                         fieldsResult.errors.end());
+    result.warnings.insert(result.warnings.end(), fieldsResult.warnings.begin(),
+                           fieldsResult.warnings.end());
+
     if (!fieldsResult.isValid) {
         result.isValid = false;
     }
@@ -56,12 +65,14 @@ MSYS2Validator::ValidationResult MSYS2Validator::validatePKGBUILDContent(const s
     // Validate array fields
     auto arrayResult = validateArrayFields(pkgbuildVars);
     result.errors.insert(result.errors.end(), arrayResult.errors.begin(), arrayResult.errors.end());
-    result.warnings.insert(result.warnings.end(), arrayResult.warnings.begin(), arrayResult.warnings.end());
+    result.warnings.insert(result.warnings.end(), arrayResult.warnings.begin(),
+                           arrayResult.warnings.end());
 
     // Add suggestions
     if (pkgbuildVars.find("pkgdesc") != pkgbuildVars.end()) {
         if (pkgbuildVars["pkgdesc"].length() > 80) {
-            result.suggestions.push_back("Consider shortening package description (currently > 80 characters)");
+            result.suggestions.push_back(
+                    "Consider shortening package description (currently > 80 characters)");
         }
     }
 
@@ -86,7 +97,8 @@ MSYS2Validator::ValidationResult MSYS2Validator::validateMSYS2Environment() {
         result.errors.push_back("pacman package manager not found");
         result.isValid = false;
     } else {
-        result.suggestions.push_back("pacman found: " + pacmanVersion.substr(0, pacmanVersion.find('\n')));
+        result.suggestions.push_back("pacman found: " +
+                                     pacmanVersion.substr(0, pacmanVersion.find('\n')));
     }
 
     // Check MINGW_PREFIX
@@ -99,9 +111,11 @@ MSYS2Validator::ValidationResult MSYS2Validator::validateMSYS2Environment() {
 
     // Validate build tools
     auto buildToolsResult = validateBuildTools();
-    result.errors.insert(result.errors.end(), buildToolsResult.errors.begin(), buildToolsResult.errors.end());
-    result.warnings.insert(result.warnings.end(), buildToolsResult.warnings.begin(), buildToolsResult.warnings.end());
-    
+    result.errors.insert(result.errors.end(), buildToolsResult.errors.begin(),
+                         buildToolsResult.errors.end());
+    result.warnings.insert(result.warnings.end(), buildToolsResult.warnings.begin(),
+                           buildToolsResult.warnings.end());
+
     if (!buildToolsResult.isValid) {
         result.isValid = false;
     }
@@ -137,7 +151,7 @@ MSYS2Validator::BuildTestResult MSYS2Validator::testMSYS2Build(const std::string
     // 2. Running makepkg -s to build the package
     // 3. Checking build output for errors
     // 4. Running tests if available
-    
+
     result.buildOutput = "Build testing not yet implemented";
     result.testOutput = "Test execution not yet implemented";
     result.suggestions.push_back("Manual testing: cd to project directory and run 'makepkg -s'");
@@ -148,16 +162,16 @@ MSYS2Validator::BuildTestResult MSYS2Validator::testMSYS2Build(const std::string
 std::string MSYS2Validator::executeCommand(const std::string& command) {
     std::string result;
     char buffer[128];
-    
+
     FILE* pipe = popen(command.c_str(), "r");
     if (!pipe) {
         return "";
     }
-    
+
     while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
         result += buffer;
     }
-    
+
     pclose(pipe);
     return result;
 }
@@ -166,7 +180,7 @@ bool MSYS2Validator::isMSYS2Environment() {
     // Check for MSYS2-specific environment variables
     const char* msystem = std::getenv("MSYSTEM");
     const char* mingwPrefix = std::getenv("MINGW_PREFIX");
-    
+
     return (msystem != nullptr) || (mingwPrefix != nullptr);
 }
 
@@ -174,116 +188,116 @@ std::map<std::string, std::string> MSYS2Validator::parsePKGBUILD(const std::stri
     std::map<std::string, std::string> vars;
     std::istringstream stream(content);
     std::string line;
-    
+
     while (std::getline(stream, line)) {
         // Skip comments and empty lines
         if (line.empty() || line[0] == '#') {
             continue;
         }
-        
+
         // Look for variable assignments
         std::regex varRegex(R"(^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(.*)$)");
         std::smatch match;
-        
+
         if (std::regex_match(line, match, varRegex)) {
             std::string varName = match[1].str();
             std::string varValue = match[2].str();
-            
+
             // Remove quotes if present
-            if (varValue.length() >= 2 && 
-                ((varValue.front() == '"' && varValue.back() == '"') ||
-                 (varValue.front() == '\'' && varValue.back() == '\''))) {
+            if (varValue.length() >= 2 && ((varValue.front() == '"' && varValue.back() == '"') ||
+                                           (varValue.front() == '\'' && varValue.back() == '\''))) {
                 varValue = varValue.substr(1, varValue.length() - 2);
             }
-            
+
             vars[varName] = varValue;
         }
     }
-    
+
     return vars;
 }
 
-MSYS2Validator::ValidationResult MSYS2Validator::validateRequiredFields(const std::map<std::string, std::string>& pkgbuildVars) {
+MSYS2Validator::ValidationResult MSYS2Validator::validateRequiredFields(
+        const std::map<std::string, std::string>& pkgbuildVars) {
     ValidationResult result;
     result.isValid = true;
-    
+
     // Required fields for MSYS2 packages
-    std::vector<std::string> requiredFields = {
-        "pkgname", "pkgver", "pkgrel", "pkgdesc", "arch", "license"
-    };
-    
+    std::vector<std::string> requiredFields = {"pkgname", "pkgver", "pkgrel",
+                                               "pkgdesc", "arch",   "license"};
+
     for (const auto& field : requiredFields) {
         if (pkgbuildVars.find(field) == pkgbuildVars.end() || pkgbuildVars.at(field).empty()) {
             result.errors.push_back("Missing required field: " + field);
             result.isValid = false;
         }
     }
-    
+
     // Check for MSYS2-specific fields
     if (pkgbuildVars.find("mingw_arch") == pkgbuildVars.end()) {
         result.warnings.push_back("Missing mingw_arch field (recommended for MSYS2 packages)");
     }
-    
+
     return result;
 }
 
-MSYS2Validator::ValidationResult MSYS2Validator::validateArrayFields(const std::map<std::string, std::string>& pkgbuildVars) {
+MSYS2Validator::ValidationResult MSYS2Validator::validateArrayFields(
+        const std::map<std::string, std::string>& pkgbuildVars) {
     ValidationResult result;
     result.isValid = true;
-    
+
     // Check common array fields
     std::vector<std::string> arrayFields = {"depends", "makedepends", "source"};
-    
+
     for (const auto& field : arrayFields) {
         auto it = pkgbuildVars.find(field);
         if (it != pkgbuildVars.end()) {
             const std::string& value = it->second;
             // Basic validation - should start with ( and end with )
             if (!value.empty() && !(value.front() == '(' && value.back() == ')')) {
-                result.warnings.push_back("Array field " + field + " should be enclosed in parentheses");
+                result.warnings.push_back("Array field " + field +
+                                          " should be enclosed in parentheses");
             }
         }
     }
-    
+
     return result;
 }
 
-MSYS2Validator::ValidationResult MSYS2Validator::validatePKGBUILDSyntax(const std::string& content) {
+MSYS2Validator::ValidationResult MSYS2Validator::validatePKGBUILDSyntax(
+        const std::string& content) {
     ValidationResult result;
     result.isValid = true;
-    
+
     // Basic syntax checks
     if (content.empty()) {
         result.errors.push_back("PKGBUILD content is empty");
         result.isValid = false;
         return result;
     }
-    
+
     // Check for required functions
     if (content.find("build()") == std::string::npos) {
         result.warnings.push_back("No build() function found");
     }
-    
+
     if (content.find("package()") == std::string::npos) {
         result.errors.push_back("Missing required package() function");
         result.isValid = false;
     }
-    
+
     return result;
 }
 
 MSYS2Validator::ValidationResult MSYS2Validator::validateBuildTools() {
     ValidationResult result;
     result.isValid = true;
-    
+
     // Check for essential build tools
-    std::vector<std::pair<std::string, std::string>> tools = {
-        {"cmake", "cmake --version"},
-        {"ninja", "ninja --version"},
-        {"gcc", "gcc --version"},
-        {"make", "make --version"}
-    };
-    
+    std::vector<std::pair<std::string, std::string>> tools = {{"cmake", "cmake --version"},
+                                                              {"ninja", "ninja --version"},
+                                                              {"gcc", "gcc --version"},
+                                                              {"make", "make --version"}};
+
     for (const auto& tool : tools) {
         std::string output = executeCommand(tool.second);
         if (output.empty()) {
@@ -294,7 +308,8 @@ MSYS2Validator::ValidationResult MSYS2Validator::validateBuildTools() {
     return result;
 }
 
-MSYS2Validator::ValidationResult MSYS2Validator::validateDependencies(const std::vector<std::string>& dependencies) {
+MSYS2Validator::ValidationResult MSYS2Validator::validateDependencies(
+        const std::vector<std::string>& dependencies) {
     ValidationResult result;
     result.isValid = true;
 
@@ -340,31 +355,8 @@ bool MSYS2Validator::isPackageInstalled(const std::string& packageName) {
     return !output.empty();
 }
 
-MSYS2Validator::ValidationResult MSYS2Validator::validatePKGBUILDSyntax(const std::string& pkgbuildPath) {
-    ValidationResult result;
-    result.isValid = true;
-
-    if (!std::filesystem::exists(pkgbuildPath)) {
-        result.errors.push_back("PKGBUILD file not found: " + pkgbuildPath);
-        result.isValid = false;
-        return result;
-    }
-
-    std::ifstream file(pkgbuildPath);
-    if (!file.is_open()) {
-        result.errors.push_back("Cannot open PKGBUILD file: " + pkgbuildPath);
-        result.isValid = false;
-        return result;
-    }
-
-    std::string content((std::istreambuf_iterator<char>(file)),
-                       std::istreambuf_iterator<char>());
-    file.close();
-
-    return validatePKGBUILDContent(content);
-}
-
-MSYS2Validator::ValidationResult MSYS2Validator::validateBuildProcess(const std::string& projectPath) {
+MSYS2Validator::ValidationResult MSYS2Validator::validateBuildProcess(
+        const std::string& projectPath) {
     ValidationResult result;
     result.isValid = true;
 
@@ -389,8 +381,10 @@ MSYS2Validator::ValidationResult MSYS2Validator::validateBuildProcess(const std:
     } else {
         // Validate PKGBUILD syntax
         auto pkgbuildResult = validatePKGBUILDSyntax(pkgbuildFile);
-        result.errors.insert(result.errors.end(), pkgbuildResult.errors.begin(), pkgbuildResult.errors.end());
-        result.warnings.insert(result.warnings.end(), pkgbuildResult.warnings.begin(), pkgbuildResult.warnings.end());
+        result.errors.insert(result.errors.end(), pkgbuildResult.errors.begin(),
+                             pkgbuildResult.errors.end());
+        result.warnings.insert(result.warnings.end(), pkgbuildResult.warnings.begin(),
+                               pkgbuildResult.warnings.end());
         if (!pkgbuildResult.isValid) {
             result.isValid = false;
         }
@@ -413,8 +407,10 @@ MSYS2Validator::ValidationResult MSYS2Validator::testPackageBuild(const std::str
     // First validate the build process
     auto buildValidation = validateBuildProcess(projectPath);
     if (!buildValidation.isValid) {
-        result.errors.insert(result.errors.end(), buildValidation.errors.begin(), buildValidation.errors.end());
-        result.warnings.insert(result.warnings.end(), buildValidation.warnings.begin(), buildValidation.warnings.end());
+        result.errors.insert(result.errors.end(), buildValidation.errors.begin(),
+                             buildValidation.errors.end());
+        result.warnings.insert(result.warnings.end(), buildValidation.warnings.begin(),
+                               buildValidation.warnings.end());
         result.isValid = false;
         return result;
     }
@@ -453,7 +449,8 @@ MSYS2Validator::ValidationResult MSYS2Validator::testPackageBuild(const std::str
     return result;
 }
 
-MSYS2Validator::ValidationResult MSYS2Validator::validateProjectStructure(const std::string& projectPath) {
+MSYS2Validator::ValidationResult MSYS2Validator::validateProjectStructure(
+        const std::string& projectPath) {
     ValidationResult result;
     result.isValid = true;
 

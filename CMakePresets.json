@@ -1,65 +1,45 @@
 {
-    "version": 3,
+    "version": 6,
     "cmakeMinimumRequired": {
         "major": 3,
         "minor": 20,
         "patch": 0
     },
+    "include": [
+        "cmake/presets/base-presets.json",
+        "cmake/presets/optimization-presets.json",
+        "cmake/presets/platform-presets.json",
+        "cmake/presets/container-presets.json"
+    ],
     "configurePresets": [
         {
             "name": "default",
             "displayName": "Default Configuration",
             "description": "Default build configuration with optimizations",
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "ENABLE_PRECOMPILED_HEADERS": "ON",
-                "ENABLE_CCACHE": "ON"
-            }
+            "inherits": ["base-release", "base-optimized"],
+            "binaryDir": "${sourceDir}/build"
         },
         {
             "name": "debug",
             "displayName": "Debug Configuration",
             "description": "Debug build with all warnings and sanitizers",
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build-debug",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "ENABLE_PRECOMPILED_HEADERS": "ON",
-                "ENABLE_CCACHE": "ON",
-                "BUILD_TESTING": "ON"
-            }
+            "inherits": ["base-debug", "base-development"],
+            "binaryDir": "${sourceDir}/build-debug"
         },
         {
             "name": "release",
             "displayName": "Release Configuration",
             "description": "Optimized release build",
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build-release",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "ENABLE_PRECOMPILED_HEADERS": "ON",
-                "ENABLE_UNITY_BUILD": "ON",
-                "ENABLE_CCACHE": "ON",
-                "BUILD_TESTING": "OFF"
-            }
+            "inherits": ["base-release", "base-optimized"],
+            "binaryDir": "${sourceDir}/build-release"
         },
         {
             "name": "fast-build",
             "displayName": "Fast Build Configuration",
             "description": "Maximum build speed configuration",
-            "generator": "Ninja",
+            "inherits": ["base-debug", "fast-build-base"],
             "binaryDir": "${sourceDir}/build-fast",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "ENABLE_PRECOMPILED_HEADERS": "ON",
-                "ENABLE_UNITY_BUILD": "ON",
-                "ENABLE_CCACHE": "ON",
                 "BUILD_TESTING": "OFF"
             }
         },
@@ -67,77 +47,117 @@
             "name": "minimal",
             "displayName": "Minimal Configuration",
             "description": "Minimal build without optimizations",
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build-minimal",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "ENABLE_PRECOMPILED_HEADERS": "OFF",
-                "ENABLE_UNITY_BUILD": "OFF",
-                "ENABLE_CCACHE": "OFF",
-                "BUILD_TESTING": "ON"
-            }
+            "inherits": ["base-debug", "minimal-base"],
+            "binaryDir": "${sourceDir}/build-minimal"
+        },
+        {
+            "name": "optimized",
+            "displayName": "Highly Optimized Configuration",
+            "description": "Maximum performance build with all optimizations",
+            "inherits": ["base-release", "lto-base", "performance-base"],
+            "binaryDir": "${sourceDir}/build-optimized"
+        },
+        {
+            "name": "debug-sanitized",
+            "displayName": "Debug with Sanitizers",
+            "description": "Debug build with address and undefined behavior sanitizers",
+            "inherits": ["base-debug", "sanitizer-base"],
+            "binaryDir": "${sourceDir}/build-debug-sanitized"
+        },
+        {
+            "name": "profiling",
+            "displayName": "Build Time Profiling",
+            "description": "Debug build with build time profiling enabled",
+            "inherits": ["base-debug", "profiling-base"],
+            "binaryDir": "${sourceDir}/build-profiling"
         }
     ],
     "buildPresets": [
         {
             "name": "default",
             "configurePreset": "default",
+            "inherits": "base-build",
             "displayName": "Default Build",
             "description": "Build with default configuration"
         },
         {
             "name": "debug",
             "configurePreset": "debug",
+            "inherits": "base-build",
             "displayName": "Debug Build",
             "description": "Build debug configuration"
         },
         {
             "name": "release",
             "configurePreset": "release",
+            "inherits": "base-build",
             "displayName": "Release Build",
             "description": "Build release configuration"
         },
         {
             "name": "fast-build",
             "configurePreset": "fast-build",
+            "inherits": "fast-build-preset",
             "displayName": "Fast Build",
             "description": "Build with maximum speed optimizations"
         },
         {
             "name": "minimal",
             "configurePreset": "minimal",
+            "inherits": "base-build",
             "displayName": "Minimal Build",
             "description": "Build minimal configuration"
+        },
+        {
+            "name": "optimized",
+            "configurePreset": "optimized",
+            "inherits": "base-build",
+            "displayName": "Optimized Build",
+            "description": "Build with maximum optimizations"
+        },
+        {
+            "name": "debug-sanitized",
+            "configurePreset": "debug-sanitized",
+            "inherits": "base-build-verbose",
+            "displayName": "Debug Sanitized Build",
+            "description": "Build debug configuration with sanitizers"
+        },
+        {
+            "name": "profiling",
+            "configurePreset": "profiling",
+            "inherits": "base-build-verbose",
+            "displayName": "Profiling Build",
+            "description": "Build with build time profiling"
         }
     ],
     "testPresets": [
         {
             "name": "default",
             "configurePreset": "debug",
+            "inherits": "base-test",
             "displayName": "Default Tests",
-            "description": "Run all tests with default configuration",
-            "output": {
-                "outputOnFailure": true
-            },
-            "execution": {
-                "noTestsAction": "error",
-                "stopOnFailure": false
-            }
+            "description": "Run all tests with default configuration"
         },
         {
             "name": "parallel",
             "configurePreset": "debug",
+            "inherits": "base-test-parallel",
             "displayName": "Parallel Tests",
-            "description": "Run tests in parallel",
-            "output": {
-                "outputOnFailure": true
-            },
-            "execution": {
-                "noTestsAction": "error",
-                "stopOnFailure": false,
-                "jobs": 0
-            }
+            "description": "Run tests in parallel"
+        },
+        {
+            "name": "sanitized",
+            "configurePreset": "debug-sanitized",
+            "inherits": "sanitizer-test-base",
+            "displayName": "Sanitized Tests",
+            "description": "Run tests with sanitizers enabled"
+        },
+        {
+            "name": "performance",
+            "configurePreset": "optimized",
+            "inherits": "performance-test-base",
+            "displayName": "Performance Tests",
+            "description": "Run performance tests with optimized build"
         }
     ]
 }

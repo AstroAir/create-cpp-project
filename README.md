@@ -166,29 +166,211 @@ requirements.txt                # Python dependencies for docs
 
 ## 💡 Examples
 
-### Console Application
+### Quick Start Examples
+
+#### Console Application
+Create a command-line tool with modern C++ practices:
 
 ```bash
-cpp-scaffold MyTool --type console --build cmake --package vcpkg --test gtest --ci github
+# Basic console app
+cpp-scaffold MyTool --type console --build cmake --package vcpkg --test gtest
+
+# Advanced console app with CI/CD and editor setup
+cpp-scaffold FileProcessor \
+  --type console \
+  --build cmake \
+  --package vcpkg \
+  --test gtest \
+  --ci github \
+  --editor vscode \
+  --std cpp20 \
+  --docs
 ```
 
-### C++ Library
+**Generated structure:**
+```
+FileProcessor/
+├── CMakeLists.txt          # CMake build configuration
+├── vcpkg.json             # Package dependencies
+├── .github/workflows/     # GitHub Actions CI/CD
+├── .vscode/              # VSCode configuration
+├── src/main.cpp          # Application entry point
+├── include/              # Public headers
+├── tests/                # Unit tests with GTest
+└── docs/                 # Documentation
+```
+
+#### C++ Library
+Create a reusable library with comprehensive tooling:
 
 ```bash
-cpp-scaffold MyLib --type lib --build cmake --package conan --test catch2 --docs
+# Static/shared library
+cpp-scaffold MathLib \
+  --type lib \
+  --build cmake \
+  --package conan \
+  --test catch2 \
+  --docs \
+  --ci github,gitlab \
+  --editor clion
+
+# Header-only library
+cpp-scaffold UtilsLib \
+  --type header-only-lib \
+  --build cmake \
+  --package vcpkg \
+  --test doctest \
+  --std cpp20
 ```
 
-### Qt GUI Application
+**Features included:**
+- Modern CMake with proper target exports
+- Package manager integration (Conan/vcpkg)
+- Comprehensive testing setup
+- API documentation generation
+- CI/CD for multiple platforms
+
+#### Qt GUI Application
+Build desktop applications with Qt framework:
 
 ```bash
-cpp-scaffold MyGuiApp --type gui --framework qt --build cmake --package vcpkg --editor vscode
+# Qt6 application with modern setup
+cpp-scaffold MyGuiApp \
+  --type gui \
+  --framework qt \
+  --build cmake \
+  --package vcpkg \
+  --test gtest \
+  --editor vscode \
+  --ci github
+
+# Qt application with custom widgets
+cpp-scaffold ImageEditor \
+  --type qtapp \
+  --build cmake \
+  --package conan \
+  --std cpp20 \
+  --docs
 ```
 
-### Web Service
+#### Network Service
+Create high-performance network applications:
 
 ```bash
-cpp-scaffold MyAPI --type webservice --build cmake --package conan --test gtest --ci github,gitlab
+# REST API server
+cpp-scaffold MyAPI \
+  --type webservice \
+  --build cmake \
+  --package conan \
+  --test gtest \
+  --ci github,gitlab \
+  --network-lib boost
+
+# TCP/UDP network service
+cpp-scaffold NetworkService \
+  --type network \
+  --build cmake \
+  --package vcpkg \
+  --test catch2 \
+  --network-lib asio
 ```
+
+### Complete Project Walkthroughs
+
+#### Example 1: File Processing Utility
+
+```bash
+# Create the project
+cpp-scaffold FileProcessor \
+  --type console \
+  --build cmake \
+  --package vcpkg \
+  --test gtest \
+  --ci github \
+  --editor vscode \
+  --std cpp17 \
+  --docs
+
+cd FileProcessor
+
+# Build and test
+mkdir build && cd build
+cmake .. -G Ninja
+ninja
+ctest
+
+# Run the application
+./FileProcessor --help
+./FileProcessor --count *.txt
+```
+
+**What you get:**
+- Complete CLI argument parsing
+- File I/O operations with error handling
+- Unit tests with Google Test
+- GitHub Actions CI/CD
+- VSCode debugging configuration
+- Documentation generation
+
+#### Example 2: Math Library with Conan
+
+```bash
+# Create library project
+cpp-scaffold MathLib \
+  --type lib \
+  --build cmake \
+  --package conan \
+  --test catch2 \
+  --docs \
+  --std cpp20
+
+cd MathLib
+
+# Install dependencies and build
+conan install . --build=missing
+cmake --preset conan-default
+cmake --build --preset conan-release
+
+# Run tests
+ctest --preset conan-release
+```
+
+**Features demonstrated:**
+- Modern C++20 modules (optional)
+- Conan package management
+- Catch2 testing framework
+- Doxygen documentation
+- CMake package config generation
+
+#### Example 3: Qt Desktop Application
+
+```bash
+# Create Qt application
+cpp-scaffold ImageViewer \
+  --type gui \
+  --framework qt \
+  --build cmake \
+  --package vcpkg \
+  --test gtest \
+  --editor vscode
+
+cd ImageViewer
+
+# Install Qt and build
+vcpkg install qt6-base qt6-imageformats
+cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
+cmake --build build
+
+# Run the application
+./build/ImageViewer
+```
+
+**Includes:**
+- Qt6 integration with CMake
+- Modern Qt widgets and layouts
+- Image processing capabilities
+- Cross-platform deployment
+- Unit testing for Qt components
 
 ## 🤝 Contributing
 
