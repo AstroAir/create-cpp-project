@@ -1,0 +1,17 @@
+{
+    "name": "test-meson-gui",
+    "version": "0.1.0",
+    "dependencies": [
+      {
+        "name": "spdlog"
+      },
+    {
+        "name": "qtbase"
+      },
+    {
+        "name": "doctest"
+      }
+    
+    ]
+  }
+  
