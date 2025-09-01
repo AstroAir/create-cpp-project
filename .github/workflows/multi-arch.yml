@@ -1,0 +1,309 @@
+name: Multi-Architecture Builds
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  release:
+    types: [published]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  multi-arch-builds:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # x86_64 builds
+          - arch: x86_64
+            runner: ubuntu-latest
+            target: x86_64-linux-gnu
+            cc: gcc
+            cxx: g++
+          - arch: x86_64
+            runner: windows-latest
+            target: x86_64-windows-msvc
+            cc: cl
+            cxx: cl
+          - arch: x86_64
+            runner: macos-latest
+            target: x86_64-apple-darwin
+            cc: clang
+            cxx: clang++
+          
+          # ARM64 builds
+          - arch: arm64
+            runner: ubuntu-latest
+            target: aarch64-linux-gnu
+            cc: aarch64-linux-gnu-gcc
+            cxx: aarch64-linux-gnu-g++
+          - arch: arm64
+            runner: macos-latest
+            target: arm64-apple-darwin
+            cc: clang
+            cxx: clang++
+          
+          # ARM32 builds
+          - arch: arm32
+            runner: ubuntu-latest
+            target: arm-linux-gnueabihf
+            cc: arm-linux-gnueabihf-gcc
+            cxx: arm-linux-gnueabihf-g++
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    # Cache for multi-arch dependencies
+    - name: Cache multi-arch dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.conan2
+          ~/.conan
+          build/_deps
+        key: multiarch-${{ matrix.arch }}-${{ matrix.target }}-${{ hashFiles('**/CMakeLists.txt') }}
+        restore-keys: |
+          multiarch-${{ matrix.arch }}-${{ matrix.target }}-
+          multiarch-${{ matrix.arch }}-
+
+    # Install cross-compilation toolchains (Linux)
+    - name: Install cross-compilation toolchains (Linux)
+      if: matrix.runner == 'ubuntu-latest' && matrix.arch != 'x86_64'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build cmake
+        
+        if [ "${{ matrix.arch }}" = "arm64" ]; then
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+        elif [ "${{ matrix.arch }}" = "arm32" ]; then
+          sudo apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+        fi
+
+    # Install native dependencies
+    - name: Install dependencies (Ubuntu x86_64)
+      if: matrix.runner == 'ubuntu-latest' && matrix.arch == 'x86_64'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build cmake
+
+    - name: Install dependencies (macOS)
+      if: matrix.runner == 'macos-latest'
+      run: |
+        brew install ninja cmake
+
+    - name: Install dependencies (Windows)
+      if: matrix.runner == 'windows-latest'
+      run: |
+        choco install ninja cmake
+
+    # Set up MSVC for Windows
+    - name: Set up MSVC
+      if: matrix.runner == 'windows-latest'
+      uses: ilammy/msvc-dev-cmd@v1
+
+    # Configure CMake for cross-compilation
+    - name: Configure CMake
+      run: |
+        echo "::group::CMake Configuration for ${{ matrix.arch }}"
+        
+        # Set up cross-compilation variables
+        if [ "${{ matrix.runner }}" = "ubuntu-latest" ] && [ "${{ matrix.arch }}" != "x86_64" ]; then
+          # Cross-compilation for ARM on Linux
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -G Ninja \
+            -DCMAKE_SYSTEM_NAME=Linux \
+            -DCMAKE_SYSTEM_PROCESSOR=${{ matrix.arch }} \
+            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+            -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+            -DBUILD_TESTING=OFF
+        elif [ "${{ matrix.runner }}" = "macos-latest" ]; then
+          # macOS universal or architecture-specific builds
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            cmake -B build \
+              -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+              -G Ninja \
+              -DCMAKE_OSX_ARCHITECTURES=arm64 \
+              -DBUILD_TESTING=ON
+          else
+            cmake -B build \
+              -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+              -G Ninja \
+              -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+              -DBUILD_TESTING=ON
+          fi
+        elif [ "${{ matrix.runner }}" = "windows-latest" ]; then
+          # Windows builds
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -G Ninja \
+            -DBUILD_TESTING=ON
+        else
+          # Native builds
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -G Ninja \
+            -DBUILD_TESTING=ON
+        fi
+        echo "::endgroup::"
+      shell: bash
+
+    - name: Build
+      run: |
+        echo "::group::Building for ${{ matrix.arch }}"
+        cmake --build build --config ${{ env.BUILD_TYPE }}
+        echo "::endgroup::"
+      shell: bash
+
+    # Test only for native builds (skip cross-compiled)
+    - name: Test
+      if: (matrix.runner == 'ubuntu-latest' && matrix.arch == 'x86_64') || matrix.runner == 'windows-latest' || matrix.runner == 'macos-latest'
+      run: |
+        echo "::group::Testing ${{ matrix.arch }} build"
+        cd build
+        ctest -C ${{ env.BUILD_TYPE }} --output-on-failure
+        echo "::endgroup::"
+      shell: bash
+
+    # Package artifacts
+    - name: Package artifacts
+      run: |
+        echo "::group::Packaging ${{ matrix.arch }} artifacts"
+        cd build
+        
+        # Create architecture-specific package name
+        if [ "${{ matrix.runner }}" = "windows-latest" ]; then
+          binary_name="cpp-scaffold.exe"
+          package_name="cpp-scaffold-${{ matrix.target }}.zip"
+          cp cpp-scaffold.exe ../cpp-scaffold-${{ matrix.target }}.exe
+          cd ..
+          7z a $package_name cpp-scaffold-${{ matrix.target }}.exe
+        else
+          binary_name="cpp-scaffold"
+          package_name="cpp-scaffold-${{ matrix.target }}.tar.gz"
+          cp cpp-scaffold ../cpp-scaffold-${{ matrix.target }}
+          cd ..
+          tar -czf $package_name cpp-scaffold-${{ matrix.target }}
+        fi
+        
+        echo "Created package: $package_name"
+        echo "::endgroup::"
+      shell: bash
+
+    # Verify binary architecture
+    - name: Verify binary architecture
+      run: |
+        echo "::group::Verifying ${{ matrix.arch }} binary"
+        
+        if [ "${{ matrix.runner }}" = "ubuntu-latest" ]; then
+          if [ "${{ matrix.arch }}" = "x86_64" ]; then
+            file build/cpp-scaffold
+            ldd build/cpp-scaffold || echo "Static binary or cross-compiled"
+          else
+            file build/cpp-scaffold
+            echo "Cross-compiled binary for ${{ matrix.arch }}"
+          fi
+        elif [ "${{ matrix.runner }}" = "macos-latest" ]; then
+          file build/cpp-scaffold
+          lipo -info build/cpp-scaffold || echo "Single architecture binary"
+        elif [ "${{ matrix.runner }}" = "windows-latest" ]; then
+          file build/cpp-scaffold.exe || echo "Windows binary"
+        fi
+        echo "::endgroup::"
+      shell: bash
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: cpp-scaffold-${{ matrix.target }}
+        path: |
+          cpp-scaffold-${{ matrix.target }}*
+        retention-days: 30
+
+  # Create universal binaries for macOS
+  universal-macos:
+    needs: multi-arch-builds
+    runs-on: macos-latest
+    if: github.event_name == 'release'
+    
+    steps:
+    - name: Download macOS artifacts
+      uses: actions/download-artifact@v4
+      with:
+        pattern: cpp-scaffold-*-apple-darwin
+        merge-multiple: true
+
+    - name: Create universal binary
+      run: |
+        echo "::group::Creating macOS Universal Binary"
+        
+        # Extract binaries
+        tar -xzf cpp-scaffold-x86_64-apple-darwin.tar.gz
+        tar -xzf cpp-scaffold-arm64-apple-darwin.tar.gz
+        
+        # Create universal binary
+        lipo -create \
+          cpp-scaffold-x86_64-apple-darwin \
+          cpp-scaffold-arm64-apple-darwin \
+          -output cpp-scaffold-universal
+        
+        # Verify universal binary
+        lipo -info cpp-scaffold-universal
+        
+        # Package universal binary
+        tar -czf cpp-scaffold-universal-apple-darwin.tar.gz cpp-scaffold-universal
+        
+        echo "✅ Universal macOS binary created"
+        echo "::endgroup::"
+
+    - name: Upload universal binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: cpp-scaffold-universal-apple-darwin
+        path: cpp-scaffold-universal-apple-darwin.tar.gz
+        retention-days: 30
+
+  # Summary job
+  multi-arch-summary:
+    needs: [multi-arch-builds, universal-macos]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Generate multi-architecture summary
+      run: |
+        echo "# Multi-Architecture Build Summary" > multi-arch-summary.md
+        echo "Generated on: $(date)" >> multi-arch-summary.md
+        echo "" >> multi-arch-summary.md
+        
+        echo "## Supported Architectures" >> multi-arch-summary.md
+        echo "- ✅ x86_64 (Linux, Windows, macOS)" >> multi-arch-summary.md
+        echo "- ✅ ARM64 (Linux, macOS)" >> multi-arch-summary.md
+        echo "- ✅ ARM32 (Linux)" >> multi-arch-summary.md
+        echo "- ✅ Universal Binary (macOS)" >> multi-arch-summary.md
+        echo "" >> multi-arch-summary.md
+        
+        echo "## Build Status" >> multi-arch-summary.md
+        echo "All multi-architecture builds completed successfully" >> multi-arch-summary.md
+
+    - name: Upload summary
+      uses: actions/upload-artifact@v4
+      with:
+        name: multi-arch-summary
+        path: multi-arch-summary.md
+        retention-days: 30

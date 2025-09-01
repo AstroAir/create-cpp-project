@@ -1,0 +1,346 @@
+name: Debug Tools
+
+on:
+  workflow_dispatch:
+    inputs:
+      debug_type:
+        description: 'Type of debugging to perform'
+        required: true
+        default: 'build-failure'
+        type: choice
+        options:
+          - build-failure
+          - test-failure
+          - performance-issue
+          - dependency-issue
+          - environment-debug
+      enable_ssh:
+        description: 'Enable SSH access for debugging'
+        required: false
+        default: false
+        type: boolean
+      collect_artifacts:
+        description: 'Collect comprehensive debug artifacts'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  debug-analysis:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set up debugging environment
+      run: |
+        echo "::group::Setting up debugging environment"
+        echo "Debug type: ${{ github.event.inputs.debug_type }}"
+        echo "SSH enabled: ${{ github.event.inputs.enable_ssh }}"
+        echo "Collect artifacts: ${{ github.event.inputs.collect_artifacts }}"
+        echo "Runner OS: ${{ matrix.os }}"
+        echo "::endgroup::"
+
+    # Enhanced system information collection
+    - name: Collect system information
+      run: |
+        echo "::group::System Information"
+        echo "=== Operating System ==="
+        if [ "$RUNNER_OS" = "Linux" ]; then
+          uname -a
+          lsb_release -a || cat /etc/os-release
+          cat /proc/cpuinfo | grep "model name" | head -1
+          cat /proc/meminfo | grep MemTotal
+          df -h
+        elif [ "$RUNNER_OS" = "macOS" ]; then
+          uname -a
+          sw_vers
+          sysctl -n machdep.cpu.brand_string
+          sysctl -n hw.memsize | awk '{print $1/1024/1024/1024 " GB"}'
+          df -h
+        elif [ "$RUNNER_OS" = "Windows" ]; then
+          systeminfo
+          wmic cpu get name
+          wmic computersystem get TotalPhysicalMemory
+        fi
+        echo "::endgroup::"
+      shell: bash
+
+    # Environment variables and PATH analysis
+    - name: Analyze environment
+      run: |
+        echo "::group::Environment Analysis"
+        echo "=== Environment Variables ==="
+        env | sort
+        echo ""
+        echo "=== PATH ==="
+        echo $PATH | tr ':' '\n' || echo $PATH | tr ';' '\n'
+        echo ""
+        echo "=== Compiler Information ==="
+        if command -v gcc >/dev/null 2>&1; then
+          echo "GCC: $(gcc --version | head -1)"
+        fi
+        if command -v clang >/dev/null 2>&1; then
+          echo "Clang: $(clang --version | head -1)"
+        fi
+        if command -v cl >/dev/null 2>&1; then
+          echo "MSVC: $(cl 2>&1 | head -1)"
+        fi
+        echo ""
+        echo "=== Build Tools ==="
+        if command -v cmake >/dev/null 2>&1; then
+          echo "CMake: $(cmake --version | head -1)"
+        fi
+        if command -v ninja >/dev/null 2>&1; then
+          echo "Ninja: $(ninja --version)"
+        fi
+        echo "::endgroup::"
+      shell: bash
+
+    # Dependency analysis
+    - name: Analyze dependencies
+      if: github.event.inputs.debug_type == 'dependency-issue' || github.event.inputs.debug_type == 'build-failure'
+      run: |
+        echo "::group::Dependency Analysis"
+        echo "=== Package Managers ==="
+        if command -v vcpkg >/dev/null 2>&1; then
+          echo "vcpkg: $(vcpkg version)"
+        fi
+        if command -v conan >/dev/null 2>&1; then
+          echo "Conan: $(conan --version)"
+        fi
+        if command -v pip >/dev/null 2>&1; then
+          echo "pip: $(pip --version)"
+        fi
+        
+        echo ""
+        echo "=== Project Dependencies ==="
+        if [ -f "vcpkg.json" ]; then
+          echo "Found vcpkg.json:"
+          cat vcpkg.json
+        fi
+        if [ -f "conanfile.txt" ]; then
+          echo "Found conanfile.txt:"
+          cat conanfile.txt
+        fi
+        if [ -f "conanfile.py" ]; then
+          echo "Found conanfile.py:"
+          head -20 conanfile.py
+        fi
+        echo "::endgroup::"
+      shell: bash
+
+    # Build debugging with enhanced logging
+    - name: Debug build process
+      if: github.event.inputs.debug_type == 'build-failure' || github.event.inputs.debug_type == 'environment-debug'
+      run: |
+        echo "::group::Debug Build Process"
+        
+        # Configure with maximum verbosity
+        echo "=== CMake Configuration (Verbose) ==="
+        cmake -B debug_build \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_VERBOSE_MAKEFILE=ON \
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+          -G Ninja \
+          --debug-output \
+          --trace \
+          2>&1 | tee cmake_configure.log
+        
+        echo ""
+        echo "=== Build with Maximum Verbosity ==="
+        cmake --build debug_build --verbose 2>&1 | tee cmake_build.log
+        
+        echo "::endgroup::"
+      shell: bash
+
+    # Test debugging
+    - name: Debug test execution
+      if: github.event.inputs.debug_type == 'test-failure'
+      run: |
+        echo "::group::Debug Test Execution"
+        
+        # Configure for testing
+        cmake -B test_debug_build -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -G Ninja
+        cmake --build test_debug_build
+        
+        cd test_debug_build
+        echo "=== CTest Configuration ==="
+        ctest --show-only
+        
+        echo ""
+        echo "=== CTest Execution (Verbose) ==="
+        ctest --verbose --output-on-failure --parallel 1
+        
+        echo "::endgroup::"
+      shell: bash
+
+    # Performance debugging
+    - name: Debug performance issues
+      if: github.event.inputs.debug_type == 'performance-issue'
+      run: |
+        echo "::group::Performance Debugging"
+        
+        # Build with timing information
+        echo "=== Build Time Analysis ==="
+        time cmake -B perf_build -DCMAKE_BUILD_TYPE=Release -G Ninja
+        time cmake --build perf_build --parallel 1
+        
+        # Memory usage analysis
+        if command -v valgrind >/dev/null 2>&1; then
+          echo "=== Memory Analysis ==="
+          valgrind --tool=memcheck --leak-check=full ./perf_build/cpp-scaffold --version || echo "Valgrind analysis completed"
+        fi
+        
+        # Disk usage analysis
+        echo "=== Disk Usage ==="
+        du -sh perf_build/
+        find perf_build/ -type f -size +10M -exec ls -lh {} \;
+        
+        echo "::endgroup::"
+      shell: bash
+
+    # Network and connectivity debugging
+    - name: Debug network connectivity
+      run: |
+        echo "::group::Network Debugging"
+        
+        echo "=== DNS Resolution ==="
+        nslookup github.com || echo "DNS resolution test"
+        
+        echo "=== Connectivity Tests ==="
+        curl -I https://github.com || echo "GitHub connectivity test"
+        curl -I https://api.github.com || echo "GitHub API connectivity test"
+        
+        if [ "$RUNNER_OS" = "Linux" ]; then
+          echo "=== Network Configuration ==="
+          ip addr show || ifconfig
+          ip route show || route -n
+        fi
+        
+        echo "::endgroup::"
+      shell: bash
+
+    # Collect comprehensive debug artifacts
+    - name: Collect debug artifacts
+      if: github.event.inputs.collect_artifacts == 'true'
+      run: |
+        echo "::group::Collecting Debug Artifacts"
+        
+        # Create debug artifacts directory
+        mkdir -p debug_artifacts
+        
+        # System information
+        if [ "$RUNNER_OS" = "Linux" ]; then
+          uname -a > debug_artifacts/system_info.txt
+          lsb_release -a >> debug_artifacts/system_info.txt 2>/dev/null || cat /etc/os-release >> debug_artifacts/system_info.txt
+          cat /proc/cpuinfo > debug_artifacts/cpu_info.txt
+          cat /proc/meminfo > debug_artifacts/memory_info.txt
+          df -h > debug_artifacts/disk_info.txt
+        elif [ "$RUNNER_OS" = "macOS" ]; then
+          uname -a > debug_artifacts/system_info.txt
+          sw_vers >> debug_artifacts/system_info.txt
+          sysctl -a > debug_artifacts/sysctl_info.txt
+        elif [ "$RUNNER_OS" = "Windows" ]; then
+          systeminfo > debug_artifacts/system_info.txt
+        fi
+        
+        # Environment information
+        env | sort > debug_artifacts/environment.txt
+        echo $PATH > debug_artifacts/path.txt
+        
+        # Build logs
+        if [ -f "cmake_configure.log" ]; then
+          cp cmake_configure.log debug_artifacts/
+        fi
+        if [ -f "cmake_build.log" ]; then
+          cp cmake_build.log debug_artifacts/
+        fi
+        
+        # CMake files
+        if [ -d "debug_build" ]; then
+          cp -r debug_build/CMakeFiles/CMakeError.log debug_artifacts/ 2>/dev/null || true
+          cp -r debug_build/CMakeFiles/CMakeOutput.log debug_artifacts/ 2>/dev/null || true
+          cp debug_build/compile_commands.json debug_artifacts/ 2>/dev/null || true
+        fi
+        
+        # Test results
+        if [ -d "test_debug_build/Testing" ]; then
+          cp -r test_debug_build/Testing debug_artifacts/ 2>/dev/null || true
+        fi
+        
+        echo "Debug artifacts collected in debug_artifacts/"
+        ls -la debug_artifacts/
+        echo "::endgroup::"
+      shell: bash
+
+    # SSH debugging access (use with caution)
+    - name: Setup SSH debugging session
+      if: github.event.inputs.enable_ssh == 'true'
+      uses: mxschmitt/action-tmate@v3
+      with:
+        limit-access-to-actor: true
+        timeout-minutes: 30
+
+    # Upload all debug artifacts
+    - name: Upload debug artifacts
+      if: always() && github.event.inputs.collect_artifacts == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: debug-artifacts-${{ matrix.os }}-${{ github.run_id }}
+        path: |
+          debug_artifacts/
+          cmake_configure.log
+          cmake_build.log
+          debug_build/
+          test_debug_build/Testing/
+          perf_build/
+        retention-days: 7
+
+    # Generate debug report
+    - name: Generate debug report
+      if: always()
+      run: |
+        echo "# Debug Session Report" > debug_report.md
+        echo "Generated: $(date)" >> debug_report.md
+        echo "Debug Type: ${{ github.event.inputs.debug_type }}" >> debug_report.md
+        echo "Runner OS: ${{ matrix.os }}" >> debug_report.md
+        echo "Run ID: ${{ github.run_id }}" >> debug_report.md
+        echo "" >> debug_report.md
+        
+        echo "## System Information" >> debug_report.md
+        if [ "$RUNNER_OS" = "Linux" ]; then
+          echo "- OS: $(lsb_release -d 2>/dev/null | cut -f2 || cat /etc/os-release | grep PRETTY_NAME | cut -d'"' -f2)" >> debug_report.md
+          echo "- Kernel: $(uname -r)" >> debug_report.md
+        elif [ "$RUNNER_OS" = "macOS" ]; then
+          echo "- OS: $(sw_vers -productName) $(sw_vers -productVersion)" >> debug_report.md
+        elif [ "$RUNNER_OS" = "Windows" ]; then
+          echo "- OS: Windows (GitHub Actions)" >> debug_report.md
+        fi
+        
+        echo "" >> debug_report.md
+        echo "## Debug Session Summary" >> debug_report.md
+        echo "- SSH Access: ${{ github.event.inputs.enable_ssh }}" >> debug_report.md
+        echo "- Artifacts Collected: ${{ github.event.inputs.collect_artifacts }}" >> debug_report.md
+        echo "- Debug Type: ${{ github.event.inputs.debug_type }}" >> debug_report.md
+        
+        echo "" >> debug_report.md
+        echo "## Next Steps" >> debug_report.md
+        echo "1. Review uploaded artifacts for detailed logs" >> debug_report.md
+        echo "2. Check system information for environment issues" >> debug_report.md
+        echo "3. Analyze build/test logs for specific error patterns" >> debug_report.md
+        echo "4. Consider reproducing the issue locally with similar environment" >> debug_report.md
+
+    - name: Upload debug report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: debug-report-${{ matrix.os }}-${{ github.run_id }}
+        path: debug_report.md
+        retention-days: 30

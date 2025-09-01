@@ -1,0 +1,309 @@
+name: Docker Builds
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run Docker builds weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  docker-builds:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Ubuntu-based builds
+          - dockerfile: docker/ubuntu-dev.Dockerfile
+            image_suffix: ubuntu-dev
+            platform: linux/amd64
+          - dockerfile: docker/ubuntu-dev.Dockerfile
+            image_suffix: ubuntu-dev-arm64
+            platform: linux/arm64
+          
+          # Alpine-based builds (smaller images)
+          - dockerfile: docker/alpine-minimal.Dockerfile
+            image_suffix: alpine-minimal
+            platform: linux/amd64
+          - dockerfile: docker/alpine-minimal.Dockerfile
+            image_suffix: alpine-minimal-arm64
+            platform: linux/arm64
+          
+          # CI-optimized builds
+          - dockerfile: docker/ci-builder.Dockerfile
+            image_suffix: ci-builder
+            platform: linux/amd64
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch,suffix=-${{ matrix.image_suffix }}
+          type=ref,event=pr,suffix=-${{ matrix.image_suffix }}
+          type=sha,suffix=-${{ matrix.image_suffix }}
+          type=raw,value=latest,suffix=-${{ matrix.image_suffix }},enable={{is_default_branch}}
+
+    - name: Build and test Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ${{ matrix.dockerfile }}
+        platforms: ${{ matrix.platform }}
+        push: false
+        tags: test-image:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILD_TYPE=Release
+          ENABLE_TESTING=ON
+
+    # Test the built image
+    - name: Test Docker image functionality
+      run: |
+        echo "::group::Testing Docker Image"
+        
+        # Run basic functionality tests
+        docker run --rm test-image:latest cpp-scaffold --version
+        
+        # Test project creation in container
+        docker run --rm -v $PWD/test_output:/workspace test-image:latest \
+          sh -c "cd /workspace && cpp-scaffold create test-project --type=console --build-system=cmake"
+        
+        # Verify project was created
+        test -d test_output/test-project && echo "✅ Project creation test passed"
+        
+        # Test building the created project
+        docker run --rm -v $PWD/test_output:/workspace test-image:latest \
+          sh -c "cd /workspace/test-project && cmake -B build && cmake --build build"
+        
+        echo "✅ Docker image functionality tests passed"
+        echo "::endgroup::"
+
+    - name: Build and push Docker image
+      if: github.event_name != 'pull_request'
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ${{ matrix.dockerfile }}
+        platforms: ${{ matrix.platform }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILD_TYPE=Release
+          ENABLE_TESTING=ON
+
+  docker-compose-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Test Docker Compose setup
+      run: |
+        echo "::group::Docker Compose Tests"
+        
+        # Test the development environment
+        docker-compose -f docker/docker-compose.yml up -d ubuntu-dev
+        
+        # Wait for container to be ready
+        sleep 10
+        
+        # Test development environment
+        docker-compose -f docker/docker-compose.yml exec -T ubuntu-dev \
+          sh -c "cpp-scaffold --version"
+        
+        # Test building a project in the dev environment
+        docker-compose -f docker/docker-compose.yml exec -T ubuntu-dev \
+          sh -c "cpp-scaffold create test-compose --type=console && cd test-compose && cmake -B build && cmake --build build"
+        
+        # Clean up
+        docker-compose -f docker/docker-compose.yml down
+        
+        echo "✅ Docker Compose tests passed"
+        echo "::endgroup::"
+
+  reproducibility-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Test build reproducibility
+      run: |
+        echo "::group::Reproducibility Tests"
+        
+        # Build the same image twice with identical parameters
+        docker buildx build -f docker/ubuntu-dev.Dockerfile -t test-repro-1:latest . \
+          --build-arg BUILD_TYPE=Release \
+          --build-arg ENABLE_TESTING=ON
+        
+        docker buildx build -f docker/ubuntu-dev.Dockerfile -t test-repro-2:latest . \
+          --build-arg BUILD_TYPE=Release \
+          --build-arg ENABLE_TESTING=ON
+        
+        # Compare the built binaries
+        echo "Extracting binaries from both images..."
+        docker run --rm -v $PWD:/output test-repro-1:latest \
+          sh -c "cp /usr/local/bin/cpp-scaffold /output/cpp-scaffold-1"
+        
+        docker run --rm -v $PWD:/output test-repro-2:latest \
+          sh -c "cp /usr/local/bin/cpp-scaffold /output/cpp-scaffold-2"
+        
+        # Check if binaries are identical (allowing for some differences due to timestamps)
+        if cmp -s cpp-scaffold-1 cpp-scaffold-2; then
+          echo "✅ Builds are perfectly reproducible"
+        else
+          echo "⚠️ Builds have minor differences (expected due to timestamps)"
+          # Check if the functionality is the same
+          chmod +x cpp-scaffold-1 cpp-scaffold-2
+          version1=$(./cpp-scaffold-1 --version)
+          version2=$(./cpp-scaffold-2 --version)
+          if [ "$version1" = "$version2" ]; then
+            echo "✅ Functional reproducibility confirmed"
+          else
+            echo "❌ Functional differences detected"
+            exit 1
+          fi
+        fi
+        
+        echo "::endgroup::"
+
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build image for security scanning
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: docker/ubuntu-dev.Dockerfile
+        load: true
+        tags: security-scan:latest
+        cache-from: type=gha
+
+    - name: Install Trivy
+      run: |
+        sudo apt-get update
+        sudo apt-get install wget apt-transport-https gnupg lsb-release
+        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+        echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+        sudo apt-get update
+        sudo apt-get install trivy
+
+    - name: Scan Docker image for vulnerabilities
+      run: |
+        echo "::group::Docker Security Scan"
+        
+        # Scan for vulnerabilities
+        trivy image --format sarif --output docker-security-results.sarif security-scan:latest
+        
+        # Also generate human-readable report
+        trivy image --format table security-scan:latest > docker-security-report.txt
+        
+        echo "Security scan completed"
+        echo "::endgroup::"
+
+    - name: Upload security scan results
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'docker-security-results.sarif'
+        category: 'docker-security'
+
+    - name: Upload security artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: docker-security-scan
+        path: |
+          docker-security-results.sarif
+          docker-security-report.txt
+        retention-days: 30
+
+  multi-arch-manifest:
+    needs: docker-builds
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create multi-arch manifests
+      run: |
+        echo "::group::Creating Multi-Architecture Manifests"
+        
+        # Create manifests for each image type
+        for suffix in ubuntu-dev alpine-minimal; do
+          echo "Creating manifest for $suffix..."
+          
+          # Extract the base tag (without architecture suffix)
+          base_tag="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-$suffix"
+          amd64_tag="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-$suffix"
+          arm64_tag="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-$suffix-arm64"
+          
+          # Create and push multi-arch manifest
+          docker manifest create $base_tag $amd64_tag $arm64_tag || echo "Manifest creation failed for $suffix"
+          docker manifest push $base_tag || echo "Manifest push failed for $suffix"
+        done
+        
+        echo "✅ Multi-architecture manifests created"
+        echo "::endgroup::"

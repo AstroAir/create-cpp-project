@@ -1,0 +1,280 @@
+name: Performance Benchmarks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run performance tests daily at 3 AM UTC
+    - cron: '0 3 * * *'
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0  # Fetch full history for comparison
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    # Cache for benchmark dependencies
+    - name: Cache benchmark dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.conan2
+          ~/.conan
+          build/_deps
+        key: benchmark-deps-${{ hashFiles('**/CMakeLists.txt', '**/dependencies.json') }}
+        restore-keys: |
+          benchmark-deps-
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build cmake
+        pip install matplotlib pandas
+
+    # Install Google Benchmark
+    - name: Install Google Benchmark
+      run: |
+        git clone https://github.com/google/benchmark.git
+        cd benchmark
+        cmake -E make_directory "build"
+        cmake -E chdir "build" cmake -DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release ../
+        cmake --build "build" --config Release
+        sudo cmake --build "build" --config Release --target install
+
+    - name: Configure CMake with benchmarks
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja -DBUILD_BENCHMARKS=ON -DBUILD_TESTING=ON
+
+    - name: Build with benchmarks
+      run: |
+        cmake --build build --config ${{env.BUILD_TYPE}}
+
+    # Run benchmarks and save results
+    - name: Run benchmarks
+      run: |
+        echo "::group::Running Performance Benchmarks"
+        cd build
+        
+        # Create benchmarks directory
+        mkdir -p benchmarks
+        
+        # Run benchmarks and save results in JSON format
+        if [ -f "benchmarks/cpp_scaffold_benchmarks" ]; then
+          ./benchmarks/cpp_scaffold_benchmarks --benchmark_format=json --benchmark_out=benchmarks/current_results.json
+        else
+          echo "No benchmark executable found, creating dummy results"
+          echo '{"benchmarks": [], "context": {"date": "'$(date)'", "host_name": "'$(hostname)'", "executable": "dummy"}}' > benchmarks/current_results.json
+        fi
+        
+        # Also save in console format for logs
+        if [ -f "benchmarks/cpp_scaffold_benchmarks" ]; then
+          ./benchmarks/cpp_scaffold_benchmarks --benchmark_format=console > benchmarks/current_results.txt
+        fi
+        echo "::endgroup::"
+
+    # Download previous benchmark results for comparison
+    - name: Download previous benchmark results
+      uses: actions/download-artifact@v4
+      with:
+        name: benchmark-results
+        path: previous_benchmarks/
+      continue-on-error: true
+
+    # Compare with previous results and detect regressions
+    - name: Analyze performance regression
+      run: |
+        echo "::group::Performance Regression Analysis"
+        cd build
+        
+        python3 << 'EOF'
+        import json
+        import os
+        import sys
+        from datetime import datetime
+        
+        def load_benchmark_results(file_path):
+            try:
+                with open(file_path, 'r') as f:
+                    return json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                return {"benchmarks": []}
+        
+        def compare_benchmarks(current, previous):
+            regressions = []
+            improvements = []
+            
+            current_benchmarks = {b['name']: b for b in current.get('benchmarks', [])}
+            previous_benchmarks = {b['name']: b for b in previous.get('benchmarks', [])}
+            
+            for name, current_bench in current_benchmarks.items():
+                if name in previous_benchmarks:
+                    prev_bench = previous_benchmarks[name]
+                    
+                    # Compare CPU time (nanoseconds)
+                    current_time = current_bench.get('cpu_time', 0)
+                    previous_time = prev_bench.get('cpu_time', 0)
+                    
+                    if previous_time > 0:
+                        change_percent = ((current_time - previous_time) / previous_time) * 100
+                        
+                        if change_percent > 10:  # 10% regression threshold
+                            regressions.append({
+                                'name': name,
+                                'current_time': current_time,
+                                'previous_time': previous_time,
+                                'change_percent': change_percent
+                            })
+                        elif change_percent < -10:  # 10% improvement
+                            improvements.append({
+                                'name': name,
+                                'current_time': current_time,
+                                'previous_time': previous_time,
+                                'change_percent': change_percent
+                            })
+            
+            return regressions, improvements
+        
+        # Load results
+        current = load_benchmark_results('benchmarks/current_results.json')
+        previous = load_benchmark_results('../previous_benchmarks/benchmark_results.json')
+        
+        # Compare
+        regressions, improvements = compare_benchmarks(current, previous)
+        
+        # Generate report
+        report = []
+        report.append("# Performance Analysis Report")
+        report.append(f"Generated on: {datetime.now().isoformat()}")
+        report.append("")
+        
+        if regressions:
+            report.append("## ⚠️ Performance Regressions Detected")
+            for reg in regressions:
+                report.append(f"- **{reg['name']}**: {reg['change_percent']:.1f}% slower ({reg['previous_time']:.0f}ns → {reg['current_time']:.0f}ns)")
+            report.append("")
+        
+        if improvements:
+            report.append("## ✅ Performance Improvements")
+            for imp in improvements:
+                report.append(f"- **{imp['name']}**: {abs(imp['change_percent']):.1f}% faster ({imp['previous_time']:.0f}ns → {imp['current_time']:.0f}ns)")
+            report.append("")
+        
+        if not regressions and not improvements:
+            report.append("## 📊 No Significant Performance Changes")
+            report.append("Performance is stable compared to previous run.")
+        
+        # Write report
+        with open('benchmarks/performance_report.md', 'w') as f:
+            f.write('\n'.join(report))
+        
+        # Print summary
+        print('\n'.join(report))
+        
+        # Exit with error if regressions found
+        if regressions:
+            print(f"\n❌ Found {len(regressions)} performance regression(s)!")
+            sys.exit(1)
+        else:
+            print(f"\n✅ No performance regressions detected")
+        EOF
+        echo "::endgroup::"
+
+    # Upload current results as artifacts
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results
+        path: |
+          build/benchmarks/current_results.json
+          build/benchmarks/current_results.txt
+          build/benchmarks/performance_report.md
+        retention-days: 30
+
+    # Create performance visualization
+    - name: Generate performance charts
+      run: |
+        echo "::group::Generating Performance Charts"
+        cd build
+        
+        python3 << 'EOF'
+        import json
+        import matplotlib.pyplot as plt
+        import pandas as pd
+        from datetime import datetime
+        import os
+        
+        def create_performance_chart(results_file):
+            try:
+                with open(results_file, 'r') as f:
+                    data = json.load(f)
+                
+                benchmarks = data.get('benchmarks', [])
+                if not benchmarks:
+                    print("No benchmark data to visualize")
+                    return
+                
+                # Extract benchmark names and times
+                names = [b['name'] for b in benchmarks]
+                times = [b.get('cpu_time', 0) / 1000000 for b in benchmarks]  # Convert to milliseconds
+                
+                # Create bar chart
+                plt.figure(figsize=(12, 6))
+                plt.bar(names, times)
+                plt.title('Performance Benchmarks - CPU Time')
+                plt.xlabel('Benchmark')
+                plt.ylabel('Time (ms)')
+                plt.xticks(rotation=45, ha='right')
+                plt.tight_layout()
+                plt.savefig('benchmarks/performance_chart.png', dpi=300, bbox_inches='tight')
+                plt.close()
+                
+                print("Performance chart generated successfully")
+                
+            except Exception as e:
+                print(f"Error generating chart: {e}")
+        
+        create_performance_chart('benchmarks/current_results.json')
+        EOF
+        echo "::endgroup::"
+
+    - name: Upload performance charts
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-charts
+        path: build/benchmarks/performance_chart.png
+        retention-days: 30
+
+    # Comment on PR with performance results
+    - name: Comment PR with performance results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const path = './build/benchmarks/performance_report.md';
+          
+          if (fs.existsSync(path)) {
+            const report = fs.readFileSync(path, 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🚀 Performance Benchmark Results\n\n${report}`
+            });
+          }

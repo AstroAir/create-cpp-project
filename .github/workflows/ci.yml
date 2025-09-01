@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -13,91 +13,366 @@ env:
 jobs:
   build-and-test:
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        compiler: [gcc, clang, msvc]
-        exclude:
-          # Exclude unsupported combinations
+        include:
+          # Ubuntu builds with multiple GCC versions
+          - os: ubuntu-20.04
+            compiler: gcc-9
+            cc: gcc-9
+            cxx: g++-9
+            build_type: Release
+          - os: ubuntu-22.04
+            compiler: gcc-11
+            cc: gcc-11
+            cxx: g++-11
+            build_type: Release
           - os: ubuntu-latest
-            compiler: msvc
+            compiler: gcc-12
+            cc: gcc-12
+            cxx: g++-12
+            build_type: Release
+          - os: ubuntu-latest
+            compiler: gcc-13
+            cc: gcc-13
+            cxx: g++-13
+            build_type: Release
+
+          # Ubuntu builds with multiple Clang versions
+          - os: ubuntu-20.04
+            compiler: clang-12
+            cc: clang-12
+            cxx: clang++-12
+            build_type: Release
+          - os: ubuntu-22.04
+            compiler: clang-14
+            cc: clang-14
+            cxx: clang++-14
+            build_type: Release
+          - os: ubuntu-latest
+            compiler: clang-15
+            cc: clang-15
+            cxx: clang++-15
+            build_type: Release
+          - os: ubuntu-latest
+            compiler: clang-16
+            cc: clang-16
+            cxx: clang++-16
+            build_type: Release
+
+          # Windows builds with MSVC
+          - os: windows-2019
+            compiler: msvc-2019
+            build_type: Release
+          - os: windows-2022
+            compiler: msvc-2022
+            build_type: Release
+          - os: windows-latest
+            compiler: msvc-latest
+            build_type: Release
+
+          # macOS builds
+          - os: macos-12
+            compiler: clang-xcode-14
+            build_type: Release
+          - os: macos-13
+            compiler: clang-xcode-15
+            build_type: Release
           - os: macos-latest
-            compiler: msvc
+            compiler: clang-xcode-latest
+            build_type: Release
+
+          # Debug builds for key platforms
+          - os: ubuntu-latest
+            compiler: gcc-12
+            cc: gcc-12
+            cxx: g++-12
+            build_type: Debug
           - os: windows-latest
-            compiler: gcc
-          - os: windows-latest
-            compiler: clang
+            compiler: msvc-latest
+            build_type: Debug
+          - os: macos-latest
+            compiler: clang-xcode-latest
+            build_type: Debug
 
     runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
 
-    - name: Install dependencies (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y ninja-build
-        if [ "${{ matrix.compiler }}" = "clang" ]; then
-          sudo apt-get install -y clang
-        fi
+      # Cache for vcpkg dependencies
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg
+            ${{ github.workspace }}/vcpkg_installed
+          key: vcpkg-${{ matrix.os }}-${{ matrix.compiler }}-${{ hashFiles('**/vcpkg.json', '**/vcpkg-configuration.json') }}
+          restore-keys: |
+            vcpkg-${{ matrix.os }}-${{ matrix.compiler }}-
+            vcpkg-${{ matrix.os }}-
 
-    - name: Install dependencies (macOS)
-      if: matrix.os == 'macos-latest'
-      run: |
-        brew install ninja
-        if [ "${{ matrix.compiler }}" = "clang" ]; then
-          brew install llvm
-        fi
+      # Cache for Conan dependencies
+      - name: Cache Conan
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.conan2
+            ~/.conan
+          key: conan-${{ matrix.os }}-${{ matrix.compiler }}-${{ hashFiles('**/conanfile.txt', '**/conanfile.py', '**/conandata.yml') }}
+          restore-keys: |
+            conan-${{ matrix.os }}-${{ matrix.compiler }}-
+            conan-${{ matrix.os }}-
 
-    - name: Install dependencies (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        choco install ninja
+      # Cache for CMake dependencies
+      - name: Cache CMake dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/build/_deps
+            ${{ github.workspace }}/deps_cache
+          key: cmake-deps-${{ matrix.os }}-${{ matrix.compiler }}-${{ hashFiles('**/CMakeLists.txt', '**/dependencies.json') }}
+          restore-keys: |
+            cmake-deps-${{ matrix.os }}-${{ matrix.compiler }}-
+            cmake-deps-${{ matrix.os }}-
 
-    - name: Set up compiler environment (GCC)
-      if: matrix.compiler == 'gcc'
-      run: |
-        echo "CC=gcc" >> $GITHUB_ENV
-        echo "CXX=g++" >> $GITHUB_ENV
+      # Cache for CMake configuration
+      - name: Cache CMake configuration
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/build/CMakeCache.txt
+            ${{ github.workspace }}/build/CMakeFiles
+            ${{ github.workspace }}/build/cmake_install.cmake
+            ${{ github.workspace }}/build/compile_commands.json
+          key: cmake-config-${{ matrix.os }}-${{ matrix.compiler }}-${{ hashFiles('**/CMakeLists.txt', '**/CMakePresets.json', 'cmake/**') }}
+          restore-keys: |
+            cmake-config-${{ matrix.os }}-${{ matrix.compiler }}-
+            cmake-config-${{ matrix.os }}-
 
-    - name: Set up compiler environment (Clang)
-      if: matrix.compiler == 'clang'
-      run: |
-        echo "CC=clang" >> $GITHUB_ENV
-        echo "CXX=clang++" >> $GITHUB_ENV
+      # Cache for ccache
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.ccache
+            ~/AppData/Local/ccache
+            ~/Library/Caches/ccache
+          key: ccache-${{ matrix.os }}-${{ matrix.compiler }}-${{ github.sha }}
+          restore-keys: |
+            ccache-${{ matrix.os }}-${{ matrix.compiler }}-
+            ccache-${{ matrix.os }}-
 
-    - name: Set up compiler environment (MSVC)
-      if: matrix.compiler == 'msvc'
-      uses: ilammy/msvc-dev-cmd@v1
+      - name: Install dependencies (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build ccache
 
-    - name: Configure CMake
-      run: |
-        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja -DBUILD_TESTING=ON
+          # Install specific GCC versions
+          if [[ "${{ matrix.compiler }}" == gcc-* ]]; then
+            version=$(echo "${{ matrix.compiler }}" | cut -d'-' -f2)
+            sudo apt-get install -y gcc-${version} g++-${version}
+          fi
 
-    - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+          # Install specific Clang versions
+          if [[ "${{ matrix.compiler }}" == clang-* ]]; then
+            version=$(echo "${{ matrix.compiler }}" | cut -d'-' -f2)
+            wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+            sudo add-apt-repository "deb http://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-${version} main"
+            sudo apt-get update
+            sudo apt-get install -y clang-${version} clang++-${version}
+          fi
 
-    - name: Test
-      working-directory: ${{github.workspace}}/build
-      run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+      - name: Install dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install ninja ccache
+          if [ "${{ matrix.compiler }}" = "clang" ]; then
+            brew install llvm
+          fi
 
-    - name: Upload build artifacts
-      if: failure()
-      uses: actions/upload-artifact@v3
-      with:
-        name: build-artifacts-${{ matrix.os }}-${{ matrix.compiler }}
-        path: |
-          ${{github.workspace}}/build
-          !${{github.workspace}}/build/_deps
-          !${{github.workspace}}/build/CMakeFiles
+      - name: Install dependencies (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install ninja ccache
+
+      - name: Set up compiler environment
+        run: |
+          # Set compiler environment based on matrix
+          if [[ "${{ matrix.compiler }}" == gcc-* ]] || [[ "${{ matrix.compiler }}" == clang-* ]]; then
+            echo "CC=${{ matrix.cc }}" >> $GITHUB_ENV
+            echo "CXX=${{ matrix.cxx }}" >> $GITHUB_ENV
+          elif [[ "${{ matrix.compiler }}" == msvc-* ]]; then
+            # MSVC setup will be handled by the next step
+            echo "Using MSVC compiler"
+          fi
+
+          # Set build type from matrix
+          echo "BUILD_TYPE=${{ matrix.build_type }}" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Set up MSVC environment
+        if: startsWith(matrix.compiler, 'msvc')
+        uses: ilammy/msvc-dev-cmd@v1
+
+      # Configure ccache
+      - name: Configure ccache
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ] || [ "$RUNNER_OS" = "macOS" ]; then
+            ccache --set-config=max_size=2G
+            ccache --set-config=compression=true
+            ccache --set-config=cache_dir=$HOME/.ccache
+            echo "CC=ccache $CC" >> $GITHUB_ENV
+            echo "CXX=ccache $CXX" >> $GITHUB_ENV
+          elif [ "$RUNNER_OS" = "Windows" ]; then
+            ccache --set-config=max_size=2G
+            ccache --set-config=compression=true
+            ccache --set-config=cache_dir=$HOME/AppData/Local/ccache
+            echo "CMAKE_CXX_COMPILER_LAUNCHER=ccache" >> $GITHUB_ENV
+            echo "CMAKE_C_COMPILER_LAUNCHER=ccache" >> $GITHUB_ENV
+          fi
+          ccache --zero-stats
+        shell: bash
+
+      - name: Configure CMake
+        run: |
+          echo "::group::CMake Configuration"
+          start_time=$(date +%s)
+          # Enable coverage for Debug builds
+          if [ "${{ env.BUILD_TYPE }}" = "Debug" ] || [ "${{ github.event_name }}" = "pull_request" ]; then
+            cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -G Ninja -DBUILD_TESTING=ON -DENABLE_COVERAGE=ON
+          else
+            cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja -DBUILD_TESTING=ON
+          fi
+          end_time=$(date +%s)
+          configure_time=$((end_time - start_time))
+          echo "CMake configuration took ${configure_time} seconds"
+          echo "CONFIGURE_TIME=${configure_time}" >> $GITHUB_ENV
+          echo "::endgroup::"
+        shell: bash
+
+      - name: Build
+        run: |
+          echo "::group::Build"
+          start_time=$(date +%s)
+          cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --verbose
+          end_time=$(date +%s)
+          build_time=$((end_time - start_time))
+          echo "Build took ${build_time} seconds"
+          echo "BUILD_TIME=${build_time}" >> $GITHUB_ENV
+          echo "::endgroup::"
+        shell: bash
+
+      - name: Test
+        run: |
+          echo "::group::Testing"
+          start_time=$(date +%s)
+          cd ${{github.workspace}}/build
+          ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+          end_time=$(date +%s)
+          test_time=$((end_time - start_time))
+          echo "Testing took ${test_time} seconds"
+          echo "TEST_TIME=${test_time}" >> $GITHUB_ENV
+          echo "::endgroup::"
+        shell: bash
+
+      # Generate coverage report
+      - name: Generate coverage report
+        if: matrix.os == 'ubuntu-latest' && matrix.compiler == 'gcc'
+        run: |
+          echo "::group::Coverage Generation"
+          cd ${{github.workspace}}/build
+
+          # Install gcovr for coverage reporting
+          pip install gcovr
+
+          # Generate coverage reports in multiple formats
+          gcovr --root .. --filter ../src/ --exclude ../src/main.cpp \
+                --xml-pretty --xml coverage.xml \
+                --html-details coverage.html \
+                --txt coverage.txt \
+                --print-summary
+
+          # Also generate lcov format for Codecov
+          if command -v lcov >/dev/null 2>&1; then
+            lcov --capture --directory . --output-file coverage.info
+            lcov --remove coverage.info '/usr/*' --output-file coverage.info
+            lcov --remove coverage.info '*/tests/*' --output-file coverage.info
+            lcov --remove coverage.info '*/build/_deps/*' --output-file coverage.info
+          fi
+          echo "::endgroup::"
+        shell: bash
+
+      # Upload coverage to Codecov
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest' && matrix.compiler == 'gcc'
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./build/coverage.xml,./build/coverage.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      # Show ccache statistics
+      - name: Show ccache statistics
+        run: |
+          ccache --show-stats
+        shell: bash
+
+      # Report build performance metrics
+      - name: Report build performance
+        run: |
+          echo "::group::Build Performance Summary"
+          total_time=$((CONFIGURE_TIME + BUILD_TIME + TEST_TIME))
+          echo "📊 Build Performance Summary:"
+          echo "⚙️  Configure: ${CONFIGURE_TIME}s"
+          echo "🔨 Build: ${BUILD_TIME}s"
+          echo "🧪 Test: ${TEST_TIME}s"
+          echo "⏱️  Total: ${total_time}s"
+          echo "::endgroup::"
+
+          # Create performance artifact
+          mkdir -p build-metrics
+          cat > build-metrics/performance.json << EOF
+          {
+            "os": "${{ matrix.os }}",
+            "compiler": "${{ matrix.compiler }}",
+            "configure_time": ${CONFIGURE_TIME},
+            "build_time": ${BUILD_TIME},
+            "test_time": ${TEST_TIME},
+            "total_time": ${total_time},
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+        shell: bash
+
+      - name: Upload build metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-metrics-${{ matrix.os }}-${{ matrix.compiler }}
+          path: build-metrics/
+          retention-days: 30
+
+      - name: Upload build artifacts
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts-${{ matrix.os }}-${{ matrix.compiler }}
+          path: |
+            ${{github.workspace}}/build
+            !${{github.workspace}}/build/_deps
+            !${{github.workspace}}/build/CMakeFiles
 
   build-systems-test:
     runs-on: ubuntu-latest
@@ -107,105 +382,188 @@ jobs:
         template-type: [console, lib, gui, header-only-lib]
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    - name: Install build system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y ninja-build
+      - name: Install build system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
 
-        # Install XMake
-        if [ "${{ matrix.build-system }}" = "xmake" ]; then
-          curl -fsSL https://xmake.io/shget.text | bash
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-        fi
+          # Install XMake
+          if [ "${{ matrix.build-system }}" = "xmake" ]; then
+            curl -fsSL https://xmake.io/shget.text | bash
+            echo "$HOME/.local/bin" >> $GITHUB_PATH
+          fi
 
-        # Install Premake
-        if [ "${{ matrix.build-system }}" = "premake" ]; then
-          wget https://github.com/premake/premake-core/releases/download/v5.0.0-beta2/premake-5.0.0-beta2-linux.tar.gz
-          tar -xzf premake-5.0.0-beta2-linux.tar.gz
-          sudo mv premake5 /usr/local/bin/
-        fi
+          # Install Premake
+          if [ "${{ matrix.build-system }}" = "premake" ]; then
+            wget https://github.com/premake/premake-core/releases/download/v5.0.0-beta2/premake-5.0.0-beta2-linux.tar.gz
+            tar -xzf premake-5.0.0-beta2-linux.tar.gz
+            sudo mv premake5 /usr/local/bin/
+          fi
 
-        # Install Meson
-        if [ "${{ matrix.build-system }}" = "meson" ]; then
-          pip3 install meson
-        fi
+          # Install Meson
+          if [ "${{ matrix.build-system }}" = "meson" ]; then
+            pip3 install meson
+          fi
 
-    - name: Build CPP-Scaffold
-      run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
-        cmake --build build
+      - name: Build CPP-Scaffold
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
+          cmake --build build
 
-    - name: Test project creation with different build systems
-      run: |
-        cd build
-        ./cpp-scaffold test-project-${{ matrix.build-system }}-${{ matrix.template-type }} \
-          --type ${{ matrix.template-type }} \
-          --build ${{ matrix.build-system }} \
-          --test gtest \
-          --no-interactive
+      - name: Test project creation with different build systems
+        run: |
+          cd build
+          ./cpp-scaffold test-project-${{ matrix.build-system }}-${{ matrix.template-type }} \
+            --type ${{ matrix.template-type }} \
+            --build ${{ matrix.build-system }} \
+            --test gtest \
+            --no-interactive
 
-        # Verify the correct build file was created
-        case "${{ matrix.build-system }}" in
-          cmake)
-            test -f test-project-${{ matrix.build-system }}-${{ matrix.template-type }}/CMakeLists.txt
-            ;;
-          xmake)
-            test -f test-project-${{ matrix.build-system }}-${{ matrix.template-type }}/xmake.lua
-            ;;
-          premake)
-            test -f test-project-${{ matrix.build-system }}-${{ matrix.template-type }}/premake5.lua
-            ;;
-          meson)
-            test -f test-project-${{ matrix.build-system }}-${{ matrix.template-type }}/meson.build
-            ;;
-        esac
+          # Verify the correct build file was created
+          case "${{ matrix.build-system }}" in
+            cmake)
+              test -f test-project-${{ matrix.build-system }}-${{ matrix.template-type }}/CMakeLists.txt
+              ;;
+            xmake)
+              test -f test-project-${{ matrix.build-system }}-${{ matrix.template-type }}/xmake.lua
+              ;;
+            premake)
+              test -f test-project-${{ matrix.build-system }}-${{ matrix.template-type }}/premake5.lua
+              ;;
+            meson)
+              test -f test-project-${{ matrix.build-system }}-${{ matrix.template-type }}/meson.build
+              ;;
+          esac
 
   code-quality:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install clang-format and clang-tidy
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y clang-format clang-tidy
+      - name: Install static analysis tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format clang-tidy cppcheck ninja-build cmake
 
-    - name: Check code formatting
-      run: |
-        find src/ tests/ -name "*.cpp" -o -name "*.h" | xargs clang-format --dry-run --Werror
+      # Cache for static analysis
+      - name: Cache static analysis
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/cppcheck
+            build/compile_commands.json
+          key: static-analysis-${{ hashFiles('**/CMakeLists.txt', 'src/**', 'include/**') }}
+          restore-keys: |
+            static-analysis-
 
-    - name: Run clang-tidy
-      run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-        find src/ -name "*.cpp" | xargs clang-tidy -p build
+      - name: Configure CMake for static analysis
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -G Ninja
+
+      - name: Check code formatting
+        run: |
+          echo "::group::Code Formatting Check"
+          find src/ tests/ include/ -name "*.cpp" -o -name "*.h" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
+          echo "::endgroup::"
+
+      - name: Run clang-tidy
+        run: |
+          echo "::group::Clang-Tidy Analysis"
+          find src/ -name "*.cpp" | xargs clang-tidy -p build --format-style=file
+          echo "::endgroup::"
+
+      - name: Run cppcheck
+        run: |
+          echo "::group::Cppcheck Analysis"
+          cppcheck --enable=all --inconclusive --xml --xml-version=2 \
+            --suppress=missingIncludeSystem \
+            --suppress=unmatchedSuppression \
+            --suppress=unusedFunction \
+            -I include/ -I src/ \
+            src/ 2> cppcheck-results.xml || true
+
+          # Convert to human readable format
+          cppcheck --enable=all --inconclusive \
+            --suppress=missingIncludeSystem \
+            --suppress=unmatchedSuppression \
+            --suppress=unusedFunction \
+            -I include/ -I src/ \
+            src/ 2> cppcheck-results.txt || true
+          echo "::endgroup::"
+
+      - name: Run include-what-you-use (if available)
+        run: |
+          echo "::group::Include What You Use"
+          if command -v include-what-you-use >/dev/null 2>&1; then
+            find src/ -name "*.cpp" | head -5 | xargs -I {} include-what-you-use -p build {} 2> iwyu-results.txt || true
+          else
+            echo "include-what-you-use not available, skipping"
+          fi
+          echo "::endgroup::"
+
+      - name: Generate code quality report
+        run: |
+          echo "# Code Quality Analysis Report" > code-quality-report.md
+          echo "Generated on: $(date)" >> code-quality-report.md
+          echo "" >> code-quality-report.md
+
+          echo "## Cppcheck Results" >> code-quality-report.md
+          if [ -f "cppcheck-results.txt" ] && [ -s "cppcheck-results.txt" ]; then
+            echo '```' >> code-quality-report.md
+            cat cppcheck-results.txt >> code-quality-report.md
+            echo '```' >> code-quality-report.md
+          else
+            echo "✅ No issues found by cppcheck" >> code-quality-report.md
+          fi
+          echo "" >> code-quality-report.md
+
+          echo "## Include What You Use Results" >> code-quality-report.md
+          if [ -f "iwyu-results.txt" ] && [ -s "iwyu-results.txt" ]; then
+            echo '```' >> code-quality-report.md
+            head -50 iwyu-results.txt >> code-quality-report.md
+            echo '```' >> code-quality-report.md
+          else
+            echo "✅ No include issues found" >> code-quality-report.md
+          fi
+
+      - name: Upload code quality artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: code-quality-results
+          path: |
+            cppcheck-results.*
+            iwyu-results.txt
+            code-quality-report.md
+          retention-days: 30
 
   documentation:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Doxygen
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y doxygen graphviz
+      - name: Install Doxygen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
 
-    - name: Generate documentation
-      run: |
-        doxygen Doxyfile || echo "Doxyfile not found, skipping documentation generation"
+      - name: Generate documentation
+        run: |
+          doxygen Doxyfile || echo "Doxyfile not found, skipping documentation generation"
 
-    - name: Deploy to GitHub Pages
-      if: success()
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs/html
+      - name: Deploy to GitHub Pages
+        if: success()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/html

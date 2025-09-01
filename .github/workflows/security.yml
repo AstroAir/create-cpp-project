@@ -1,0 +1,234 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run security scans daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  dependency-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    # Cache for dependencies to speed up scanning
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.conan2
+          ~/.conan
+          vcpkg_installed
+        key: security-deps-${{ hashFiles('**/conanfile.txt', '**/vcpkg.json', '**/dependencies.json') }}
+        restore-keys: |
+          security-deps-
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build cmake
+
+    # Install Trivy
+    - name: Install Trivy
+      run: |
+        sudo apt-get install wget apt-transport-https gnupg lsb-release
+        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+        echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+        sudo apt-get update
+        sudo apt-get install trivy
+
+    # Configure CMake to generate dependency information
+    - name: Configure CMake for dependency analysis
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+    # Scan filesystem for vulnerabilities
+    - name: Run Trivy filesystem scan
+      run: |
+        trivy fs --format sarif --output trivy-fs-results.sarif .
+
+    # Scan dependencies if conanfile exists
+    - name: Scan Conan dependencies
+      if: hashFiles('**/conanfile.txt', '**/conanfile.py') != ''
+      run: |
+        if [ -f "conanfile.txt" ] || [ -f "conanfile.py" ]; then
+          echo "Scanning Conan dependencies..."
+          # Install conan and generate lockfile for scanning
+          pip install conan
+          conan profile detect --force
+          if [ -f "conanfile.py" ]; then
+            conan install . --build=missing --lockfile-out=conan.lock || true
+          elif [ -f "conanfile.txt" ]; then
+            conan install . --build=missing --lockfile-out=conan.lock || true
+          fi
+          
+          # Scan the conan cache
+          if [ -d "$HOME/.conan2" ]; then
+            trivy fs --format sarif --output trivy-conan-results.sarif $HOME/.conan2/p/
+          fi
+        fi
+
+    # Scan vcpkg dependencies if vcpkg.json exists
+    - name: Scan vcpkg dependencies
+      if: hashFiles('**/vcpkg.json') != ''
+      run: |
+        if [ -f "vcpkg.json" ]; then
+          echo "Scanning vcpkg dependencies..."
+          # Install vcpkg
+          git clone https://github.com/Microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.sh
+          ./vcpkg/vcpkg install --triplet x64-linux || true
+          
+          # Scan vcpkg installed packages
+          if [ -d "vcpkg_installed" ]; then
+            trivy fs --format sarif --output trivy-vcpkg-results.sarif vcpkg_installed/
+          fi
+        fi
+
+    # Create comprehensive security report
+    - name: Generate security report
+      run: |
+        echo "# Security Scan Report" > security-report.md
+        echo "Generated on: $(date)" >> security-report.md
+        echo "" >> security-report.md
+        
+        # Check if any SARIF files were generated
+        if [ -f "trivy-fs-results.sarif" ]; then
+          echo "## Filesystem Scan Results" >> security-report.md
+          trivy fs --format table . >> security-report.md 2>/dev/null || echo "No filesystem vulnerabilities found" >> security-report.md
+          echo "" >> security-report.md
+        fi
+        
+        if [ -f "trivy-conan-results.sarif" ]; then
+          echo "## Conan Dependencies Scan Results" >> security-report.md
+          echo "Conan dependencies scanned for vulnerabilities" >> security-report.md
+          echo "" >> security-report.md
+        fi
+        
+        if [ -f "trivy-vcpkg-results.sarif" ]; then
+          echo "## vcpkg Dependencies Scan Results" >> security-report.md
+          echo "vcpkg dependencies scanned for vulnerabilities" >> security-report.md
+          echo "" >> security-report.md
+        fi
+
+    # Upload SARIF results to GitHub Security tab
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-fs-results.sarif'
+        category: 'trivy-filesystem'
+
+    - name: Upload Conan scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always() && hashFiles('trivy-conan-results.sarif') != ''
+      with:
+        sarif_file: 'trivy-conan-results.sarif'
+        category: 'trivy-conan'
+
+    - name: Upload vcpkg scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always() && hashFiles('trivy-vcpkg-results.sarif') != ''
+      with:
+        sarif_file: 'trivy-vcpkg-results.sarif'
+        category: 'trivy-vcpkg'
+
+    # Upload security artifacts
+    - name: Upload security scan artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-scan-results
+        path: |
+          trivy-*.sarif
+          security-report.md
+        retention-days: 30
+
+    # Fail the job if high or critical vulnerabilities are found
+    - name: Check for critical vulnerabilities
+      run: |
+        if [ -f "trivy-fs-results.sarif" ]; then
+          # Check if there are any HIGH or CRITICAL vulnerabilities
+          high_critical=$(trivy fs --format json . | jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | length')
+          if [ "$high_critical" -gt 0 ]; then
+            echo "❌ Found $high_critical HIGH or CRITICAL vulnerabilities!"
+            echo "Please review the security scan results and address critical issues."
+            exit 1
+          else
+            echo "✅ No HIGH or CRITICAL vulnerabilities found"
+          fi
+        fi
+
+  license-compliance:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install license checker
+      run: |
+        pip install licensecheck
+
+    - name: Check licenses
+      run: |
+        echo "# License Compliance Report" > license-report.md
+        echo "Generated on: $(date)" >> license-report.md
+        echo "" >> license-report.md
+        
+        # Check source code licenses
+        echo "## Source Code License Check" >> license-report.md
+        if [ -f "LICENSE" ]; then
+          echo "Project license file found: LICENSE" >> license-report.md
+        else
+          echo "⚠️ No LICENSE file found in project root" >> license-report.md
+        fi
+        echo "" >> license-report.md
+        
+        # Check for license headers in source files
+        echo "## License Headers Check" >> license-report.md
+        missing_headers=0
+        for file in $(find src/ include/ -name "*.cpp" -o -name "*.h" -o -name "*.hpp" 2>/dev/null); do
+          if ! head -10 "$file" | grep -i "license\|copyright" > /dev/null; then
+            echo "⚠️ Missing license header: $file" >> license-report.md
+            missing_headers=$((missing_headers + 1))
+          fi
+        done
+        
+        if [ $missing_headers -eq 0 ]; then
+          echo "✅ All source files have license headers" >> license-report.md
+        else
+          echo "⚠️ $missing_headers files missing license headers" >> license-report.md
+        fi
+
+    - name: Upload license compliance report
+      uses: actions/upload-artifact@v4
+      with:
+        name: license-compliance-report
+        path: license-report.md
+        retention-days: 30

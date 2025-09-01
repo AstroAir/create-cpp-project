@@ -1,0 +1,294 @@
+name: Dependency Updates
+
+on:
+  schedule:
+    # Check for C++ dependency updates weekly on Fridays at 8 AM UTC
+    - cron: '0 8 * * 5'
+  workflow_dispatch:
+    inputs:
+      update_type:
+        description: 'Type of update to perform'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - vcpkg
+          - conan
+          - cmake
+          - submodules
+
+jobs:
+  check-cpp-dependencies:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        submodules: recursive
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install dependency tools
+      run: |
+        pip install requests packaging semver
+        sudo apt-get update
+        sudo apt-get install -y jq curl
+
+    # Check vcpkg dependencies
+    - name: Check vcpkg dependencies
+      if: github.event.inputs.update_type == 'all' || github.event.inputs.update_type == 'vcpkg'
+      run: |
+        echo "::group::Checking vcpkg dependencies"
+        
+        if [ -f "vcpkg.json" ]; then
+          echo "Found vcpkg.json, checking for updates..."
+          
+          # Clone latest vcpkg to check for updates
+          git clone https://github.com/Microsoft/vcpkg.git temp_vcpkg
+          cd temp_vcpkg
+          
+          # Get latest commit hash
+          latest_commit=$(git rev-parse HEAD)
+          echo "Latest vcpkg commit: $latest_commit"
+          
+          # Check if we need to update vcpkg baseline
+          cd ..
+          if [ -f "vcpkg.json" ]; then
+            current_baseline=$(jq -r '.["builtin-baseline"] // empty' vcpkg.json)
+            if [ "$current_baseline" != "$latest_commit" ]; then
+              echo "vcpkg baseline can be updated from $current_baseline to $latest_commit"
+              echo "VCPKG_UPDATE_AVAILABLE=true" >> $GITHUB_ENV
+              echo "VCPKG_NEW_BASELINE=$latest_commit" >> $GITHUB_ENV
+            fi
+          fi
+          
+          rm -rf temp_vcpkg
+        else
+          echo "No vcpkg.json found, skipping vcpkg update check"
+        fi
+        echo "::endgroup::"
+
+    # Check Conan dependencies
+    - name: Check Conan dependencies
+      if: github.event.inputs.update_type == 'all' || github.event.inputs.update_type == 'conan'
+      run: |
+        echo "::group::Checking Conan dependencies"
+        
+        if [ -f "conanfile.txt" ] || [ -f "conanfile.py" ]; then
+          echo "Found Conan files, checking for updates..."
+          
+          # Install Conan
+          pip install conan
+          conan profile detect --force
+          
+          # Check for outdated packages
+          if [ -f "conanfile.txt" ]; then
+            echo "Checking conanfile.txt for updates..."
+            # This would require more sophisticated parsing
+            echo "Manual review recommended for Conan updates"
+          fi
+          
+          if [ -f "conanfile.py" ]; then
+            echo "Checking conanfile.py for updates..."
+            echo "Manual review recommended for Conan updates"
+          fi
+        else
+          echo "No Conan files found, skipping Conan update check"
+        fi
+        echo "::endgroup::"
+
+    # Check CMake dependencies
+    - name: Check CMake dependencies
+      if: github.event.inputs.update_type == 'all' || github.event.inputs.update_type == 'cmake'
+      run: |
+        echo "::group::Checking CMake dependencies"
+        
+        python3 << 'EOF'
+        import re
+        import requests
+        import os
+        from packaging import version
+        
+        def check_cmake_version():
+            try:
+                # Get latest CMake version
+                response = requests.get('https://api.github.com/repos/Kitware/CMake/releases/latest')
+                if response.status_code == 200:
+                    latest_version = response.json()['tag_name'].lstrip('v')
+                    print(f"Latest CMake version: {latest_version}")
+                    
+                    # Check CMakeLists.txt for minimum version
+                    if os.path.exists('CMakeLists.txt'):
+                        with open('CMakeLists.txt', 'r') as f:
+                            content = f.read()
+                        
+                        # Find cmake_minimum_required
+                        match = re.search(r'cmake_minimum_required\s*\(\s*VERSION\s+([0-9.]+)', content)
+                        if match:
+                            current_min = match.group(1)
+                            print(f"Current minimum CMake version: {current_min}")
+                            
+                            # Check if we can suggest an update
+                            if version.parse(latest_version) > version.parse(current_min):
+                                print(f"CMake can be updated from {current_min} to {latest_version}")
+                                with open(os.environ['GITHUB_ENV'], 'a') as f:
+                                    f.write(f"CMAKE_UPDATE_AVAILABLE=true\n")
+                                    f.write(f"CMAKE_CURRENT_VERSION={current_min}\n")
+                                    f.write(f"CMAKE_LATEST_VERSION={latest_version}\n")
+            except Exception as e:
+                print(f"Error checking CMake version: {e}")
+        
+        check_cmake_version()
+        EOF
+        echo "::endgroup::"
+
+    # Update git submodules
+    - name: Update git submodules
+      if: github.event.inputs.update_type == 'all' || github.event.inputs.update_type == 'submodules'
+      run: |
+        echo "::group::Updating git submodules"
+        
+        if [ -f ".gitmodules" ]; then
+          echo "Found .gitmodules, updating submodules..."
+          git submodule update --remote --merge
+          
+          # Check if there are any changes
+          if ! git diff --quiet --exit-code; then
+            echo "SUBMODULES_UPDATED=true" >> $GITHUB_ENV
+            git add .
+            echo "Submodules have been updated"
+          else
+            echo "No submodule updates available"
+          fi
+        else
+          echo "No .gitmodules found, skipping submodule updates"
+        fi
+        echo "::endgroup::"
+
+    # Create update summary
+    - name: Create update summary
+      run: |
+        echo "# Dependency Update Summary" > update_summary.md
+        echo "Generated on: $(date)" >> update_summary.md
+        echo "" >> update_summary.md
+        
+        echo "## Available Updates" >> update_summary.md
+        
+        if [ "$VCPKG_UPDATE_AVAILABLE" = "true" ]; then
+          echo "### 📦 vcpkg" >> update_summary.md
+          echo "- Baseline can be updated to: \`$VCPKG_NEW_BASELINE\`" >> update_summary.md
+          echo "" >> update_summary.md
+        fi
+        
+        if [ "$CMAKE_UPDATE_AVAILABLE" = "true" ]; then
+          echo "### 🔧 CMake" >> update_summary.md
+          echo "- Current minimum version: \`$CMAKE_CURRENT_VERSION\`" >> update_summary.md
+          echo "- Latest available version: \`$CMAKE_LATEST_VERSION\`" >> update_summary.md
+          echo "- Consider updating minimum required version" >> update_summary.md
+          echo "" >> update_summary.md
+        fi
+        
+        if [ "$SUBMODULES_UPDATED" = "true" ]; then
+          echo "### 📁 Git Submodules" >> update_summary.md
+          echo "- Submodules have been updated to latest versions" >> update_summary.md
+          echo "" >> update_summary.md
+        fi
+        
+        if [ "$VCPKG_UPDATE_AVAILABLE" != "true" ] && [ "$CMAKE_UPDATE_AVAILABLE" != "true" ] && [ "$SUBMODULES_UPDATED" != "true" ]; then
+          echo "✅ All dependencies are up to date!" >> update_summary.md
+        fi
+
+    # Create pull request if updates are available
+    - name: Create pull request for updates
+      if: env.VCPKG_UPDATE_AVAILABLE == 'true' || env.CMAKE_UPDATE_AVAILABLE == 'true' || env.SUBMODULES_UPDATED == 'true'
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: |
+          deps: update dependencies
+          
+          - Update vcpkg baseline: ${{ env.VCPKG_NEW_BASELINE }}
+          - CMake version check: ${{ env.CMAKE_LATEST_VERSION }}
+          - Submodules updated: ${{ env.SUBMODULES_UPDATED }}
+        title: "🔄 Automated dependency updates"
+        body-path: update_summary.md
+        branch: automated-dependency-updates
+        delete-branch: true
+        labels: |
+          dependencies
+          automated
+          maintenance
+
+    - name: Upload update summary
+      uses: actions/upload-artifact@v4
+      with:
+        name: dependency-update-summary
+        path: update_summary.md
+        retention-days: 30
+
+  # Validate dependency updates
+  validate-updates:
+    needs: check-cpp-dependencies
+    runs-on: ubuntu-latest
+    if: needs.check-cpp-dependencies.outputs.updates-available == 'true'
+    
+    steps:
+    - name: Checkout updated code
+      uses: actions/checkout@v4
+      with:
+        ref: automated-dependency-updates
+
+    - name: Test updated dependencies
+      run: |
+        echo "::group::Testing updated dependencies"
+        
+        # Try to configure and build with updated dependencies
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
+        cmake --build build
+        
+        echo "✅ Build successful with updated dependencies"
+        echo "::endgroup::"
+
+    - name: Run tests with updated dependencies
+      run: |
+        echo "::group::Running tests with updated dependencies"
+        cd build
+        ctest --output-on-failure
+        echo "✅ Tests passed with updated dependencies"
+        echo "::endgroup::"
+
+  # Security scan for new dependencies
+  security-scan-updates:
+    needs: check-cpp-dependencies
+    runs-on: ubuntu-latest
+    if: needs.check-cpp-dependencies.outputs.updates-available == 'true'
+    
+    steps:
+    - name: Checkout updated code
+      uses: actions/checkout@v4
+      with:
+        ref: automated-dependency-updates
+
+    - name: Run security scan on updated dependencies
+      run: |
+        echo "::group::Security scan for updated dependencies"
+        
+        # Install Trivy for security scanning
+        sudo apt-get update
+        sudo apt-get install wget apt-transport-https gnupg lsb-release
+        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+        echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+        sudo apt-get update
+        sudo apt-get install trivy
+        
+        # Scan for vulnerabilities
+        trivy fs --format table .
+        
+        echo "✅ Security scan completed"
+        echo "::endgroup::"

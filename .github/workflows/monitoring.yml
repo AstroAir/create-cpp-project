@@ -1,0 +1,412 @@
+name: CI Pipeline Monitoring
+
+on:
+  workflow_run:
+    workflows: ["CI", "Security Scanning", "Performance Benchmarks", "Integration Tests", "Docker Builds"]
+    types: [completed]
+  schedule:
+    # Generate daily monitoring reports at 6 AM UTC
+    - cron: '0 6 * * *'
+    # Generate weekly summary reports on Sundays at 8 AM UTC
+    - cron: '0 8 * * 0'
+
+jobs:
+  pipeline-health-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_run'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install monitoring dependencies
+      run: |
+        pip install requests PyGithub matplotlib pandas numpy
+
+    - name: Analyze workflow run
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        python3 << 'EOF'
+        import os
+        import json
+        import requests
+        from datetime import datetime, timedelta
+        
+        # Get workflow run details
+        workflow_run_id = "${{ github.event.workflow_run.id }}"
+        workflow_name = "${{ github.event.workflow_run.name }}"
+        workflow_status = "${{ github.event.workflow_run.conclusion }}"
+        workflow_duration = "${{ github.event.workflow_run.run_duration_ms }}"
+        
+        # GitHub API headers
+        headers = {
+            'Authorization': f'token {os.environ["GITHUB_TOKEN"]}',
+            'Accept': 'application/vnd.github.v3+json'
+        }
+        
+        # Collect workflow metrics
+        metrics = {
+            'timestamp': datetime.now().isoformat(),
+            'workflow_name': workflow_name,
+            'run_id': workflow_run_id,
+            'status': workflow_status,
+            'duration_ms': workflow_duration,
+            'repository': '${{ github.repository }}'
+        }
+        
+        # Get job details
+        jobs_url = f"https://api.github.com/repos/${{ github.repository }}/actions/runs/{workflow_run_id}/jobs"
+        jobs_response = requests.get(jobs_url, headers=headers)
+        
+        if jobs_response.status_code == 200:
+            jobs_data = jobs_response.json()
+            job_metrics = []
+            
+            for job in jobs_data.get('jobs', []):
+                job_metric = {
+                    'name': job['name'],
+                    'status': job['conclusion'],
+                    'duration_ms': 0
+                }
+                
+                # Calculate job duration
+                if job['started_at'] and job['completed_at']:
+                    start_time = datetime.fromisoformat(job['started_at'].replace('Z', '+00:00'))
+                    end_time = datetime.fromisoformat(job['completed_at'].replace('Z', '+00:00'))
+                    duration = (end_time - start_time).total_seconds() * 1000
+                    job_metric['duration_ms'] = int(duration)
+                
+                job_metrics.append(job_metric)
+            
+            metrics['jobs'] = job_metrics
+        
+        # Save metrics to file
+        with open('workflow_metrics.json', 'w') as f:
+            json.dump(metrics, f, indent=2)
+        
+        # Generate health report
+        health_status = "🟢 HEALTHY" if workflow_status == "success" else "🔴 UNHEALTHY"
+        
+        report = [
+            f"# CI Pipeline Health Report - {workflow_name}",
+            f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}",
+            "",
+            f"## Status: {health_status}",
+            f"- **Workflow**: {workflow_name}",
+            f"- **Status**: {workflow_status}",
+            f"- **Duration**: {int(workflow_duration) / 1000:.1f}s" if workflow_duration else "- **Duration**: Unknown",
+            f"- **Run ID**: {workflow_run_id}",
+            ""
+        ]
+        
+        if 'jobs' in metrics:
+            report.append("## Job Details")
+            for job in metrics['jobs']:
+                status_emoji = "✅" if job['status'] == "success" else "❌"
+                duration = job['duration_ms'] / 1000 if job['duration_ms'] > 0 else 0
+                report.append(f"- {status_emoji} **{job['name']}**: {job['status']} ({duration:.1f}s)")
+            report.append("")
+        
+        # Performance analysis
+        if workflow_duration and int(workflow_duration) > 0:
+            duration_minutes = int(workflow_duration) / (1000 * 60)
+            if duration_minutes > 30:
+                report.append("## ⚠️ Performance Alert")
+                report.append(f"Workflow took {duration_minutes:.1f} minutes, which exceeds the 30-minute threshold.")
+                report.append("")
+        
+        with open('health_report.md', 'w') as f:
+            f.write('\n'.join(report))
+        
+        print('\n'.join(report))
+        EOF
+
+    - name: Upload workflow metrics
+      uses: actions/upload-artifact@v4
+      with:
+        name: workflow-metrics-${{ github.event.workflow_run.id }}
+        path: |
+          workflow_metrics.json
+          health_report.md
+        retention-days: 90
+
+    # Alert on failures
+    - name: Alert on workflow failure
+      if: github.event.workflow_run.conclusion == 'failure'
+      run: |
+        echo "::error::Workflow ${{ github.event.workflow_run.name }} failed!"
+        echo "::error::Run ID: ${{ github.event.workflow_run.id }}"
+        echo "::error::Check the workflow logs for details."
+
+  daily-monitoring-report:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' && github.event.schedule == '0 6 * * *'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        pip install requests PyGithub matplotlib pandas numpy seaborn
+
+    - name: Generate daily monitoring report
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        python3 << 'EOF'
+        import os
+        import json
+        import requests
+        import matplotlib.pyplot as plt
+        import pandas as pd
+        from datetime import datetime, timedelta
+        
+        # GitHub API setup
+        headers = {
+            'Authorization': f'token {os.environ["GITHUB_TOKEN"]}',
+            'Accept': 'application/vnd.github.v3+json'
+        }
+        
+        # Get workflow runs from the last 24 hours
+        since = (datetime.now() - timedelta(days=1)).isoformat()
+        workflows_url = f"https://api.github.com/repos/${{ github.repository }}/actions/runs"
+        params = {'created': f'>{since}', 'per_page': 100}
+        
+        response = requests.get(workflows_url, headers=headers, params=params)
+        
+        if response.status_code == 200:
+            runs_data = response.json()
+            runs = runs_data.get('workflow_runs', [])
+            
+            # Analyze runs
+            total_runs = len(runs)
+            successful_runs = len([r for r in runs if r['conclusion'] == 'success'])
+            failed_runs = len([r for r in runs if r['conclusion'] == 'failure'])
+            cancelled_runs = len([r for r in runs if r['conclusion'] == 'cancelled'])
+            
+            success_rate = (successful_runs / total_runs * 100) if total_runs > 0 else 0
+            
+            # Calculate average duration
+            durations = []
+            for run in runs:
+                if run['run_started_at'] and run['updated_at']:
+                    start = datetime.fromisoformat(run['run_started_at'].replace('Z', '+00:00'))
+                    end = datetime.fromisoformat(run['updated_at'].replace('Z', '+00:00'))
+                    duration = (end - start).total_seconds() / 60  # minutes
+                    durations.append(duration)
+            
+            avg_duration = sum(durations) / len(durations) if durations else 0
+            
+            # Generate report
+            report = [
+                "# Daily CI Pipeline Monitoring Report",
+                f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}",
+                f"Period: Last 24 hours",
+                "",
+                "## Summary",
+                f"- **Total Runs**: {total_runs}",
+                f"- **Success Rate**: {success_rate:.1f}%",
+                f"- **Successful**: {successful_runs}",
+                f"- **Failed**: {failed_runs}",
+                f"- **Cancelled**: {cancelled_runs}",
+                f"- **Average Duration**: {avg_duration:.1f} minutes",
+                ""
+            ]
+            
+            # Health assessment
+            if success_rate >= 95:
+                health_status = "🟢 EXCELLENT"
+            elif success_rate >= 85:
+                health_status = "🟡 GOOD"
+            elif success_rate >= 70:
+                health_status = "🟠 FAIR"
+            else:
+                health_status = "🔴 POOR"
+            
+            report.append(f"## Overall Health: {health_status}")
+            report.append("")
+            
+            # Recommendations
+            report.append("## Recommendations")
+            if success_rate < 85:
+                report.append("- ⚠️ Success rate is below 85%. Investigate recent failures.")
+            if avg_duration > 20:
+                report.append("- ⚠️ Average build time exceeds 20 minutes. Consider optimization.")
+            if failed_runs > 5:
+                report.append("- ⚠️ High number of failures detected. Review failing workflows.")
+            
+            if success_rate >= 95 and avg_duration <= 15 and failed_runs <= 2:
+                report.append("- ✅ Pipeline is performing well. No immediate action required.")
+            
+            # Workflow breakdown
+            workflow_stats = {}
+            for run in runs:
+                workflow_name = run['name']
+                if workflow_name not in workflow_stats:
+                    workflow_stats[workflow_name] = {'total': 0, 'success': 0, 'failure': 0}
+                
+                workflow_stats[workflow_name]['total'] += 1
+                if run['conclusion'] == 'success':
+                    workflow_stats[workflow_name]['success'] += 1
+                elif run['conclusion'] == 'failure':
+                    workflow_stats[workflow_name]['failure'] += 1
+            
+            if workflow_stats:
+                report.append("")
+                report.append("## Workflow Breakdown")
+                for workflow, stats in workflow_stats.items():
+                    success_rate_wf = (stats['success'] / stats['total'] * 100) if stats['total'] > 0 else 0
+                    report.append(f"- **{workflow}**: {success_rate_wf:.1f}% success ({stats['success']}/{stats['total']})")
+            
+            # Save report
+            with open('daily_monitoring_report.md', 'w') as f:
+                f.write('\n'.join(report))
+            
+            # Create visualization if we have data
+            if durations:
+                plt.figure(figsize=(10, 6))
+                plt.hist(durations, bins=20, alpha=0.7, color='skyblue', edgecolor='black')
+                plt.title('Build Duration Distribution (Last 24 Hours)')
+                plt.xlabel('Duration (minutes)')
+                plt.ylabel('Number of Builds')
+                plt.grid(True, alpha=0.3)
+                plt.savefig('build_duration_distribution.png', dpi=300, bbox_inches='tight')
+                plt.close()
+            
+            print('\n'.join(report))
+        else:
+            print(f"Failed to fetch workflow runs: {response.status_code}")
+        EOF
+
+    - name: Upload daily monitoring report
+      uses: actions/upload-artifact@v4
+      with:
+        name: daily-monitoring-report-${{ github.run_id }}
+        path: |
+          daily_monitoring_report.md
+          build_duration_distribution.png
+        retention-days: 30
+
+  weekly-summary-report:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' && github.event.schedule == '0 8 * * 0'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        pip install requests PyGithub matplotlib pandas numpy seaborn
+
+    - name: Generate weekly summary report
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        python3 << 'EOF'
+        import os
+        import json
+        import requests
+        import matplotlib.pyplot as plt
+        import pandas as pd
+        from datetime import datetime, timedelta
+        
+        # GitHub API setup
+        headers = {
+            'Authorization': f'token {os.environ["GITHUB_TOKEN"]}',
+            'Accept': 'application/vnd.github.v3+json'
+        }
+        
+        # Get workflow runs from the last 7 days
+        since = (datetime.now() - timedelta(days=7)).isoformat()
+        workflows_url = f"https://api.github.com/repos/${{ github.repository }}/actions/runs"
+        params = {'created': f'>{since}', 'per_page': 100}
+        
+        response = requests.get(workflows_url, headers=headers, params=params)
+        
+        if response.status_code == 200:
+            runs_data = response.json()
+            runs = runs_data.get('workflow_runs', [])
+            
+            # Create comprehensive weekly analysis
+            df_data = []
+            for run in runs:
+                if run['run_started_at'] and run['updated_at']:
+                    start = datetime.fromisoformat(run['run_started_at'].replace('Z', '+00:00'))
+                    end = datetime.fromisoformat(run['updated_at'].replace('Z', '+00:00'))
+                    duration = (end - start).total_seconds() / 60  # minutes
+                    
+                    df_data.append({
+                        'date': start.date(),
+                        'workflow': run['name'],
+                        'status': run['conclusion'],
+                        'duration': duration,
+                        'branch': run['head_branch']
+                    })
+            
+            if df_data:
+                df = pd.DataFrame(df_data)
+                
+                # Generate comprehensive report
+                report = [
+                    "# Weekly CI Pipeline Summary Report",
+                    f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}",
+                    f"Period: {(datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')} to {datetime.now().strftime('%Y-%m-%d')}",
+                    "",
+                    "## Executive Summary",
+                    f"- **Total Runs**: {len(df)}",
+                    f"- **Overall Success Rate**: {(len(df[df['status'] == 'success']) / len(df) * 100):.1f}%",
+                    f"- **Average Duration**: {df['duration'].mean():.1f} minutes",
+                    f"- **Median Duration**: {df['duration'].median():.1f} minutes",
+                    "",
+                    "## Trends",
+                    f"- **Most Active Day**: {df['date'].value_counts().index[0]}",
+                    f"- **Longest Build**: {df['duration'].max():.1f} minutes",
+                    f"- **Shortest Build**: {df['duration'].min():.1f} minutes",
+                    ""
+                ]
+                
+                # Daily breakdown
+                daily_stats = df.groupby('date').agg({
+                    'status': lambda x: (x == 'success').sum() / len(x) * 100,
+                    'duration': 'mean'
+                }).round(1)
+                
+                report.append("## Daily Breakdown")
+                for date, stats in daily_stats.iterrows():
+                    report.append(f"- **{date}**: {stats['status']:.1f}% success, {stats['duration']:.1f}min avg")
+                
+                # Save report
+                with open('weekly_summary_report.md', 'w') as f:
+                    f.write('\n'.join(report))
+                
+                print('\n'.join(report))
+            else:
+                print("No workflow data available for the past week")
+        else:
+            print(f"Failed to fetch workflow runs: {response.status_code}")
+        EOF
+
+    - name: Upload weekly summary report
+      uses: actions/upload-artifact@v4
+      with:
+        name: weekly-summary-report-${{ github.run_id }}
+        path: weekly_summary_report.md
+        retention-days: 90
