@@ -1,19 +1,19 @@
-set_project("test-xmake-project")
+set_project("test-xmake-console")
 set_version("1.0.0")
 
 set_languages("cxx17")
 
 add_requires("spdlog")
 
-target("test-xmake-project")
+target("test-xmake-console")
     set_kind("binary")
     add_files("src/main.cpp")
     add_packages("spdlog")
 
 add_requires("gtest")
 
-target("test-xmake-project_tests")
+target("test-xmake-console_tests")
     set_kind("binary")
     add_files("tests/test_main.cpp")
     add_packages("gtest")
-    add_deps("test-xmake-project")
+    add_deps("test-xmake-console")

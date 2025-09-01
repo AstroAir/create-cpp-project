@@ -5,6 +5,6 @@ int main(int argc, char* argv[]) {
     (void)argc; // Suppress unused parameter warning
     (void)argv; // Suppress unused parameter warning
 
-    std::cout << "Hello from test-xmake-project!" << std::endl;
+    std::cout << "Hello from test-xmake-console!" << std::endl;
     return 0;
 }

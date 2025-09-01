@@ -1,4 +1,4 @@
-# test-xmake-project
+# test-xmake-console
 A C++ console application created with CPP-Scaffold.
 
 ## Features
