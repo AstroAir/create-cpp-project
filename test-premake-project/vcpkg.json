@@ -1,0 +1,11 @@
+{
+  "name": "test-premake-project",
+  "version": "0.1.0",
+  "description": "A C++ library created with CPP-Scaffold",
+  "homepage": "https://github.com/yourusername/test-premake-project",
+  "dependencies": [
+    {
+      "name": "catch2"
+    },
+  ]
+}

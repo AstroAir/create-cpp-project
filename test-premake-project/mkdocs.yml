@@ -1,0 +1,37 @@
+site_name: test-premake-project
+site_description: 'Documentation for test-premake-project'
+site_author: 'Author Name'
+docs_dir: docs/md
+site_dir: site
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+  palette:
+    primary: 'indigo'
+    accent: 'indigo'
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - API Reference: api/index.md
+  - Examples: examples/index.md
+  - Contributing: contributing.md
+
+markdown_extensions:
+  - admonition
+  - codehilite:
+      guess_lang: false
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+plugins:
+  - search
+  - mkdocstrings
