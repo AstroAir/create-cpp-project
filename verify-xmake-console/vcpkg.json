@@ -1,0 +1,10 @@
+{
+"name": "verify-xmake-console",
+"version": "0.1.0",
+"dependencies": [
+ {
+"name": "gtest",
+"features": ["gmock"]
+}
+]
+}
