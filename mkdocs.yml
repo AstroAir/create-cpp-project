@@ -119,42 +119,62 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Getting Started:
-    - getting-started/index.md
-    - Installation: getting-started/installation.md
-    - Quick Start: getting-started/quick-start.md
-    - Your First Project: getting-started/first-project.md
+      - getting-started/index.md
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quick-start.md
+      - Your First Project: getting-started/first-project.md
+      - XMake Quick Start: getting-started/xmake-quick-start.md
+      - MSYS2 Integration: getting-started/msys2-integration.md
   - User Guide:
-    - user-guide/index.md
-    - Usage: user-guide/usage.md
-    - Project Templates: user-guide/templates.md
-    - Configuration: user-guide/configuration.md
-    - Troubleshooting: user-guide/troubleshooting.md
+      - user-guide/index.md
+      - Usage: user-guide/usage.md
+      - Project Templates: user-guide/templates.md
+      - Configuration: user-guide/configuration.md
+      - Examples: user-guide/examples.md
+      - Troubleshooting: user-guide/troubleshooting.md
   - Tutorials:
-    - tutorials/index.md
-    - Console Application: tutorials/console-app.md
-    - Library Project: tutorials/library-project.md
-    - GUI Application: tutorials/gui-application.md
-    - Advanced Features: tutorials/advanced-features.md
+      - tutorials/index.md
+      - Console Application: tutorials/console-app.md
+      - Library Project: tutorials/library-project.md
+      - GUI Application: tutorials/gui-application.md
+      - Advanced Features: tutorials/advanced-features.md
   - Developer Guide:
-    - developer-guide/index.md
-    - Architecture: developer-guide/architecture.md
-    - Building: developer-guide/building.md
-    - Contributing: developer-guide/contributing.md
-    - Extending: developer-guide/extending.md
+      - developer-guide/index.md
+      - Architecture: developer-guide/architecture.md
+      - Building: developer-guide/building.md
+      - Contributing: developer-guide/contributing.md
+      - Extending: developer-guide/extending.md
+      - Build System: developer-guide/build-system.md
+      - Containers: developer-guide/containers.md
+      - XMake Build System: developer-guide/xmake-build-system.md
+      - XMake MSYS2 Integration: developer-guide/xmake-msys2-integration.md
+      - MSYS2 Integration Complete: developer-guide/msys2-integration-complete.md
+      - MSYS2 Testing Summary: developer-guide/msys2-testing-summary.md
   - Components:
-    - components/index.md
-    - CLI Parser: components/cli-parser.md
-    - Template System: components/template-system.md
-    - Configuration System: components/configuration-system.md
-    - Utility Classes: components/utility-classes.md
-    - Testing Framework: components/testing-framework.md
-    - Documentation Generator: components/documentation-generator.md
+      - components/index.md
+      - CLI Parser: components/cli-parser.md
+      - Template System: components/template-system.md
+      - Configuration System: components/configuration-system.md
+      - Utility Classes: components/utility-classes.md
+      - Testing Framework: components/testing-framework.md
+      - Documentation Generator: components/documentation-generator.md
   - API Reference:
-    - api-reference/index.md
-    - API Documentation: api-reference/api.md
+      - api-reference/index.md
+      - API Documentation: api-reference/api.md
   - Reference:
-    - reference/index.md
-    - Recent Enhancements: reference/enhancements.md
+      - reference/index.md
+      - Recent Enhancements: reference/enhancements.md
+      - MSYS2 Quick Reference: reference/msys2-quick-reference.md
+      - Manual Page: reference/man-page.md
+      - Cross-Compilation: reference/cross-compilation.md
+      - Platform Notes: reference/platforms.md
+      - Package Management: reference/package-management.md
+  - Installation:
+      - installation/index.md
+  - Packaging:
+      - packaging/index.md
+      - Code Signing: packaging/code-signing.md
+      - Testing: packaging/testing.md
 
 # Extra
 extra:

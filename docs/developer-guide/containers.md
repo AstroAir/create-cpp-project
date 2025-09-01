@@ -53,6 +53,7 @@ docker-compose -f docker/docker-compose.yml run android-dev
 **Purpose**: Full-featured C++ development environment with modern tools
 
 **Includes**:
+
 - GCC 12, Clang 15
 - CMake, Ninja
 - Cross-compilation toolchains (ARM, AArch64)
@@ -62,6 +63,7 @@ docker-compose -f docker/docker-compose.yml run android-dev
 - Development utilities
 
 **Usage**:
+
 ```bash
 # Interactive development
 ./scripts/manage-containers.sh shell ubuntu-dev
@@ -78,6 +80,7 @@ docker run --rm -v $(pwd):/workspace -it cpp-scaffold:ubuntu-dev
 **Purpose**: Lightweight environment for minimal builds
 
 **Includes**:
+
 - GCC, Clang
 - CMake, Ninja
 - Essential build tools
@@ -85,6 +88,7 @@ docker run --rm -v $(pwd):/workspace -it cpp-scaffold:ubuntu-dev
 - Basic utilities
 
 **Usage**:
+
 ```bash
 # Minimal build environment
 ./scripts/manage-containers.sh shell alpine-minimal
@@ -98,12 +102,14 @@ docker run --rm -v $(pwd):/workspace -it cpp-scaffold:ubuntu-dev
 **Purpose**: Android cross-compilation environment
 
 **Includes**:
+
 - Android NDK
 - Cross-compilation toolchains
 - Android SDK tools
 - Build tools for APK creation
 
 **Usage**:
+
 ```bash
 # Android development
 ./scripts/manage-containers.sh shell android-dev
@@ -117,11 +123,13 @@ docker run --rm -v $(pwd):/workspace -it cpp-scaffold:ubuntu-dev
 **Purpose**: WebAssembly compilation with Emscripten
 
 **Includes**:
+
 - Emscripten SDK
 - Node.js for testing
 - WebAssembly tools
 
 **Usage**:
+
 ```bash
 # WebAssembly development
 ./scripts/manage-containers.sh shell wasm-dev
@@ -135,11 +143,13 @@ docker run --rm -v $(pwd):/workspace -it cpp-scaffold:ubuntu-dev
 **Purpose**: Optimized for automated builds and testing
 
 **Includes**:
+
 - Essential build tools only
 - Optimized for speed
 - Minimal dependencies
 
 **Usage**:
+
 ```bash
 # CI/CD builds
 ./scripts/manage-containers.sh run ci-builder build --preset ci-container
@@ -170,6 +180,7 @@ export EMSDK=/opt/emsdk
 ### Volume Mounts
 
 Default volume mounts:
+
 - `$(pwd):/workspace` - Project source code
 - `ccache-*:/root/.ccache` - Compiler cache
 - `vcpkg-*:/opt/vcpkg/buildtrees` - vcpkg build cache
@@ -178,6 +189,7 @@ Default volume mounts:
 ### Custom Configuration
 
 Create `.env` file for custom settings:
+
 ```bash
 # .env
 USER_ID=1000
@@ -348,6 +360,7 @@ build:
 ### Custom Images
 
 Create custom Dockerfile:
+
 ```dockerfile
 FROM cpp-scaffold:ubuntu-dev
 RUN apt-get update && apt-get install -y my-custom-tool
@@ -363,6 +376,6 @@ Modify `docker/scripts/entrypoint.sh` to customize container initialization.
 
 ## See Also
 
-- [Build System Documentation](BUILD_SYSTEM.md)
-- [Cross-Compilation Guide](CROSS_COMPILATION.md)
-- [Platform-Specific Notes](PLATFORMS.md)
+- [Build System Documentation](build-system.md)
+- [Cross-Compilation Guide](../reference/cross-compilation.md)
+- [Platform-Specific Notes](../reference/platforms.md)

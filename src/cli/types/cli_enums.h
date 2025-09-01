@@ -1,143 +1,62 @@
 #pragma once
 
+#include <spdlog/fmt/fmt.h>
+
 #include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
-#include <fmt/format.h>
 
 // Core project configuration enums
 enum class TemplateType {
-  Console,
-  Lib,
-  HeaderOnlyLib,
-  Modules,
-  MultiExecutable,
-  Gui,
-  Network,
-  Embedded,
-  WebService,
-  GameEngine,
-  QtApp,
-  SfmlApp,
-  BoostApp,
-  TestProject
+    Console,
+    Lib,
+    HeaderOnlyLib,
+    Modules,
+    MultiExecutable,
+    Gui,
+    Network,
+    Embedded,
+    WebService,
+    GameEngine,
+    QtApp,
+    SfmlApp,
+    BoostApp,
+    TestProject
 };
 
-enum class BuildSystem {
-  CMake,
-  Meson,
-  Bazel,
-  XMake,
-  Premake,
-  Make,
-  Ninja
-};
+enum class BuildSystem { CMake, Meson, Bazel, XMake, Premake, Make, Ninja };
 
-enum class PackageManager {
-  Vcpkg,
-  Conan,
-  None,
-  Spack,
-  Hunter,
-  CPM,
-  FetchContent,
-  MSYS2
-};
+enum class PackageManager { Vcpkg, Conan, None, Spack, Hunter, CPM, FetchContent, MSYS2 };
 
-enum class TestFramework {
-  GTest,
-  Catch2,
-  Doctest,
-  Boost,
-  None
-};
+enum class TestFramework { GTest, Catch2, Doctest, Boost, None };
 
-enum class EditorConfig {
-  VSCode,
-  CLion,
-  VS,
-  Vim,
-  Emacs,
-  Sublime
-};
+enum class EditorConfig { VSCode, CLion, VS, Vim, Emacs, Sublime };
 
-enum class CiSystem {
-  GitHub,
-  GitLab,
-  Travis,
-  AppVeyor,
-  AzureDevOps,
-  CircleCI
-};
+enum class CiSystem { GitHub, GitLab, Travis, AppVeyor, AzureDevOps, CircleCI };
 
-enum class Language {
-  English,
-  Chinese,
-  Spanish,
-  Japanese,
-  German,
-  French
-};
+enum class Language { English, Chinese, Spanish, Japanese, German, French };
 
 // Advanced configuration enums
-enum class CppStandard {
-  Cpp11,
-  Cpp14,
-  Cpp17,
-  Cpp20,
-  Cpp23,
-  Latest
-};
+enum class CppStandard { Cpp11, Cpp14, Cpp17, Cpp20, Cpp23, Latest };
 
-enum class ProjectStructure {
-  Minimal,
-  Standard,
-  Advanced,
-  Custom
-};
+enum class ProjectStructure { Minimal, Standard, Advanced, Custom };
 
-enum class CompilerFlags {
-  Debug,
-  Release,
-  RelWithDebInfo,
-  MinSizeRel,
-  Custom
-};
+enum class CompilerFlags { Debug, Release, RelWithDebInfo, MinSizeRel, Custom };
 
 // Git workflow and configuration enums
-enum class GitWorkflow {
-  None,
-  GitFlow,
-  GitHubFlow,
-  GitLabFlow,
-  Custom
-};
+enum class GitWorkflow { None, GitFlow, GitHubFlow, GitLabFlow, Custom };
 
-enum class GitBranchStrategy {
-  SingleBranch,
-  FeatureBranches,
-  GitFlow,
-  Custom
-};
+enum class GitBranchStrategy { SingleBranch, FeatureBranches, GitFlow, Custom };
 
-enum class LicenseType {
-  MIT,
-  Apache2,
-  GPL3,
-  BSD3,
-  BSD2,
-  Unlicense,
-  Custom,
-  None
-};
+enum class LicenseType { MIT, Apache2, GPL3, BSD3, BSD2, Unlicense, Custom, None };
 
 // Remote source types for project creation
 enum class SourceType {
-  Template,      // Use built-in template (default)
-  GitRepository, // Clone from Git repository
-  Archive,       // Extract from archive file
-  LocalPath      // Copy from local directory
+    Template,       // Use built-in template (default)
+    GitRepository,  // Clone from Git repository
+    Archive,        // Extract from archive file
+    LocalPath       // Copy from local directory
 };
 
 // Enum conversion utilities namespace
@@ -191,40 +110,40 @@ std::vector<std::string_view> all_git_branch_strategies();
 std::vector<std::string_view> all_license_types();
 std::vector<std::string_view> all_source_types();
 
-} // namespace cli_enums
+}  // namespace cli_enums
 
 // fmt formatters for custom enums
 template <>
 struct fmt::formatter<TemplateType> : fmt::formatter<std::string_view> {
-  auto format(TemplateType type, fmt::format_context& ctx) const {
-    return fmt::formatter<std::string_view>::format(cli_enums::to_string(type), ctx);
-  }
+    auto format(TemplateType type, fmt::format_context& ctx) const {
+        return fmt::formatter<std::string_view>::format(cli_enums::to_string(type), ctx);
+    }
 };
 
 template <>
 struct fmt::formatter<BuildSystem> : fmt::formatter<std::string_view> {
-  auto format(BuildSystem system, fmt::format_context& ctx) const {
-    return fmt::formatter<std::string_view>::format(cli_enums::to_string(system), ctx);
-  }
+    auto format(BuildSystem system, fmt::format_context& ctx) const {
+        return fmt::formatter<std::string_view>::format(cli_enums::to_string(system), ctx);
+    }
 };
 
 template <>
 struct fmt::formatter<PackageManager> : fmt::formatter<std::string_view> {
-  auto format(PackageManager manager, fmt::format_context& ctx) const {
-    return fmt::formatter<std::string_view>::format(cli_enums::to_string(manager), ctx);
-  }
+    auto format(PackageManager manager, fmt::format_context& ctx) const {
+        return fmt::formatter<std::string_view>::format(cli_enums::to_string(manager), ctx);
+    }
 };
 
 template <>
 struct fmt::formatter<CiSystem> : fmt::formatter<std::string_view> {
-  auto format(CiSystem ci, fmt::format_context& ctx) const {
-    return fmt::formatter<std::string_view>::format(cli_enums::to_string(ci), ctx);
-  }
+    auto format(CiSystem ci, fmt::format_context& ctx) const {
+        return fmt::formatter<std::string_view>::format(cli_enums::to_string(ci), ctx);
+    }
 };
 
 template <>
 struct fmt::formatter<SourceType> : fmt::formatter<std::string_view> {
-  auto format(SourceType source, fmt::format_context& ctx) const {
-    return fmt::formatter<std::string_view>::format(cli_enums::to_string(source), ctx);
-  }
+    auto format(SourceType source, fmt::format_context& ctx) const {
+        return fmt::formatter<std::string_view>::format(cli_enums::to_string(source), ctx);
+    }
 };

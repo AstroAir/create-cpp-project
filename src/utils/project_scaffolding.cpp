@@ -1,12 +1,16 @@
 #include "project_scaffolding.h"
+
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/spdlog.h>
+
+#include <algorithm>
+#include <regex>
+#include <sstream>
+
+#include "../cli/types/cli_enums.h"
+
 #include "file_utils.h"
 #include "terminal_utils.h"
-#include "../cli/types/cli_enums.h"
-#include <fmt/format.h>
-#include <spdlog/spdlog.h>
-#include <algorithm>
-#include <sstream>
-#include <regex>
 
 namespace utils {
 
@@ -24,7 +28,8 @@ ProjectScaffolding& ProjectScaffolding::getInstance() {
     return instance;
 }
 
-bool ProjectScaffolding::createProjectStructure(const CliOptions& options, const ScaffoldingConfig& config) {
+bool ProjectScaffolding::createProjectStructure(const CliOptions& options,
+                                                const ScaffoldingConfig& config) {
     std::string projectPath = options.projectName;
 
     TerminalUtils::showNpmStyleProgress("Creating project structure", 0, "Initializing");
@@ -54,7 +59,8 @@ bool ProjectScaffolding::createProjectStructure(const CliOptions& options, const
         }
     }
 
-    TerminalUtils::showNpmStyleProgress("Creating project structure", 60, "Setting up best practices");
+    TerminalUtils::showNpmStyleProgress("Creating project structure", 60,
+                                        "Setting up best practices");
 
     // Setup best practices
     if (!setupBestPractices(projectPath, config.bestPractices, options)) {
@@ -68,7 +74,8 @@ bool ProjectScaffolding::createProjectStructure(const CliOptions& options, const
     for (const auto& fileTemplate : templateFiles) {
         std::string filePath = FileUtils::combinePath(projectPath, fileTemplate.filename);
         if (!createFileFromTemplate(filePath, fileTemplate, globalPlaceholders)) {
-            TerminalUtils::showNpmStyleWarning("Failed to create template file", fileTemplate.filename);
+            TerminalUtils::showNpmStyleWarning("Failed to create template file",
+                                               fileTemplate.filename);
         }
     }
 
@@ -83,7 +90,8 @@ bool ProjectScaffolding::createProjectStructure(const CliOptions& options, Proje
     return createProjectStructure(options, config);
 }
 
-ScaffoldingConfig ProjectScaffolding::createDefaultConfig(TemplateType templateType, ProjectLayout layout) {
+ScaffoldingConfig ProjectScaffolding::createDefaultConfig(TemplateType templateType,
+                                                          ProjectLayout layout) {
     ScaffoldingConfig config;
     config.layout = layout;
     config.rootStructure = getLayoutStructure(layout, templateType);
@@ -141,35 +149,27 @@ ScaffoldingConfig ProjectScaffolding::configureInteractively(const CliOptions& o
 
     // Additional options
     std::vector<std::string> additionalOptions = {
-        "Create examples directory",
-        "Create benchmarks directory",
-        "Create tools directory",
-        "Create assets directory",
-        "Create comprehensive documentation"
-    };
+            "Create examples directory", "Create benchmarks directory", "Create tools directory",
+            "Create assets directory", "Create comprehensive documentation"};
 
-    std::vector<bool> defaultSelected = {
-        config.createExamples,
-        config.createBenchmarks,
-        config.createTools,
-        config.createAssets,
-        config.createDocs
-    };
+    std::vector<bool> defaultSelected = {config.createExamples, config.createBenchmarks,
+                                         config.createTools, config.createAssets,
+                                         config.createDocs};
 
     auto selectedOptions = TerminalUtils::showMultiSelectDialog(
-        "Select additional project features", additionalOptions, defaultSelected);
+            "Select additional project features", additionalOptions, defaultSelected);
 
     // Apply selections
     config.createExamples = std::find(selectedOptions.begin(), selectedOptions.end(),
-                                     "Create examples directory") != selectedOptions.end();
+                                      "Create examples directory") != selectedOptions.end();
     config.createBenchmarks = std::find(selectedOptions.begin(), selectedOptions.end(),
-                                       "Create benchmarks directory") != selectedOptions.end();
+                                        "Create benchmarks directory") != selectedOptions.end();
     config.createTools = std::find(selectedOptions.begin(), selectedOptions.end(),
-                                  "Create tools directory") != selectedOptions.end();
+                                   "Create tools directory") != selectedOptions.end();
     config.createAssets = std::find(selectedOptions.begin(), selectedOptions.end(),
-                                   "Create assets directory") != selectedOptions.end();
+                                    "Create assets directory") != selectedOptions.end();
     config.createDocs = std::find(selectedOptions.begin(), selectedOptions.end(),
-                                 "Create comprehensive documentation") != selectedOptions.end();
+                                  "Create comprehensive documentation") != selectedOptions.end();
 
     TerminalUtils::showNpmStyleSuccess("Scaffolding configuration completed");
 
@@ -177,19 +177,17 @@ ScaffoldingConfig ProjectScaffolding::configureInteractively(const CliOptions& o
 }
 
 ProjectLayout ProjectScaffolding::selectProjectLayout(ProjectLayout defaultLayout) {
-    std::vector<std::string> layouts = {
-        "Minimal - Basic structure with essential directories only",
-        "Standard - Traditional C++ project layout",
-        "Enterprise - Comprehensive structure for large projects",
-        "Monorepo - Multi-project repository structure",
-        "Header-Only - Optimized for header-only libraries",
-        "Modern - Latest C++ best practices and tooling"
-    };
+    std::vector<std::string> layouts = {"Minimal - Basic structure with essential directories only",
+                                        "Standard - Traditional C++ project layout",
+                                        "Enterprise - Comprehensive structure for large projects",
+                                        "Monorepo - Multi-project repository structure",
+                                        "Header-Only - Optimized for header-only libraries",
+                                        "Modern - Latest C++ best practices and tooling"};
 
     int defaultIndex = static_cast<int>(defaultLayout);
 
-    int selected = TerminalUtils::showInteractiveMenu(
-        layouts, "Select project layout", defaultIndex);
+    int selected =
+            TerminalUtils::showInteractiveMenu(layouts, "Select project layout", defaultIndex);
 
     if (selected >= 0 && selected < static_cast<int>(layouts.size())) {
         std::string layoutName = layouts[selected].substr(0, layouts[selected].find(' '));
@@ -200,80 +198,87 @@ ProjectLayout ProjectScaffolding::selectProjectLayout(ProjectLayout defaultLayou
     return defaultLayout;
 }
 
-BestPracticesConfig ProjectScaffolding::configureBestPractices(const BestPracticesConfig& defaults) {
-    std::vector<std::string> practices = {
-        "Enable clang-format (code formatting)",
-        "Enable clang-tidy (static analysis)",
-        "Enable cppcheck (additional static analysis)",
-        "Enable sanitizers (runtime checks)",
-        "Enable code coverage reporting",
-        "Enable comprehensive documentation",
-        "Enable CI/CD workflows",
-        "Enable pre-commit hooks",
-        "Enable editor configuration",
-        "Enable issue templates",
-        "Enable pull request template",
-        "Enable security policy",
-        "Enable code of conduct",
-        "Enable contributing guidelines"
-    };
+BestPracticesConfig ProjectScaffolding::configureBestPractices(
+        const BestPracticesConfig& defaults) {
+    std::vector<std::string> practices = {"Enable clang-format (code formatting)",
+                                          "Enable clang-tidy (static analysis)",
+                                          "Enable cppcheck (additional static analysis)",
+                                          "Enable sanitizers (runtime checks)",
+                                          "Enable code coverage reporting",
+                                          "Enable comprehensive documentation",
+                                          "Enable CI/CD workflows",
+                                          "Enable pre-commit hooks",
+                                          "Enable editor configuration",
+                                          "Enable issue templates",
+                                          "Enable pull request template",
+                                          "Enable security policy",
+                                          "Enable code of conduct",
+                                          "Enable contributing guidelines"};
 
-    std::vector<bool> defaultSelected = {
-        defaults.enableClangFormat,
-        defaults.enableClangTidy,
-        defaults.enableCppcheck,
-        defaults.enableSanitizers,
-        defaults.enableCodeCoverage,
-        defaults.enableDocumentation,
-        defaults.enableContinuousIntegration,
-        defaults.enablePreCommitHooks,
-        defaults.enableEditorConfig,
-        defaults.enableIssueTemplates,
-        defaults.enablePullRequestTemplate,
-        defaults.enableSecurityPolicy,
-        defaults.enableCodeOfConduct,
-        defaults.enableContributing
-    };
+    std::vector<bool> defaultSelected = {defaults.enableClangFormat,
+                                         defaults.enableClangTidy,
+                                         defaults.enableCppcheck,
+                                         defaults.enableSanitizers,
+                                         defaults.enableCodeCoverage,
+                                         defaults.enableDocumentation,
+                                         defaults.enableContinuousIntegration,
+                                         defaults.enablePreCommitHooks,
+                                         defaults.enableEditorConfig,
+                                         defaults.enableIssueTemplates,
+                                         defaults.enablePullRequestTemplate,
+                                         defaults.enableSecurityPolicy,
+                                         defaults.enableCodeOfConduct,
+                                         defaults.enableContributing};
 
-    auto selectedPractices = TerminalUtils::showMultiSelectDialog(
-        "Select best practices to enable", practices, defaultSelected);
+    auto selectedPractices = TerminalUtils::showMultiSelectDialog("Select best practices to enable",
+                                                                  practices, defaultSelected);
 
     BestPracticesConfig config = defaults;
 
     // Apply selections
-    config.enableClangFormat = std::find(selectedPractices.begin(), selectedPractices.end(),
-                                        "Enable clang-format (code formatting)") != selectedPractices.end();
-    config.enableClangTidy = std::find(selectedPractices.begin(), selectedPractices.end(),
-                                      "Enable clang-tidy (static analysis)") != selectedPractices.end();
-    config.enableCppcheck = std::find(selectedPractices.begin(), selectedPractices.end(),
-                                     "Enable cppcheck (additional static analysis)") != selectedPractices.end();
-    config.enableSanitizers = std::find(selectedPractices.begin(), selectedPractices.end(),
-                                       "Enable sanitizers (runtime checks)") != selectedPractices.end();
-    config.enableCodeCoverage = std::find(selectedPractices.begin(), selectedPractices.end(),
-                                         "Enable code coverage reporting") != selectedPractices.end();
-    config.enableDocumentation = std::find(selectedPractices.begin(), selectedPractices.end(),
-                                          "Enable comprehensive documentation") != selectedPractices.end();
-    config.enableContinuousIntegration = std::find(selectedPractices.begin(), selectedPractices.end(),
-                                                   "Enable CI/CD workflows") != selectedPractices.end();
+    config.enableClangFormat =
+            std::find(selectedPractices.begin(), selectedPractices.end(),
+                      "Enable clang-format (code formatting)") != selectedPractices.end();
+    config.enableClangTidy =
+            std::find(selectedPractices.begin(), selectedPractices.end(),
+                      "Enable clang-tidy (static analysis)") != selectedPractices.end();
+    config.enableCppcheck =
+            std::find(selectedPractices.begin(), selectedPractices.end(),
+                      "Enable cppcheck (additional static analysis)") != selectedPractices.end();
+    config.enableSanitizers =
+            std::find(selectedPractices.begin(), selectedPractices.end(),
+                      "Enable sanitizers (runtime checks)") != selectedPractices.end();
+    config.enableCodeCoverage =
+            std::find(selectedPractices.begin(), selectedPractices.end(),
+                      "Enable code coverage reporting") != selectedPractices.end();
+    config.enableDocumentation =
+            std::find(selectedPractices.begin(), selectedPractices.end(),
+                      "Enable comprehensive documentation") != selectedPractices.end();
+    config.enableContinuousIntegration =
+            std::find(selectedPractices.begin(), selectedPractices.end(),
+                      "Enable CI/CD workflows") != selectedPractices.end();
     config.enablePreCommitHooks = std::find(selectedPractices.begin(), selectedPractices.end(),
-                                           "Enable pre-commit hooks") != selectedPractices.end();
+                                            "Enable pre-commit hooks") != selectedPractices.end();
     config.enableEditorConfig = std::find(selectedPractices.begin(), selectedPractices.end(),
-                                         "Enable editor configuration") != selectedPractices.end();
+                                          "Enable editor configuration") != selectedPractices.end();
     config.enableIssueTemplates = std::find(selectedPractices.begin(), selectedPractices.end(),
-                                           "Enable issue templates") != selectedPractices.end();
-    config.enablePullRequestTemplate = std::find(selectedPractices.begin(), selectedPractices.end(),
-                                                 "Enable pull request template") != selectedPractices.end();
+                                            "Enable issue templates") != selectedPractices.end();
+    config.enablePullRequestTemplate =
+            std::find(selectedPractices.begin(), selectedPractices.end(),
+                      "Enable pull request template") != selectedPractices.end();
     config.enableSecurityPolicy = std::find(selectedPractices.begin(), selectedPractices.end(),
-                                           "Enable security policy") != selectedPractices.end();
+                                            "Enable security policy") != selectedPractices.end();
     config.enableCodeOfConduct = std::find(selectedPractices.begin(), selectedPractices.end(),
-                                          "Enable code of conduct") != selectedPractices.end();
-    config.enableContributing = std::find(selectedPractices.begin(), selectedPractices.end(),
-                                         "Enable contributing guidelines") != selectedPractices.end();
+                                           "Enable code of conduct") != selectedPractices.end();
+    config.enableContributing =
+            std::find(selectedPractices.begin(), selectedPractices.end(),
+                      "Enable contributing guidelines") != selectedPractices.end();
 
     return config;
 }
 
-bool ProjectScaffolding::createDirectoryStructure(const std::string& basePath, const DirectoryStructure& structure) {
+bool ProjectScaffolding::createDirectoryStructure(const std::string& basePath,
+                                                  const DirectoryStructure& structure) {
     std::string fullPath = FileUtils::combinePath(basePath, structure.path);
 
     // Create the directory
@@ -305,8 +310,9 @@ bool ProjectScaffolding::createDirectoryStructure(const std::string& basePath, c
     return true;
 }
 
-bool ProjectScaffolding::createFileFromTemplate(const std::string& filePath, const FileTemplate& fileTemplate,
-                                               const std::map<std::string, std::string>& placeholders) {
+bool ProjectScaffolding::createFileFromTemplate(
+        const std::string& filePath, const FileTemplate& fileTemplate,
+        const std::map<std::string, std::string>& placeholders) {
     // Process template content
     std::string content = processTemplate(fileTemplate.content, placeholders);
 
@@ -453,23 +459,27 @@ DirectoryStructure ProjectScaffolding::createMSYS2Layout() {
     return root;
 }
 
-std::map<std::string, std::string> ProjectScaffolding::createGlobalPlaceholders(const CliOptions& options) {
+std::map<std::string, std::string> ProjectScaffolding::createGlobalPlaceholders(
+        const CliOptions& options) {
     std::map<std::string, std::string> placeholders;
 
     placeholders["PROJECT_NAME"] = options.projectName;
     placeholders["PROJECT_DESCRIPTION"] = "A C++ project created with cpp-scaffold";
-    placeholders["AUTHOR_NAME"] = options.gitUserName.empty() ? "Project Author" : options.gitUserName;
-    placeholders["AUTHOR_EMAIL"] = options.gitUserEmail.empty() ? "author@example.com" : options.gitUserEmail;
-    placeholders["CURRENT_YEAR"] = "2024"; // Would be dynamic in real implementation
-    placeholders["CPP_STANDARD"] = "17"; // Would be configurable
+    placeholders["AUTHOR_NAME"] =
+            options.gitUserName.empty() ? "Project Author" : options.gitUserName;
+    placeholders["AUTHOR_EMAIL"] =
+            options.gitUserEmail.empty() ? "author@example.com" : options.gitUserEmail;
+    placeholders["CURRENT_YEAR"] = "2024";  // Would be dynamic in real implementation
+    placeholders["CPP_STANDARD"] = "17";    // Would be configurable
     placeholders["BUILD_SYSTEM"] = std::string(cli_enums::to_string(options.buildSystem));
     placeholders["PACKAGE_MANAGER"] = std::string(cli_enums::to_string(options.packageManager));
 
     return placeholders;
 }
 
-std::string ProjectScaffolding::processTemplate(const std::string& templateContent,
-                                               const std::map<std::string, std::string>& placeholders) {
+std::string ProjectScaffolding::processTemplate(
+        const std::string& templateContent,
+        const std::map<std::string, std::string>& placeholders) {
     std::string result = templateContent;
 
     for (const auto& [placeholder, value] : placeholders) {
@@ -489,4 +499,4 @@ bool ProjectScaffolding::createGitkeepFile(const std::string& directoryPath) {
     return FileUtils::writeToFile(gitkeepPath, "");
 }
 
-} // namespace utils
+}  // namespace utils

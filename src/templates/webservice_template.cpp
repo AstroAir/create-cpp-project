@@ -1,262 +1,294 @@
 ﻿#include "webservice_template.h"
+
+#include <spdlog/fmt/fmt.h>
+
+#include <iostream>
+
 #include "../utils/file_utils.h"
 #include "../utils/string_utils.h"
-#include <iostream>
-#include <fmt/format.h>
 
 using namespace utils;
 using namespace cli_enums;
 
-WebServiceTemplate::WebServiceTemplate(const CliOptions &options) : TemplateBase(options) {}
+WebServiceTemplate::WebServiceTemplate(const CliOptions& options) : TemplateBase(options) {}
 
 bool WebServiceTemplate::create() {
-  std::cout << "🚀 Creating Web Service project: " << options_.projectName << "\n";
+    std::cout << "🚀 Creating Web Service project: " << options_.projectName << "\n";
 
-  if (!createProjectStructure()) {
-    std::cerr << "❌ Failed to create project structure\n";
-    return false;
-  }
+    if (!createProjectStructure()) {
+        std::cerr << "❌ Failed to create project structure\n";
+        return false;
+    }
 
-  if (!createBuildSystem()) {
-    std::cerr << "❌ Failed to create build system\n";
-    return false;
-  }
+    if (!createBuildSystem()) {
+        std::cerr << "❌ Failed to create build system\n";
+        return false;
+    }
 
-  if (!setupPackageManager()) {
-    std::cerr << "❌ Failed to setup package manager\n";
-    return false;
-  }
+    if (!setupPackageManager()) {
+        std::cerr << "❌ Failed to setup package manager\n";
+        return false;
+    }
 
-  if (!setupTestFramework()) {
-    std::cerr << "❌ Failed to setup test framework\n";
-    return false;
-  }
+    if (!setupTestFramework()) {
+        std::cerr << "❌ Failed to setup test framework\n";
+        return false;
+    }
 
-  if (!setupDockerConfiguration()) {
-    std::cerr << "❌ Failed to setup Docker configuration\n";
-    return false;
-  }
+    if (!setupDockerConfiguration()) {
+        std::cerr << "❌ Failed to setup Docker configuration\n";
+        return false;
+    }
 
-  if (!setupAPIDocumentation()) {
-    std::cerr << "❌ Failed to setup API documentation\n";
-    return false;
-  }
+    if (!setupAPIDocumentation()) {
+        std::cerr << "❌ Failed to setup API documentation\n";
+        return false;
+    }
 
-  if (!initializeGit(options_.projectName)) {
-    std::cerr << "❌ Failed to initialize Git repository\n";
-    return false;
-  }
+    if (!initializeGit(options_.projectName)) {
+        std::cerr << "❌ Failed to initialize Git repository\n";
+        return false;
+    }
 
-  std::cout << "✅ Web Service project created successfully!\n";
-  printUsageGuide();
-  return true;
+    std::cout << "✅ Web Service project created successfully!\n";
+    printUsageGuide();
+    return true;
 }
 
 bool WebServiceTemplate::createProjectStructure() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // Create main directories
-  std::vector<std::string> directories = {
-    projectPath,
-    FileUtils::combinePath(projectPath, "src"),
-    FileUtils::combinePath(projectPath, "src/controllers"),
-    FileUtils::combinePath(projectPath, "src/middleware"),
-    FileUtils::combinePath(projectPath, "src/models"),
-    FileUtils::combinePath(projectPath, "src/routes"),
-    FileUtils::combinePath(projectPath, "src/utils"),
-    FileUtils::combinePath(projectPath, "src/config"),
-    FileUtils::combinePath(projectPath, "include"),
-    FileUtils::combinePath(projectPath, "include/controllers"),
-    FileUtils::combinePath(projectPath, "include/middleware"),
-    FileUtils::combinePath(projectPath, "include/models"),
-    FileUtils::combinePath(projectPath, "include/routes"),
-    FileUtils::combinePath(projectPath, "include/utils"),
-    FileUtils::combinePath(projectPath, "include/config"),
-    FileUtils::combinePath(projectPath, "tests"),
-    FileUtils::combinePath(projectPath, "tests/unit"),
-    FileUtils::combinePath(projectPath, "tests/integration"),
-    FileUtils::combinePath(projectPath, "docs"),
-    FileUtils::combinePath(projectPath, "docker"),
-    FileUtils::combinePath(projectPath, "scripts"),
-    FileUtils::combinePath(projectPath, "config")
-  };
+    // Create main directories
+    std::vector<std::string> directories = {
+            projectPath,
+            FileUtils::combinePath(projectPath, "src"),
+            FileUtils::combinePath(projectPath, "src/controllers"),
+            FileUtils::combinePath(projectPath, "src/middleware"),
+            FileUtils::combinePath(projectPath, "src/models"),
+            FileUtils::combinePath(projectPath, "src/routes"),
+            FileUtils::combinePath(projectPath, "src/utils"),
+            FileUtils::combinePath(projectPath, "src/config"),
+            FileUtils::combinePath(projectPath, "include"),
+            FileUtils::combinePath(projectPath, "include/controllers"),
+            FileUtils::combinePath(projectPath, "include/middleware"),
+            FileUtils::combinePath(projectPath, "include/models"),
+            FileUtils::combinePath(projectPath, "include/routes"),
+            FileUtils::combinePath(projectPath, "include/utils"),
+            FileUtils::combinePath(projectPath, "include/config"),
+            FileUtils::combinePath(projectPath, "tests"),
+            FileUtils::combinePath(projectPath, "tests/unit"),
+            FileUtils::combinePath(projectPath, "tests/integration"),
+            FileUtils::combinePath(projectPath, "docs"),
+            FileUtils::combinePath(projectPath, "docker"),
+            FileUtils::combinePath(projectPath, "scripts"),
+            FileUtils::combinePath(projectPath, "config")};
 
-  for (const auto &dir : directories) {
-    if (!FileUtils::createDirectory(dir)) {
-      std::cerr << "❌ Failed to create directory: " << dir << "\n";
-      return false;
+    for (const auto& dir : directories) {
+        if (!FileUtils::createDirectory(dir)) {
+            std::cerr << "❌ Failed to create directory: " << dir << "\n";
+            return false;
+        }
     }
-  }
 
-  // Create main application files
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "src/main.cpp"), getMainCppContent())) {
-    return false;
-  }
+    // Create main application files
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "src/main.cpp"),
+                                getMainCppContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "include/server.h"), getServerHeaderContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "include/server.h"),
+                                getServerHeaderContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "src/server.cpp"), getServerCppContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "src/server.cpp"),
+                                getServerCppContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "README.md"), getReadmeContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "README.md"),
+                                getReadmeContent())) {
+        return false;
+    }
 
-  std::cout << "📁 Project structure created\n";
-  return true;
+    std::cout << "📁 Project structure created\n";
+    return true;
 }
 
 bool WebServiceTemplate::createBuildSystem() {
-  std::string projectPath = options_.projectName;
-  std::string buildContent;
+    std::string projectPath = options_.projectName;
+    std::string buildContent;
 
-  switch (options_.buildSystem) {
-    case BuildSystem::CMake:
-      buildContent = getCMakeContent();
-      if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "CMakeLists.txt"), buildContent)) {
-        return false;
-      }
-      break;
-    case BuildSystem::Meson:
-      buildContent = getMesonContent();
-      if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "meson.build"), buildContent)) {
-        return false;
-      }
-      break;
-    case BuildSystem::Bazel:
-      buildContent = getBazelContent();
-      if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "BUILD"), buildContent)) {
-        return false;
-      }
-      break;
-    default:
-      buildContent = getCMakeContent();
-      if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "CMakeLists.txt"), buildContent)) {
-        return false;
-      }
-      break;
-  }
+    switch (options_.buildSystem) {
+        case BuildSystem::CMake:
+            buildContent = getCMakeContent();
+            if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "CMakeLists.txt"),
+                                        buildContent)) {
+                return false;
+            }
+            break;
+        case BuildSystem::Meson:
+            buildContent = getMesonContent();
+            if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "meson.build"),
+                                        buildContent)) {
+                return false;
+            }
+            break;
+        case BuildSystem::Bazel:
+            buildContent = getBazelContent();
+            if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "BUILD"),
+                                        buildContent)) {
+                return false;
+            }
+            break;
+        case BuildSystem::XMake:
+            buildContent = getXMakeContent();
+            if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "xmake.lua"),
+                                        buildContent)) {
+                return false;
+            }
+            break;
+        case BuildSystem::Premake:
+            buildContent = getPremakeContent();
+            if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "premake5.lua"),
+                                        buildContent)) {
+                return false;
+            }
+            break;
+        default:
+            buildContent = getCMakeContent();
+            if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "CMakeLists.txt"),
+                                        buildContent)) {
+                return false;
+            }
+            break;
+    }
 
-  std::cout << "🔧 Build system configured\n";
-  return true;
+    std::cout << "🔧 Build system configured\n";
+    return true;
 }
 
 bool WebServiceTemplate::setupPackageManager() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  if (to_string(options_.packageManager) == "vcpkg") {
-    std::string vcpkgContent = getVcpkgJsonContent();
-    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "vcpkg.json"), vcpkgContent)) {
-      return false;
+    if (to_string(options_.packageManager) == "vcpkg") {
+        std::string vcpkgContent = getVcpkgJsonContent();
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "vcpkg.json"),
+                                    vcpkgContent)) {
+            return false;
+        }
+    } else if (to_string(options_.packageManager) == "conan") {
+        std::string conanContent = getConanfileContent();
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "conanfile.txt"),
+                                    conanContent)) {
+            return false;
+        }
     }
-  } else if (to_string(options_.packageManager) == "conan") {
-    std::string conanContent = getConanfileContent();
-    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "conanfile.txt"), conanContent)) {
-      return false;
-    }
-  }
 
-  std::cout << "📦 Package manager configured\n";
-  return true;
+    std::cout << "📦 Package manager configured\n";
+    return true;
 }
 
 bool WebServiceTemplate::setupTestFramework() {
-  if (!options_.includeTests) {
+    if (!options_.includeTests) {
+        return true;
+    }
+
+    std::string projectPath = options_.projectName;
+    std::string testsPath = FileUtils::combinePath(projectPath, "tests");
+
+    std::string testContent;
+    if (options_.testFramework == TestFramework::GTest) {
+        testContent = getGTestContent();
+    } else if (options_.testFramework == TestFramework::Catch2) {
+        testContent = getCatch2Content();
+    }
+
+    if (!FileUtils::writeToFile(FileUtils::combinePath(testsPath, "unit/test_server.cpp"),
+                                testContent)) {
+        return false;
+    }
+
+    // Add integration tests
+    std::string integrationTestContent = getIntegrationTestContent();
+    if (!FileUtils::writeToFile(FileUtils::combinePath(testsPath, "integration/test_api.cpp"),
+                                integrationTestContent)) {
+        return false;
+    }
+
+    std::cout << "🧪 Test framework configured\n";
     return true;
-  }
-
-  std::string projectPath = options_.projectName;
-  std::string testsPath = FileUtils::combinePath(projectPath, "tests");
-
-  std::string testContent;
-  if (options_.testFramework == TestFramework::GTest) {
-    testContent = getGTestContent();
-  } else if (options_.testFramework == TestFramework::Catch2) {
-    testContent = getCatch2Content();
-  }
-
-  if (!FileUtils::writeToFile(FileUtils::combinePath(testsPath, "unit/test_server.cpp"), testContent)) {
-    return false;
-  }
-
-  // Add integration tests
-  std::string integrationTestContent = getIntegrationTestContent();
-  if (!FileUtils::writeToFile(FileUtils::combinePath(testsPath, "integration/test_api.cpp"), integrationTestContent)) {
-    return false;
-  }
-
-  std::cout << "🧪 Test framework configured\n";
-  return true;
 }
 
 bool WebServiceTemplate::setupDockerConfiguration() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // Create Dockerfile
-  std::string dockerfileContent = getDockerfileContent();
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "Dockerfile"), dockerfileContent)) {
-    return false;
-  }
+    // Create Dockerfile
+    std::string dockerfileContent = getDockerfileContent();
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "Dockerfile"),
+                                dockerfileContent)) {
+        return false;
+    }
 
-  // Create docker-compose.yml
-  std::string dockerComposeContent = getDockerComposeContent();
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "docker-compose.yml"), dockerComposeContent)) {
-    return false;
-  }
+    // Create docker-compose.yml
+    std::string dockerComposeContent = getDockerComposeContent();
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "docker-compose.yml"),
+                                dockerComposeContent)) {
+        return false;
+    }
 
-  // Create .dockerignore
-  std::string dockerIgnoreContent = getDockerIgnoreContent();
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, ".dockerignore"), dockerIgnoreContent)) {
-    return false;
-  }
+    // Create .dockerignore
+    std::string dockerIgnoreContent = getDockerIgnoreContent();
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, ".dockerignore"),
+                                dockerIgnoreContent)) {
+        return false;
+    }
 
-  std::cout << "🐳 Docker configuration created\n";
-  return true;
+    std::cout << "🐳 Docker configuration created\n";
+    return true;
 }
 
 bool WebServiceTemplate::setupAPIDocumentation() {
-  std::string projectPath = options_.projectName;
-  std::string docsPath = FileUtils::combinePath(projectPath, "docs");
+    std::string projectPath = options_.projectName;
+    std::string docsPath = FileUtils::combinePath(projectPath, "docs");
 
-  // Create OpenAPI specification
-  std::string openAPIContent = getOpenAPIContent();
-  if (!FileUtils::writeToFile(FileUtils::combinePath(docsPath, "api.yaml"), openAPIContent)) {
-    return false;
-  }
+    // Create OpenAPI specification
+    std::string openAPIContent = getOpenAPIContent();
+    if (!FileUtils::writeToFile(FileUtils::combinePath(docsPath, "api.yaml"), openAPIContent)) {
+        return false;
+    }
 
-  // Create Postman collection
-  std::string postmanContent = getPostmanCollectionContent();
-  if (!FileUtils::writeToFile(FileUtils::combinePath(docsPath, "postman_collection.json"), postmanContent)) {
-    return false;
-  }
+    // Create Postman collection
+    std::string postmanContent = getPostmanCollectionContent();
+    if (!FileUtils::writeToFile(FileUtils::combinePath(docsPath, "postman_collection.json"),
+                                postmanContent)) {
+        return false;
+    }
 
-  std::cout << "📚 API documentation created\n";
-  return true;
+    std::cout << "📚 API documentation created\n";
+    return true;
 }
 
 std::string WebServiceTemplate::getWebFramework() const {
-  // Default to a lightweight HTTP framework
-  return "httplib"; // cpp-httplib is a popular choice
+    // Default to a lightweight HTTP framework
+    return "httplib";  // cpp-httplib is a popular choice
 }
 
 std::string WebServiceTemplate::getDatabaseType() const {
-  // Default database type
-  return "sqlite"; // SQLite for simplicity, can be extended
+    // Default database type
+    return "sqlite";  // SQLite for simplicity, can be extended
 }
 
 bool WebServiceTemplate::isRestAPI() const {
-  return true; // Default to REST API
+    return true;  // Default to REST API
 }
 
 bool WebServiceTemplate::isGraphQL() const {
-  return false; // GraphQL support can be added later
+    return false;  // GraphQL support can be added later
 }
 
 std::string WebServiceTemplate::getMainCppContent() {
-  return fmt::format(R"(#include "server.h"
+    return fmt::format(R"(#include "server.h"
 #include "config/config.h"
 #include "utils/logger.h"
 #include <iostream>
@@ -302,11 +334,13 @@ int main(int argc, char* argv[]) {{
         return 1;
     }}
 }}
-)", options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName);
 }
 
 std::string WebServiceTemplate::getServerHeaderContent() {
-  return fmt::format(R"(#pragma once
+    return fmt::format(R"(#pragma once
 
 #include "config/config.h"
 #include <memory>
@@ -334,11 +368,12 @@ private:
 }};
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string WebServiceTemplate::getServerCppContent() {
-  return fmt::format(R"(#include "server.h"
+    return fmt::format(R"(#include "server.h"
 #include "routes/router.h"
 #include "utils/logger.h"
 #include <httplib.h>
@@ -411,11 +446,12 @@ void Server::setupRoutes() {{
 }}
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string WebServiceTemplate::getCMakeContent() {
-  return fmt::format(R"(cmake_minimum_required(VERSION 3.15)
+    return fmt::format(R"(cmake_minimum_required(VERSION 3.15)
 project({} VERSION 1.0.0 LANGUAGES CXX)
 
 # Set C++ standard
@@ -471,11 +507,14 @@ endif()
 
 # Install
 install(TARGETS {} DESTINATION bin)
-)", options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName);
 }
 
 std::string WebServiceTemplate::getReadmeContent() {
-  return fmt::format(R"(# {}
+    return fmt::format(R"(# {}
 
 A modern C++ web service built with cpp-httplib.
 
@@ -547,11 +586,12 @@ ctest
 ## License
 
 MIT License
-)", options_.projectName, options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName, options_.projectName);
 }
 
 std::string WebServiceTemplate::getVcpkgJsonContent() {
-  return fmt::format(R"({{
+    return fmt::format(R"({{
   "name": "{}",
   "version": "1.0.0",
   "description": "Modern C++ Web Service",
@@ -562,11 +602,12 @@ std::string WebServiceTemplate::getVcpkgJsonContent() {
     "sqlite3"
   ]
 }}
-)", options_.projectName);
+)",
+                       options_.projectName);
 }
 
 std::string WebServiceTemplate::getConanfileContent() {
-  return R"([requires]
+    return R"([requires]
 fmt/9.1.0
 spdlog/1.11.0
 nlohmann_json/3.11.2
@@ -583,7 +624,7 @@ spdlog:shared=False
 }
 
 std::string WebServiceTemplate::getDockerfileContent() {
-  return fmt::format(R"(# Multi-stage build for C++ web service
+    return fmt::format(R"(# Multi-stage build for C++ web service
 FROM ubuntu:22.04 as builder
 
 # Install build dependencies
@@ -637,11 +678,12 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Start the application
 CMD ["/usr/local/bin/{}"]
-)", options_.projectName, options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName, options_.projectName);
 }
 
 std::string WebServiceTemplate::getDockerComposeContent() {
-  return fmt::format(R"(version: '3.8'
+    return fmt::format(R"(version: '3.8'
 
 services:
   {}:
@@ -676,11 +718,12 @@ services:
 
 volumes:
   postgres_data:
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string WebServiceTemplate::getGTestContent() {
-  return fmt::format(R"(#include <gtest/gtest.h>
+    return fmt::format(R"(#include <gtest/gtest.h>
 #include "server.h"
 
 class ServerTest : public ::testing::Test {{
@@ -712,7 +755,7 @@ int main(int argc, char **argv) {{
 }
 
 std::string WebServiceTemplate::getCatch2Content() {
-  return R"(#define CATCH_CONFIG_MAIN
+    return R"(#define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 #include "server.h"
 
@@ -729,7 +772,7 @@ TEST_CASE("Server functionality", "[server]") {
 }
 
 std::string WebServiceTemplate::getIntegrationTestContent() {
-  return fmt::format(R"(#include <gtest/gtest.h>
+    return fmt::format(R"(#include <gtest/gtest.h>
 #include <curl/curl.h>
 #include <string>
 
@@ -772,7 +815,7 @@ TEST_F(APIIntegrationTest, APIInfoEndpoint) {{
 }
 
 std::string WebServiceTemplate::getOpenAPIContent() {
-  return fmt::format(R"(openapi: 3.0.3
+    return fmt::format(R"(openapi: 3.0.3
 info:
   title: {} API
   description: RESTful API service built with C++
@@ -843,11 +886,12 @@ components:
         code:
           type: integer
           description: Error code
-)", options_.projectName, options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName, options_.projectName);
 }
 
 std::string WebServiceTemplate::getPostmanCollectionContent() {
-  return fmt::format(R"({{
+    return fmt::format(R"({{
   "info": {{
     "name": "{} API",
     "description": "Postman collection for {} API",
@@ -896,11 +940,12 @@ std::string WebServiceTemplate::getPostmanCollectionContent() {
     }}
   ]
 }}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string WebServiceTemplate::getDockerIgnoreContent() {
-  return R"(.git
+    return R"(.git
 .gitignore
 README.md
 Dockerfile
@@ -917,7 +962,7 @@ obj/
 }
 
 std::string WebServiceTemplate::getMesonContent() {
-  return fmt::format(R"(project('{}', 'cpp',
+    return fmt::format(R"(project('{}', 'cpp',
   version : '1.0.0',
   default_options : ['warning_level=3', 'cpp_std=c++17'])
 
@@ -945,11 +990,12 @@ executable('{}',
   include_directories : inc,
   dependencies : [fmt_dep, spdlog_dep, threads_dep],
   install : true)
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string WebServiceTemplate::getBazelContent() {
-  return fmt::format(R"(load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+    return fmt::format(R"(load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 cc_binary(
     name = "{}",
@@ -979,5 +1025,141 @@ cc_library(
         "@spdlog",
     ],
 )
-)", options_.projectName);
+)",
+                       options_.projectName);
+}
+
+std::string WebServiceTemplate::getXMakeContent() {
+    return fmt::format(R"(set_project("{0}")
+set_version("1.0.0")
+
+-- Set C++ standard
+set_languages("c++17")
+
+-- Add build modes
+add_rules("mode.debug", "mode.release")
+
+-- Web service dependencies
+add_requires("fmt", "spdlog", "nlohmann_json")
+
+-- Main web service executable
+target("{1}")
+    set_kind("binary")
+    add_files("src/**.cpp")
+    add_headerfiles("include/**.h")
+    add_includedirs("include", {{public = true}})
+
+    -- Add packages
+    add_packages("fmt", "spdlog", "nlohmann_json")
+
+    -- Set output directory
+    set_targetdir("bin")
+
+    -- Enable C++ features
+    set_languages("c++17")
+
+    -- Add compile flags
+    if is_mode("debug") then
+        add_defines("DEBUG", "WEBSERVICE_DEBUG")
+        set_symbols("debug")
+        set_optimize("none")
+    elseif is_mode("release") then
+        add_defines("NDEBUG", "WEBSERVICE_RELEASE")
+        set_symbols("hidden")
+        set_optimize("fastest")
+    end
+
+-- Tests (if enabled)
+if has_config("tests") then
+    add_requires("gtest")
+
+    target("{2}_tests")
+        set_kind("binary")
+        add_files("tests/**.cpp")
+        add_packages("gtest", "fmt", "spdlog", "nlohmann_json")
+        add_deps("{3}")
+        set_targetdir("tests/bin")
+        set_languages("c++17")
+end
+)",
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName);
+}
+
+std::string WebServiceTemplate::getPremakeContent() {
+    return fmt::format(R"(workspace "{0}"
+    configurations {{ "Debug", "Release" }}
+    platforms {{ "x64" }}
+
+project "{1}"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++17"
+    targetdir "bin/%{{cfg.buildcfg}}"
+
+    files {{
+        "src/**.cpp",
+        "include/**.h"
+    }}
+
+    includedirs {{
+        "include",
+        "vendor/httplib",
+        "vendor/json/include",
+        "vendor/fmt/include",
+        "vendor/spdlog/include"
+    }}
+
+    links {{
+        "ws2_32",
+        "wsock32"
+    }}
+
+    filter "system:windows"
+        defines {{ "WIN32", "_WIN32", "NOMINMAX" }}
+
+    filter "system:linux"
+        links {{ "pthread" }}
+
+    filter "configurations:Debug"
+        defines {{ "DEBUG", "WEBSERVICE_DEBUG" }}
+        symbols "On"
+        optimize "Off"
+
+    filter "configurations:Release"
+        defines {{ "NDEBUG", "WEBSERVICE_RELEASE" }}
+        symbols "Off"
+        optimize "Speed"
+
+-- Tests project
+project "{2}_tests"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++17"
+    targetdir "bin/%{{cfg.buildcfg}}"
+
+    files {{
+        "tests/**.cpp"
+    }}
+
+    includedirs {{
+        "include",
+        "vendor/gtest/include",
+        "vendor/httplib",
+        "vendor/json/include",
+        "vendor/fmt/include",
+        "vendor/spdlog/include"
+    }}
+
+    links {{
+        "gtest",
+        "gtest_main",
+        "ws2_32",
+        "wsock32"
+    }}
+
+    filter "system:linux"
+        links {{ "pthread" }}
+)",
+                       options_.projectName, options_.projectName, options_.projectName);
 }

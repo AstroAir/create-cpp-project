@@ -1,12 +1,14 @@
 #include "interactive_menu.h"
-#include "terminal_utils.h"
-#include <iostream>
+
 #include <iomanip>
-#include <sstream>
-#include <sstream>
+#include <iostream>
 #include <limits>
+#include <sstream>
+
+#include "terminal_utils.h"
 
 #ifdef _WIN32
+#define NOMINMAX
 #include <conio.h>
 #include <windows.h>
 #else
@@ -17,8 +19,7 @@
 namespace utils {
 
 // InteractiveMenu Implementation
-InteractiveMenu::InteractiveMenu(const MenuConfig& config) : m_config(config) {
-}
+InteractiveMenu::InteractiveMenu(const MenuConfig& config) : m_config(config) {}
 
 void InteractiveMenu::setConfig(const MenuConfig& config) {
     m_config = config;
@@ -40,7 +41,8 @@ void InteractiveMenu::addItem(const MenuItem& item) {
     m_items.push_back(item);
 }
 
-void InteractiveMenu::addAction(const std::string& id, const std::string& title, std::function<bool()> action, const std::string& description) {
+void InteractiveMenu::addAction(const std::string& id, const std::string& title,
+                                std::function<bool()> action, const std::string& description) {
     MenuItem item;
     item.id = id;
     item.title = title;
@@ -51,7 +53,9 @@ void InteractiveMenu::addAction(const std::string& id, const std::string& title,
     m_items.push_back(item);
 }
 
-void InteractiveMenu::addSubmenu(const std::string& id, const std::string& title, const std::vector<MenuItem>& items, const std::string& description) {
+void InteractiveMenu::addSubmenu(const std::string& id, const std::string& title,
+                                 const std::vector<MenuItem>& items,
+                                 const std::string& description) {
     MenuItem item;
     item.id = id;
     item.title = title;
@@ -62,7 +66,9 @@ void InteractiveMenu::addSubmenu(const std::string& id, const std::string& title
     m_items.push_back(item);
 }
 
-void InteractiveMenu::addToggle(const std::string& id, const std::string& title, bool initialState, std::function<void(bool)> callback, const std::string& description) {
+void InteractiveMenu::addToggle(const std::string& id, const std::string& title, bool initialState,
+                                std::function<void(bool)> callback,
+                                const std::string& description) {
     MenuItem item;
     item.id = id;
     item.title = title;
@@ -74,7 +80,10 @@ void InteractiveMenu::addToggle(const std::string& id, const std::string& title,
     m_items.push_back(item);
 }
 
-void InteractiveMenu::addInput(const std::string& id, const std::string& title, const std::string& prompt, std::function<void(const std::string&)> callback, const std::string& description) {
+void InteractiveMenu::addInput(const std::string& id, const std::string& title,
+                               const std::string& prompt,
+                               std::function<void(const std::string&)> callback,
+                               const std::string& description) {
     MenuItem item;
     item.id = id;
     item.title = title;
@@ -86,7 +95,9 @@ void InteractiveMenu::addInput(const std::string& id, const std::string& title, 
     m_items.push_back(item);
 }
 
-void InteractiveMenu::addChoice(const std::string& id, const std::string& title, const std::vector<std::string>& choices, std::function<void(int)> callback, const std::string& description) {
+void InteractiveMenu::addChoice(const std::string& id, const std::string& title,
+                                const std::vector<std::string>& choices,
+                                std::function<void(int)> callback, const std::string& description) {
     MenuItem item;
     item.id = id;
     item.title = title;
@@ -102,7 +113,10 @@ void InteractiveMenu::addChoice(const std::string& id, const std::string& title,
     m_items.push_back(item);
 }
 
-void InteractiveMenu::addMultiChoice(const std::string& id, const std::string& title, const std::vector<std::string>& choices, std::function<void(const std::vector<int>&)> callback, const std::string& description) {
+void InteractiveMenu::addMultiChoice(const std::string& id, const std::string& title,
+                                     const std::vector<std::string>& choices,
+                                     std::function<void(const std::vector<int>&)> callback,
+                                     const std::string& description) {
     MenuItem item;
     item.id = id;
     item.title = title;
@@ -123,7 +137,8 @@ void InteractiveMenu::addSeparator(const std::string& title) {
     m_items.push_back(item);
 }
 
-void InteractiveMenu::addInfo(const std::string& id, const std::string& title, const std::string& info) {
+void InteractiveMenu::addInfo(const std::string& id, const std::string& title,
+                              const std::string& info) {
     MenuItem item;
     item.id = id;
     item.title = title;
@@ -172,7 +187,8 @@ void InteractiveMenu::renderHeader() {
         std::cout << TerminalUtils::colorize(m_config.title, utils::Color::BrightCyan) << std::endl;
 
         if (!m_config.subtitle.empty()) {
-            std::cout << TerminalUtils::colorize(m_config.subtitle, utils::Color::White) << std::endl;
+            std::cout << TerminalUtils::colorize(m_config.subtitle, utils::Color::White)
+                      << std::endl;
         }
 
         std::cout << std::endl;
@@ -191,9 +207,13 @@ void InteractiveMenu::renderItems() {
 
         if (item.type == MenuItemType::Separator) {
             if (!item.title.empty()) {
-                std::cout << TerminalUtils::colorize("-- " + item.title + " ", utils::Color::BrightBlack) << std::string(40, '-') << std::endl;
+                std::cout << TerminalUtils::colorize("-- " + item.title + " ",
+                                                     utils::Color::BrightBlack)
+                          << std::string(40, '-') << std::endl;
             } else {
-                std::cout << TerminalUtils::colorize(std::string(60, '-'), utils::Color::BrightBlack) << std::endl;
+                std::cout << TerminalUtils::colorize(std::string(60, '-'),
+                                                     utils::Color::BrightBlack)
+                          << std::endl;
             }
             continue;
         }
@@ -203,7 +223,8 @@ void InteractiveMenu::renderItems() {
         if (item.enabled) {
             std::cout << formattedItem << std::endl;
         } else {
-            std::cout << TerminalUtils::colorize(formattedItem, utils::Color::BrightBlack) << std::endl;
+            std::cout << TerminalUtils::colorize(formattedItem, utils::Color::BrightBlack)
+                      << std::endl;
         }
 
         if (item.type != MenuItemType::Info) {
@@ -225,7 +246,8 @@ void InteractiveMenu::renderFooter() {
 
     if (!m_config.footer.empty()) {
         std::cout << std::endl << std::endl;
-        std::cout << TerminalUtils::colorize(m_config.footer, utils::Color::BrightBlack) << std::endl;
+        std::cout << TerminalUtils::colorize(m_config.footer, utils::Color::BrightBlack)
+                  << std::endl;
     }
 
     std::cout << std::endl;
@@ -238,18 +260,18 @@ int InteractiveMenu::getSelection() {
     std::getline(std::cin, input);
 
     if (input.empty()) {
-        return -2; // Invalid input
+        return -2;  // Invalid input
     }
 
     // Handle special commands
     if (input == "q" || input == "quit" || input == "exit") {
-        return -1; // Exit
+        return -1;  // Exit
     }
 
     if (input == "b" || input == "back") {
         if (m_config.allowBack && !m_menuStack.empty()) {
             goBack();
-            return -2; // Continue
+            return -2;  // Continue
         }
     }
 
@@ -258,27 +280,32 @@ int InteractiveMenu::getSelection() {
         int selection = std::stoi(input);
         return selection;
     } catch (...) {
-        std::cout << TerminalUtils::colorize("Invalid input. Please try again.", utils::Color::BrightRed) << std::endl;
+        std::cout << TerminalUtils::colorize("Invalid input. Please try again.",
+                                             utils::Color::BrightRed)
+                  << std::endl;
         waitForEnter();
-        return -2; // Invalid input
+        return -2;  // Invalid input
     }
 }
 
 bool InteractiveMenu::handleSelection(int selection) {
     if (selection <= 0) {
-        return true; // Continue
+        return true;  // Continue
     }
 
     // Find the corresponding menu item
     int visibleIndex = 1;
     for (auto& item : m_items) {
-        if (!item.visible || item.type == MenuItemType::Separator || item.type == MenuItemType::Info) {
+        if (!item.visible || item.type == MenuItemType::Separator ||
+            item.type == MenuItemType::Info) {
             continue;
         }
 
         if (visibleIndex == selection) {
             if (!item.enabled) {
-                std::cout << TerminalUtils::colorize("This option is currently disabled.", utils::Color::BrightRed) << std::endl;
+                std::cout << TerminalUtils::colorize("This option is currently disabled.",
+                                                     utils::Color::BrightRed)
+                          << std::endl;
                 waitForEnter();
                 return true;
             }
@@ -305,7 +332,9 @@ bool InteractiveMenu::handleSelection(int selection) {
         visibleIndex++;
     }
 
-    std::cout << TerminalUtils::colorize("Invalid selection. Please try again.", utils::Color::BrightRed) << std::endl;
+    std::cout << TerminalUtils::colorize("Invalid selection. Please try again.",
+                                         utils::Color::BrightRed)
+              << std::endl;
     waitForEnter();
     return true;
 }
@@ -336,7 +365,9 @@ bool InteractiveMenu::handleInput(MenuItem& item) {
     std::getline(std::cin, input);
 
     if (item.inputValidator && !item.inputValidator(input)) {
-        std::cout << TerminalUtils::colorize("Invalid input. Please try again.", utils::Color::BrightRed) << std::endl;
+        std::cout << TerminalUtils::colorize("Invalid input. Please try again.",
+                                             utils::Color::BrightRed)
+                  << std::endl;
         waitForEnter();
         return true;
     }
@@ -441,11 +472,15 @@ MenuItem* InteractiveMenu::findItem(const std::string& id) {
 
 bool InteractiveMenu::handleChoice(MenuItem& item) {
     if (item.choices.empty()) {
-        std::cout << TerminalUtils::colorize("No choices available for this item.", utils::Color::BrightRed) << std::endl;
+        std::cout << TerminalUtils::colorize("No choices available for this item.",
+                                             utils::Color::BrightRed)
+                  << std::endl;
         return false;
     }
 
-    std::cout << "\n" << TerminalUtils::colorize("Select an option:", utils::Color::BrightCyan) << std::endl;
+    std::cout << "\n"
+              << TerminalUtils::colorize("Select an option:", utils::Color::BrightCyan)
+              << std::endl;
     for (size_t i = 0; i < item.choices.size(); ++i) {
         std::cout << "  " << (i + 1) << ". " << item.choices[i] << std::endl;
     }
@@ -458,7 +493,9 @@ bool InteractiveMenu::handleChoice(MenuItem& item) {
         int choice = std::stoi(input);
         if (choice >= 1 && choice <= static_cast<int>(item.choices.size())) {
             item.selectedChoices = {choice - 1};
-            std::cout << TerminalUtils::colorize("Selected: " + item.choices[choice - 1], utils::Color::BrightGreen) << std::endl;
+            std::cout << TerminalUtils::colorize("Selected: " + item.choices[choice - 1],
+                                                 utils::Color::BrightGreen)
+                      << std::endl;
 
             // Call callback if available
             if (item.choiceCallback) {
@@ -470,17 +507,24 @@ bool InteractiveMenu::handleChoice(MenuItem& item) {
         // Invalid input
     }
 
-    std::cout << TerminalUtils::colorize("Invalid choice. Please try again.", utils::Color::BrightRed) << std::endl;
+    std::cout << TerminalUtils::colorize("Invalid choice. Please try again.",
+                                         utils::Color::BrightRed)
+              << std::endl;
     return false;
 }
 
 bool InteractiveMenu::handleMultiChoice(MenuItem& item) {
     if (item.choices.empty()) {
-        std::cout << TerminalUtils::colorize("No choices available for this item.", utils::Color::BrightRed) << std::endl;
+        std::cout << TerminalUtils::colorize("No choices available for this item.",
+                                             utils::Color::BrightRed)
+                  << std::endl;
         return false;
     }
 
-    std::cout << "\n" << TerminalUtils::colorize("Select multiple options (comma-separated):", utils::Color::BrightCyan) << std::endl;
+    std::cout << "\n"
+              << TerminalUtils::colorize("Select multiple options (comma-separated):",
+                                         utils::Color::BrightCyan)
+              << std::endl;
     for (size_t i = 0; i < item.choices.size(); ++i) {
         std::cout << "  " << (i + 1) << ". " << item.choices[i] << std::endl;
     }
@@ -514,11 +558,13 @@ bool InteractiveMenu::handleMultiChoice(MenuItem& item) {
         // Build result string for display
         std::string result;
         for (size_t i = 0; i < selectedIndices.size(); ++i) {
-            if (i > 0) result += ", ";
+            if (i > 0)
+                result += ", ";
             result += item.choices[selectedIndices[i]];
         }
 
-        std::cout << TerminalUtils::colorize("Selected: " + result, utils::Color::BrightGreen) << std::endl;
+        std::cout << TerminalUtils::colorize("Selected: " + result, utils::Color::BrightGreen)
+                  << std::endl;
 
         // Call callback if available
         if (item.choiceCallback) {
@@ -527,8 +573,9 @@ bool InteractiveMenu::handleMultiChoice(MenuItem& item) {
         return true;
     }
 
-    std::cout << TerminalUtils::colorize("No valid choices selected.", utils::Color::BrightRed) << std::endl;
+    std::cout << TerminalUtils::colorize("No valid choices selected.", utils::Color::BrightRed)
+              << std::endl;
     return false;
 }
 
-} // namespace utils
+}  // namespace utils

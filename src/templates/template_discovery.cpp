@@ -1,11 +1,14 @@
 #include "template_discovery.h"
-#include "../utils/terminal_utils.h"
-#include "../utils/file_utils.h"
+
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/spdlog.h>
+
 #include <algorithm>
 #include <iostream>
 #include <set>
-#include <spdlog/spdlog.h>
-#include <fmt/format.h>
+
+#include "../utils/file_utils.h"
+#include "../utils/terminal_utils.h"
 
 namespace templates {
 
@@ -45,7 +48,8 @@ std::vector<TemplateMetadata> TemplateDiscovery::getAvailableTemplates() {
     return templates;
 }
 
-std::vector<TemplateMetadata> TemplateDiscovery::getTemplatesByCategory(const std::string& category) {
+std::vector<TemplateMetadata> TemplateDiscovery::getTemplatesByCategory(
+        const std::string& category) {
     std::vector<TemplateMetadata> templates;
 
     for (const auto& [name, metadata] : templateRegistry_) {
@@ -82,7 +86,8 @@ std::vector<TemplateMetadata> TemplateDiscovery::searchTemplates(const std::stri
     return template_utils::sortTemplatesByRelevance(templates, query);
 }
 
-std::optional<TemplateMetadata> TemplateDiscovery::getTemplateMetadata(const std::string& templateName) {
+std::optional<TemplateMetadata> TemplateDiscovery::getTemplateMetadata(
+        const std::string& templateName) {
     auto it = templateRegistry_.find(templateName);
     if (it != templateRegistry_.end()) {
         return it->second;
@@ -138,7 +143,8 @@ TemplateValidationResult TemplateDiscovery::validateTemplate(TemplateType templa
     return validateTemplate(templateName);
 }
 
-TemplateValidationResult TemplateDiscovery::validateTemplateWithOptions(const std::string& templateName, const CliOptions& options) {
+TemplateValidationResult TemplateDiscovery::validateTemplateWithOptions(
+        const std::string& templateName, const CliOptions& options) {
     TemplateValidationResult result = validateTemplate(templateName);
 
     auto metadata = getTemplateMetadata(templateName);
@@ -159,7 +165,8 @@ TemplateValidationResult TemplateDiscovery::validateTemplateWithOptions(const st
     return result;
 }
 
-TemplateCompatibility TemplateDiscovery::checkCompatibility(const std::string& templateName, const CliOptions& options) {
+TemplateCompatibility TemplateDiscovery::checkCompatibility(const std::string& templateName,
+                                                            const CliOptions& options) {
     TemplateCompatibility compatibility;
     compatibility.isCompatible = true;
     compatibility.compatibilityScore = 100;
@@ -226,7 +233,7 @@ std::vector<std::string> TemplateDiscovery::getRecommendedTemplates(const CliOpt
 
     std::vector<std::string> recommendations;
     for (const auto& [name, score] : templateScores) {
-        if (score >= 70) { // Only recommend templates with good compatibility
+        if (score >= 70) {  // Only recommend templates with good compatibility
             recommendations.push_back(name);
         }
     }
@@ -324,33 +331,39 @@ void TemplateDiscovery::loadTemplateUsageStats() {
     // Implementation would read from a stats file
 }
 
-bool TemplateDiscovery::validateBuildSystemCompatibility(const TemplateMetadata& metadata, BuildSystem buildSystem) {
+bool TemplateDiscovery::validateBuildSystemCompatibility(const TemplateMetadata& metadata,
+                                                         BuildSystem buildSystem) {
     std::string buildSystemStr = std::string(enums::to_string(buildSystem));
-    return std::find(metadata.supportedBuildSystems.begin(), metadata.supportedBuildSystems.end(), buildSystemStr)
-           != metadata.supportedBuildSystems.end();
+    return std::find(metadata.supportedBuildSystems.begin(), metadata.supportedBuildSystems.end(),
+                     buildSystemStr) != metadata.supportedBuildSystems.end();
 }
 
-bool TemplateDiscovery::validatePackageManagerCompatibility(const TemplateMetadata& metadata, PackageManager packageManager) {
+bool TemplateDiscovery::validatePackageManagerCompatibility(const TemplateMetadata& metadata,
+                                                            PackageManager packageManager) {
     std::string packageManagerStr = std::string(enums::to_string(packageManager));
-    return std::find(metadata.supportedPackageManagers.begin(), metadata.supportedPackageManagers.end(), packageManagerStr)
-           != metadata.supportedPackageManagers.end();
+    return std::find(metadata.supportedPackageManagers.begin(),
+                     metadata.supportedPackageManagers.end(),
+                     packageManagerStr) != metadata.supportedPackageManagers.end();
 }
 
 bool TemplateDiscovery::checkPlatformSupport(const TemplateMetadata& metadata) {
-    (void)metadata; // TODO: Implement platform-specific requirement checks
+    (void)metadata;  // TODO: Implement platform-specific requirement checks
     // For now, assume all templates support current platform
     // In a real implementation, this would check platform-specific requirements
     return true;
 }
 
-int TemplateDiscovery::calculateCompatibilityScore(const TemplateMetadata& metadata, const CliOptions& options) {
+int TemplateDiscovery::calculateCompatibilityScore(const TemplateMetadata& metadata,
+                                                   const CliOptions& options) {
     int score = 100;
 
     // Reduce score for experimental templates
-    if (metadata.isExperimental) score -= 20;
+    if (metadata.isExperimental)
+        score -= 20;
 
     // Reduce score for deprecated templates
-    if (metadata.isDeprecated) score -= 50;
+    if (metadata.isDeprecated)
+        score -= 50;
 
     // Check build system compatibility
     if (!validateBuildSystemCompatibility(metadata, options.buildSystem)) {
@@ -381,14 +394,16 @@ bool matchesQuery(const TemplateMetadata& metadata, const std::string& query) {
 
     // Check display name
     std::string lowerDisplayName = metadata.displayName;
-    std::transform(lowerDisplayName.begin(), lowerDisplayName.end(), lowerDisplayName.begin(), ::tolower);
+    std::transform(lowerDisplayName.begin(), lowerDisplayName.end(), lowerDisplayName.begin(),
+                   ::tolower);
     if (lowerDisplayName.find(lowerQuery) != std::string::npos) {
         return true;
     }
 
     // Check description
     std::string lowerDescription = metadata.description;
-    std::transform(lowerDescription.begin(), lowerDescription.end(), lowerDescription.begin(), ::tolower);
+    std::transform(lowerDescription.begin(), lowerDescription.end(), lowerDescription.begin(),
+                   ::tolower);
     if (lowerDescription.find(lowerQuery) != std::string::npos) {
         return true;
     }
@@ -418,8 +433,8 @@ std::vector<TemplateMetadata> filterTemplates(const std::vector<TemplateMetadata
     return filtered;
 }
 
-std::vector<TemplateMetadata> sortTemplatesByRelevance(const std::vector<TemplateMetadata>& templates,
-                                                       const std::string& query) {
+std::vector<TemplateMetadata> sortTemplatesByRelevance(
+        const std::vector<TemplateMetadata>& templates, const std::string& query) {
     std::vector<std::pair<TemplateMetadata, int>> templatesWithScores;
 
     for (const auto& template_meta : templates) {
@@ -468,9 +483,12 @@ void printTemplateInfo(const TemplateMetadata& metadata) {
     using namespace utils;
 
     std::cout << TerminalUtils::colorize("📦 " + metadata.displayName, Color::BrightCyan) << "\n";
-    std::cout << "   " << TerminalUtils::colorize("Name:", Color::BrightWhite) << " " << metadata.name << "\n";
-    std::cout << "   " << TerminalUtils::colorize("Description:", Color::BrightWhite) << " " << metadata.description << "\n";
-    std::cout << "   " << TerminalUtils::colorize("Category:", Color::BrightWhite) << " " << metadata.category << "\n";
+    std::cout << "   " << TerminalUtils::colorize("Name:", Color::BrightWhite) << " "
+              << metadata.name << "\n";
+    std::cout << "   " << TerminalUtils::colorize("Description:", Color::BrightWhite) << " "
+              << metadata.description << "\n";
+    std::cout << "   " << TerminalUtils::colorize("Category:", Color::BrightWhite) << " "
+              << metadata.category << "\n";
 
     if (!metadata.tags.empty()) {
         std::cout << "   " << TerminalUtils::colorize("Tags:", Color::BrightWhite) << " ";
@@ -483,10 +501,12 @@ void printTemplateInfo(const TemplateMetadata& metadata) {
         std::cout << "\n";
     }
 
-    std::cout << "   " << TerminalUtils::colorize("C++ Standard:", Color::BrightWhite) << " " << metadata.minCppStandard << "\n";
+    std::cout << "   " << TerminalUtils::colorize("C++ Standard:", Color::BrightWhite) << " "
+              << metadata.minCppStandard << "\n";
 
     if (metadata.isExperimental) {
-        std::cout << "   " << TerminalUtils::colorize("⚠️  Experimental", Color::BrightYellow) << "\n";
+        std::cout << "   " << TerminalUtils::colorize("⚠️  Experimental", Color::BrightYellow)
+                  << "\n";
     }
 
     if (metadata.isDeprecated) {
@@ -498,7 +518,9 @@ void printTemplateInfo(const TemplateMetadata& metadata) {
 
 void printTemplateList(const std::vector<TemplateMetadata>& templates) {
     if (templates.empty()) {
-        std::cout << utils::TerminalUtils::colorize("No templates found.", utils::Color::BrightYellow) << "\n";
+        std::cout << utils::TerminalUtils::colorize("No templates found.",
+                                                    utils::Color::BrightYellow)
+                  << "\n";
         return;
     }
 
@@ -507,6 +529,6 @@ void printTemplateList(const std::vector<TemplateMetadata>& templates) {
     }
 }
 
-} // namespace template_utils
+}  // namespace template_utils
 
-} // namespace templates
+}  // namespace templates

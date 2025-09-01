@@ -1,301 +1,304 @@
 #include "multi_executable_template.h"
+
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/spdlog.h>
+
+#include <iostream>
+
+#include "../cli/types/cli_enums.h"
 #include "../utils/file_utils.h"
 #include "../utils/string_utils.h"
 #include "../utils/terminal_utils.h"
-#include "../cli/types/cli_enums.h"
-#include <fmt/format.h>
-#include <spdlog/spdlog.h>
-#include <iostream>
 
 using namespace utils;
 
-MultiExecutableTemplate::MultiExecutableTemplate(const CliOptions &options)
+MultiExecutableTemplate::MultiExecutableTemplate(const CliOptions& options)
     : TemplateBase(options) {}
 
 bool MultiExecutableTemplate::create() {
-  spdlog::info("Creating multi-executable project: {}", options_.projectName);
+    spdlog::info("Creating multi-executable project: {}", options_.projectName);
 
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // Create project structure
-  if (!createProjectStructure()) {
-    spdlog::error("Failed to create project structure");
-    return false;
-  }
-
-  // Setup shared library
-  if (!setupSharedLibrary()) {
-    spdlog::error("Failed to setup shared library");
-    return false;
-  }
-
-  // Setup executables
-  if (!setupExecutables()) {
-    spdlog::error("Failed to setup executables");
-    return false;
-  }
-
-  // Create build system files
-  if (!createBuildSystem()) {
-    spdlog::error("Failed to create build system files");
-    return false;
-  }
-
-  // Setup package manager
-  if (!setupPackageManager()) {
-    spdlog::error("Failed to setup package manager");
-    return false;
-  }
-
-  // Setup test framework
-  if (options_.includeTests && !setupTestFramework()) {
-    spdlog::error("Failed to setup test framework");
-    return false;
-  }
-
-  // Initialize Git
-  if (options_.initGit) {
-    if (!initializeGit(projectPath)) {
-      spdlog::error("Failed to initialize Git repository");
-      return false;
+    // Create project structure
+    if (!createProjectStructure()) {
+        spdlog::error("Failed to create project structure");
+        return false;
     }
-    spdlog::info("✅ Git repository initialized");
-  }
 
-  spdlog::info("\nYour multi-executable project is ready!\n");
+    // Setup shared library
+    if (!setupSharedLibrary()) {
+        spdlog::error("Failed to setup shared library");
+        return false;
+    }
 
-  // Print usage instructions
-  TerminalUtils::showSuccess("Project created successfully!");
-  TerminalUtils::showInfo("Next steps:");
-  std::cout << "  1. cd " << options_.projectName << "\n";
-  std::cout << "  2. Review the generated executables in src/\n";
-  std::cout << "  3. Customize the shared library in lib/\n";
+    // Setup executables
+    if (!setupExecutables()) {
+        spdlog::error("Failed to setup executables");
+        return false;
+    }
 
-  if (cli_enums::to_string(options_.buildSystem) == "cmake") {
-    std::cout << "  4. Build the project:\n";
-    std::cout << "     mkdir build && cd build\n";
-    std::cout << "     cmake .. && make\n";
-    std::cout << "  5. Run the executables:\n";
-    std::cout << "     ./bin/" << options_.projectName << "_main\n";
-    std::cout << "     ./bin/" << options_.projectName << "_client\n";
-    std::cout << "     ./bin/" << options_.projectName << "_server\n";
-    std::cout << "     ./bin/" << options_.projectName << "_tool\n";
-  }
+    // Create build system files
+    if (!createBuildSystem()) {
+        spdlog::error("Failed to create build system files");
+        return false;
+    }
 
-  return true;
+    // Setup package manager
+    if (!setupPackageManager()) {
+        spdlog::error("Failed to setup package manager");
+        return false;
+    }
+
+    // Setup test framework
+    if (options_.includeTests && !setupTestFramework()) {
+        spdlog::error("Failed to setup test framework");
+        return false;
+    }
+
+    // Initialize Git
+    if (options_.initGit) {
+        if (!initializeGit(projectPath)) {
+            spdlog::error("Failed to initialize Git repository");
+            return false;
+        }
+        spdlog::info("✅ Git repository initialized");
+    }
+
+    spdlog::info("\nYour multi-executable project is ready!\n");
+
+    // Print usage instructions
+    TerminalUtils::showSuccess("Project created successfully!");
+    TerminalUtils::showInfo("Next steps:");
+    std::cout << "  1. cd " << options_.projectName << "\n";
+    std::cout << "  2. Review the generated executables in src/\n";
+    std::cout << "  3. Customize the shared library in lib/\n";
+
+    if (cli_enums::to_string(options_.buildSystem) == "cmake") {
+        std::cout << "  4. Build the project:\n";
+        std::cout << "     mkdir build && cd build\n";
+        std::cout << "     cmake .. && make\n";
+        std::cout << "  5. Run the executables:\n";
+        std::cout << "     ./bin/" << options_.projectName << "_main\n";
+        std::cout << "     ./bin/" << options_.projectName << "_client\n";
+        std::cout << "     ./bin/" << options_.projectName << "_server\n";
+        std::cout << "     ./bin/" << options_.projectName << "_tool\n";
+    }
+
+    return true;
 }
 
 bool MultiExecutableTemplate::createProjectStructure() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // Create main directories
-  std::vector<std::string> directories = {
-      projectPath,
-      FileUtils::combinePath(projectPath, "src"),
-      FileUtils::combinePath(projectPath, "lib"),
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"),
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "src"),
-      FileUtils::combinePath(projectPath, "bin"),
-      FileUtils::combinePath(projectPath, "docs"),
-      FileUtils::combinePath(projectPath, "scripts")
-  };
+    // Create main directories
+    std::vector<std::string> directories = {
+            projectPath,
+            FileUtils::combinePath(projectPath, "src"),
+            FileUtils::combinePath(projectPath, "lib"),
+            FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"),
+            FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "src"),
+            FileUtils::combinePath(projectPath, "bin"),
+            FileUtils::combinePath(projectPath, "docs"),
+            FileUtils::combinePath(projectPath, "scripts")};
 
-  if (options_.includeTests) {
-    directories.push_back(FileUtils::combinePath(projectPath, "tests"));
-  }
-
-  for (const auto &dir : directories) {
-    if (!FileUtils::createDirectory(dir)) {
-      spdlog::error("Failed to create directory: {}", dir);
-      return false;
+    if (options_.includeTests) {
+        directories.push_back(FileUtils::combinePath(projectPath, "tests"));
     }
-  }
 
-  // Create README
-  std::string readmePath = FileUtils::combinePath(projectPath, "README.md");
-  if (!FileUtils::writeToFile(readmePath, getReadmeContent())) {
-    spdlog::error("Failed to create README file");
-    return false;
-  }
+    for (const auto& dir : directories) {
+        if (!FileUtils::createDirectory(dir)) {
+            spdlog::error("Failed to create directory: {}", dir);
+            return false;
+        }
+    }
 
-  return true;
+    // Create README
+    std::string readmePath = FileUtils::combinePath(projectPath, "README.md");
+    if (!FileUtils::writeToFile(readmePath, getReadmeContent())) {
+        spdlog::error("Failed to create README file");
+        return false;
+    }
+
+    return true;
 }
 
 bool MultiExecutableTemplate::setupSharedLibrary() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // Create shared library header
-  std::string libHeaderPath = FileUtils::combinePath(
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"),
-      options_.projectName + "_lib.h");
-  if (!FileUtils::writeToFile(libHeaderPath, getSharedLibraryHeaderContent())) {
-    spdlog::error("Failed to create shared library header");
-    return false;
-  }
+    // Create shared library header
+    std::string libHeaderPath = FileUtils::combinePath(
+            FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"),
+            options_.projectName + "_lib.h");
+    if (!FileUtils::writeToFile(libHeaderPath, getSharedLibraryHeaderContent())) {
+        spdlog::error("Failed to create shared library header");
+        return false;
+    }
 
-  // Create shared library source
-  std::string libSourcePath = FileUtils::combinePath(
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "src"),
-      options_.projectName + "_lib.cpp");
-  if (!FileUtils::writeToFile(libSourcePath, getSharedLibrarySourceContent())) {
-    spdlog::error("Failed to create shared library source");
-    return false;
-  }
+    // Create shared library source
+    std::string libSourcePath = FileUtils::combinePath(
+            FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "src"),
+            options_.projectName + "_lib.cpp");
+    if (!FileUtils::writeToFile(libSourcePath, getSharedLibrarySourceContent())) {
+        spdlog::error("Failed to create shared library source");
+        return false;
+    }
 
-  // Create utils header
-  std::string utilsHeaderPath = FileUtils::combinePath(
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"),
-      "utils.h");
-  if (!FileUtils::writeToFile(utilsHeaderPath, getUtilsHeaderContent())) {
-    spdlog::error("Failed to create utils header");
-    return false;
-  }
+    // Create utils header
+    std::string utilsHeaderPath = FileUtils::combinePath(
+            FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"),
+            "utils.h");
+    if (!FileUtils::writeToFile(utilsHeaderPath, getUtilsHeaderContent())) {
+        spdlog::error("Failed to create utils header");
+        return false;
+    }
 
-  // Create utils source
-  std::string utilsSourcePath = FileUtils::combinePath(
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "src"),
-      "utils.cpp");
-  if (!FileUtils::writeToFile(utilsSourcePath, getUtilsSourceContent())) {
-    spdlog::error("Failed to create utils source");
-    return false;
-  }
+    // Create utils source
+    std::string utilsSourcePath = FileUtils::combinePath(
+            FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "src"), "utils.cpp");
+    if (!FileUtils::writeToFile(utilsSourcePath, getUtilsSourceContent())) {
+        spdlog::error("Failed to create utils source");
+        return false;
+    }
 
-  // Create version header
-  std::string versionHeaderPath = FileUtils::combinePath(
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"),
-      "version.h");
-  if (!FileUtils::writeToFile(versionHeaderPath, getVersionHeaderContent())) {
-    spdlog::error("Failed to create version header");
-    return false;
-  }
+    // Create version header
+    std::string versionHeaderPath = FileUtils::combinePath(
+            FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"),
+            "version.h");
+    if (!FileUtils::writeToFile(versionHeaderPath, getVersionHeaderContent())) {
+        spdlog::error("Failed to create version header");
+        return false;
+    }
 
-  // Create config header
-  std::string configHeaderPath = FileUtils::combinePath(
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"),
-      "config.h");
-  if (!FileUtils::writeToFile(configHeaderPath, getConfigHeaderContent())) {
-    spdlog::error("Failed to create config header");
-    return false;
-  }
+    // Create config header
+    std::string configHeaderPath = FileUtils::combinePath(
+            FileUtils::combinePath(FileUtils::combinePath(projectPath, "lib"), "include"),
+            "config.h");
+    if (!FileUtils::writeToFile(configHeaderPath, getConfigHeaderContent())) {
+        spdlog::error("Failed to create config header");
+        return false;
+    }
 
-  return true;
+    return true;
 }
 
 bool MultiExecutableTemplate::setupExecutables() {
-  std::string projectPath = options_.projectName;
-  auto configs = getExecutableConfigs();
+    std::string projectPath = options_.projectName;
+    auto configs = getExecutableConfigs();
 
-  for (const auto& config : configs) {
-    std::string executablePath = FileUtils::combinePath(
-        FileUtils::combinePath(projectPath, "src"), config.sourceFile);
+    for (const auto& config : configs) {
+        std::string executablePath = FileUtils::combinePath(
+                FileUtils::combinePath(projectPath, "src"), config.sourceFile);
 
-    std::string content;
-    if (config.name == "main") {
-      content = getMainExecutableContent();
-    } else if (config.name == "client") {
-      content = getClientExecutableContent();
-    } else if (config.name == "server") {
-      content = getServerExecutableContent();
-    } else if (config.name == "tool") {
-      content = getToolExecutableContent();
+        std::string content;
+        if (config.name == "main") {
+            content = getMainExecutableContent();
+        } else if (config.name == "client") {
+            content = getClientExecutableContent();
+        } else if (config.name == "server") {
+            content = getServerExecutableContent();
+        } else if (config.name == "tool") {
+            content = getToolExecutableContent();
+        }
+
+        if (!FileUtils::writeToFile(executablePath, content)) {
+            spdlog::error("Failed to create executable: {}", config.name);
+            return false;
+        }
     }
 
-    if (!FileUtils::writeToFile(executablePath, content)) {
-      spdlog::error("Failed to create executable: {}", config.name);
-      return false;
-    }
-  }
-
-  return true;
+    return true;
 }
 
 bool MultiExecutableTemplate::createBuildSystem() {
-  std::string projectPath = options_.projectName;
-  std::string buildSystem = std::string(cli_enums::to_string(options_.buildSystem));
+    std::string projectPath = options_.projectName;
+    std::string buildSystem = std::string(cli_enums::to_string(options_.buildSystem));
 
-  if (buildSystem == "cmake") {
-    std::string cmakePath = FileUtils::combinePath(projectPath, "CMakeLists.txt");
-    if (!FileUtils::writeToFile(cmakePath, getCMakeContent())) {
-      spdlog::error("Failed to create CMakeLists.txt");
-      return false;
-    }
-  } else if (buildSystem == "meson") {
-    std::string mesonPath = FileUtils::combinePath(projectPath, "meson.build");
-    if (!FileUtils::writeToFile(mesonPath, getMesonContent())) {
-      spdlog::error("Failed to create meson.build");
-      return false;
-    }
-  } else if (buildSystem == "bazel") {
-    std::string bazelPath = FileUtils::combinePath(projectPath, "BUILD");
-    if (!FileUtils::writeToFile(bazelPath, getBazelContent())) {
-      spdlog::error("Failed to create BUILD file");
-      return false;
+    if (buildSystem == "cmake") {
+        std::string cmakePath = FileUtils::combinePath(projectPath, "CMakeLists.txt");
+        if (!FileUtils::writeToFile(cmakePath, getCMakeContent())) {
+            spdlog::error("Failed to create CMakeLists.txt");
+            return false;
+        }
+    } else if (buildSystem == "meson") {
+        std::string mesonPath = FileUtils::combinePath(projectPath, "meson.build");
+        if (!FileUtils::writeToFile(mesonPath, getMesonContent())) {
+            spdlog::error("Failed to create meson.build");
+            return false;
+        }
+    } else if (buildSystem == "bazel") {
+        std::string bazelPath = FileUtils::combinePath(projectPath, "BUILD");
+        if (!FileUtils::writeToFile(bazelPath, getBazelContent())) {
+            spdlog::error("Failed to create BUILD file");
+            return false;
+        }
+
+        std::string workspacePath = FileUtils::combinePath(projectPath, "WORKSPACE");
+        if (!FileUtils::writeToFile(workspacePath,
+                                    "workspace(name = \"" + options_.projectName + "\")\n")) {
+            spdlog::error("Failed to create WORKSPACE file");
+            return false;
+        }
     }
 
-    std::string workspacePath = FileUtils::combinePath(projectPath, "WORKSPACE");
-    if (!FileUtils::writeToFile(workspacePath, "workspace(name = \"" + options_.projectName + "\")\n")) {
-      spdlog::error("Failed to create WORKSPACE file");
-      return false;
-    }
-  }
-
-  return true;
+    return true;
 }
 
 bool MultiExecutableTemplate::setupPackageManager() {
-  std::string projectPath = options_.projectName;
-  std::string packageManager = std::string(cli_enums::to_string(options_.packageManager));
+    std::string projectPath = options_.projectName;
+    std::string packageManager = std::string(cli_enums::to_string(options_.packageManager));
 
-  if (packageManager == "vcpkg") {
-    std::string vcpkgPath = FileUtils::combinePath(projectPath, "vcpkg.json");
-    if (!FileUtils::writeToFile(vcpkgPath, getVcpkgJsonContent())) {
-      spdlog::error("Failed to create vcpkg.json");
-      return false;
+    if (packageManager == "vcpkg") {
+        std::string vcpkgPath = FileUtils::combinePath(projectPath, "vcpkg.json");
+        if (!FileUtils::writeToFile(vcpkgPath, getVcpkgJsonContent())) {
+            spdlog::error("Failed to create vcpkg.json");
+            return false;
+        }
+    } else if (packageManager == "conan") {
+        std::string conanPath = FileUtils::combinePath(projectPath, "conanfile.txt");
+        if (!FileUtils::writeToFile(conanPath, getConanfileContent())) {
+            spdlog::error("Failed to create conanfile.txt");
+            return false;
+        }
     }
-  } else if (packageManager == "conan") {
-    std::string conanPath = FileUtils::combinePath(projectPath, "conanfile.txt");
-    if (!FileUtils::writeToFile(conanPath, getConanfileContent())) {
-      spdlog::error("Failed to create conanfile.txt");
-      return false;
-    }
-  }
 
-  return true;
+    return true;
 }
 
 bool MultiExecutableTemplate::setupTestFramework() {
-  if (!options_.includeTests) {
-    return true;
-  }
-
-  std::string projectPath = options_.projectName;
-  std::string testFramework = std::string(cli_enums::to_string(options_.testFramework));
-
-  // Create test CMakeLists.txt if using CMake
-  if (cli_enums::to_string(options_.buildSystem) == "cmake") {
-    std::string testCMakePath = FileUtils::combinePath(
-        FileUtils::combinePath(projectPath, "tests"), "CMakeLists.txt");
-    std::string testCMakeContent;
-
-    if (testFramework == "gtest") {
-      testCMakeContent = getGTestContent();
-    } else if (testFramework == "catch2") {
-      testCMakeContent = getCatch2Content();
-    } else if (testFramework == "doctest") {
-      testCMakeContent = getDocTestContent();
+    if (!options_.includeTests) {
+        return true;
     }
 
-    if (!FileUtils::writeToFile(testCMakePath, testCMakeContent)) {
-      spdlog::error("Failed to create test CMakeLists.txt");
-      return false;
+    std::string projectPath = options_.projectName;
+    std::string testFramework = std::string(cli_enums::to_string(options_.testFramework));
+
+    // Create test CMakeLists.txt if using CMake
+    if (cli_enums::to_string(options_.buildSystem) == "cmake") {
+        std::string testCMakePath = FileUtils::combinePath(
+                FileUtils::combinePath(projectPath, "tests"), "CMakeLists.txt");
+        std::string testCMakeContent;
+
+        if (testFramework == "gtest") {
+            testCMakeContent = getGTestContent();
+        } else if (testFramework == "catch2") {
+            testCMakeContent = getCatch2Content();
+        } else if (testFramework == "doctest") {
+            testCMakeContent = getDocTestContent();
+        }
+
+        if (!FileUtils::writeToFile(testCMakePath, testCMakeContent)) {
+            spdlog::error("Failed to create test CMakeLists.txt");
+            return false;
+        }
     }
-  }
 
-  // Create basic test file
-  std::string testFilePath = FileUtils::combinePath(
-      FileUtils::combinePath(projectPath, "tests"), "test_" + options_.projectName + ".cpp");
+    // Create basic test file
+    std::string testFilePath = FileUtils::combinePath(FileUtils::combinePath(projectPath, "tests"),
+                                                      "test_" + options_.projectName + ".cpp");
 
-  std::string testContent = fmt::format(R"(#include <{0}_lib.h>
+    std::string testContent =
+            fmt::format(R"(#include <{0}_lib.h>
 
 #ifdef USING_GTEST
 #include <gtest/gtest.h>
@@ -343,27 +346,27 @@ int main() {{
     return 0;
 }}
 #endif
-)", options_.projectName, StringUtils::toUpper(options_.projectName));
+)",
+                        options_.projectName, StringUtils::toUpper(options_.projectName));
 
-  if (!FileUtils::writeToFile(testFilePath, testContent)) {
-    spdlog::error("Failed to create test file");
-    return false;
-  }
+    if (!FileUtils::writeToFile(testFilePath, testContent)) {
+        spdlog::error("Failed to create test file");
+        return false;
+    }
 
-  return true;
+    return true;
 }
 
-std::vector<MultiExecutableTemplate::ExecutableConfig> MultiExecutableTemplate::getExecutableConfigs() const {
-  return {
-    {"main", "Main application executable", "main.cpp", true, {}},
-    {"client", "Client application", "client.cpp", true, {}},
-    {"server", "Server application", "server.cpp", true, {}},
-    {"tool", "Command-line tool", "tool.cpp", true, {}}
-  };
+std::vector<MultiExecutableTemplate::ExecutableConfig>
+MultiExecutableTemplate::getExecutableConfigs() const {
+    return {{"main", "Main application executable", "main.cpp", true, {}},
+            {"client", "Client application", "client.cpp", true, {}},
+            {"server", "Server application", "server.cpp", true, {}},
+            {"tool", "Command-line tool", "tool.cpp", true, {}}};
 }
 
 std::string MultiExecutableTemplate::getMainExecutableContent() {
-  return fmt::format(R"(#include <iostream>
+    return fmt::format(R"(#include <iostream>
 #include <{0}_lib.h>
 #include <utils.h>
 #include <version.h>
@@ -407,11 +410,12 @@ int main(int argc, char* argv[]) {{
         return 1;
     }}
 }}
-)", options_.projectName);
+)",
+                       options_.projectName);
 }
 
 std::string MultiExecutableTemplate::getClientExecutableContent() {
-  return fmt::format(R"DELIM(#include <iostream>
+    return fmt::format(R"DELIM(#include <iostream>
 #include <string>
 #include <{0}_lib.h>
 #include <utils.h>
@@ -497,11 +501,12 @@ int main(int argc, char* argv[]) {{
         return 1;
     }}
 }}
-)DELIM", options_.projectName);
+)DELIM",
+                       options_.projectName);
 }
 
 std::string MultiExecutableTemplate::getServerExecutableContent() {
-  return fmt::format(R"DELIM(#include <iostream>
+    return fmt::format(R"DELIM(#include <iostream>
 #include <string>
 #include <thread>
 #include <chrono>
@@ -595,11 +600,12 @@ int main(int argc, char* argv[]) {{
         return 1;
     }}
 }}
-)DELIM", options_.projectName);
+)DELIM",
+                       options_.projectName);
 }
 
 std::string MultiExecutableTemplate::getToolExecutableContent() {
-  return fmt::format(R"(#include <iostream>
+    return fmt::format(R"(#include <iostream>
 #include <string>
 #include <vector>
 #include <{}_lib.h>
@@ -683,11 +689,14 @@ int main(int argc, char* argv[]) {{
         return 1;
     }}
 }}
-)", options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName, options_.projectName);
 }
 
 std::string MultiExecutableTemplate::getSharedLibraryHeaderContent() {
-  return fmt::format(R"(#pragma once
+    return fmt::format(R"(#pragma once
 
 #include <string>
 #include <memory>
@@ -715,11 +724,12 @@ std::string getVersion();
 bool isDebugBuild();
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string MultiExecutableTemplate::getSharedLibrarySourceContent() {
-  return fmt::format(R"DELIM(#include "{}_lib.h"
+    return fmt::format(R"DELIM(#include "{}_lib.h"
 #include "utils.h"
 #include "version.h"
 #include <iostream>
@@ -799,11 +809,13 @@ bool isDebugBuild() {{
 }}
 
 }} // namespace {{}}
-)DELIM", options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName);
+)DELIM",
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName);
 }
 
 std::string MultiExecutableTemplate::getUtilsHeaderContent() {
-  return fmt::format(R"(#pragma once
+    return fmt::format(R"(#pragma once
 
 #include <string>
 #include <chrono>
@@ -825,11 +837,12 @@ bool fileExists(const std::string& path);
 std::string getFileExtension(const std::string& path);
 
 }} // namespace {}::utils
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string MultiExecutableTemplate::getUtilsSourceContent() {
-  return fmt::format(R"(#include "utils.h"
+    return fmt::format(R"(#include "utils.h"
 #include <iomanip>
 #include <sstream>
 #include <filesystem>
@@ -883,11 +896,13 @@ std::string getFileExtension(const std::string& path) {{
 }}
 
 }} // namespace {}::utils
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string MultiExecutableTemplate::getVersionHeaderContent() {
-  return fmt::format(R"(#pragma once
+    return fmt::format(
+            R"(#pragma once
 
 #define {}_VERSION_MAJOR 1
 #define {}_VERSION_MINOR 0
@@ -904,17 +919,14 @@ std::string MultiExecutableTemplate::getVersionHeaderContent() {
 
 #define VERSION_STRING {}_VERSION_STRING
 )",
-    StringUtils::toUpper(options_.projectName),
-    StringUtils::toUpper(options_.projectName),
-    StringUtils::toUpper(options_.projectName),
-    StringUtils::toUpper(options_.projectName),
-    StringUtils::toUpper(options_.projectName),
-    StringUtils::toUpper(options_.projectName),
-    StringUtils::toUpper(options_.projectName));
+            StringUtils::toUpper(options_.projectName), StringUtils::toUpper(options_.projectName),
+            StringUtils::toUpper(options_.projectName), StringUtils::toUpper(options_.projectName),
+            StringUtils::toUpper(options_.projectName), StringUtils::toUpper(options_.projectName),
+            StringUtils::toUpper(options_.projectName));
 }
 
 std::string MultiExecutableTemplate::getConfigHeaderContent() {
-  return fmt::format(R"(#pragma once
+    return fmt::format(R"(#pragma once
 
 // Configuration settings for {}
 namespace {}::config {{
@@ -936,11 +948,12 @@ constexpr bool ENABLE_DEBUG_OUTPUT =
 #endif
 
 }} // namespace {}::config
-)", options_.projectName, options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName, options_.projectName);
 }
 
 std::string MultiExecutableTemplate::getCMakeContent() {
-  return fmt::format(R"(cmake_minimum_required(VERSION 3.14)
+    return fmt::format(R"(cmake_minimum_required(VERSION 3.14)
 project({} VERSION 1.0.0 LANGUAGES CXX)
 
 # Set C++ standard
@@ -1011,11 +1024,16 @@ install(DIRECTORY lib/include/
     DESTINATION include
     FILES_MATCHING PATTERN "*.h"
 )
-)", options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName);
 }
 
 std::string MultiExecutableTemplate::getVcpkgJsonContent() {
-  return fmt::format(R"({{
+    return fmt::format(R"({{
   "name": "{}",
   "version": "1.0.0",
   "description": "Multi-executable C++ project",
@@ -1032,11 +1050,12 @@ std::string MultiExecutableTemplate::getVcpkgJsonContent() {
     }}
   }}
 }}
-)", options_.projectName);
+)",
+                       options_.projectName);
 }
 
 std::string MultiExecutableTemplate::getConanfileContent() {
-  return fmt::format(R"([requires]
+    return fmt::format(R"([requires]
 fmt/9.1.0
 spdlog/1.12.0
 
@@ -1055,7 +1074,7 @@ lib, *.dylib* -> ./bin
 }
 
 std::string MultiExecutableTemplate::getReadmeContent() {
-  return fmt::format(R"(# {}
+    return fmt::format(R"(# {}
 
 A multi-executable C++ project created with CPP-Scaffold.
 
@@ -1198,9 +1217,9 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 )",
-    options_.projectName,
-    options_.projectName, options_.projectName, options_.projectName, options_.projectName,
-    options_.projectName, options_.projectName, options_.projectName, options_.projectName,
-    options_.projectName, options_.projectName, options_.projectName, options_.projectName,
-    options_.projectName, options_.projectName);
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName, options_.projectName);
 }

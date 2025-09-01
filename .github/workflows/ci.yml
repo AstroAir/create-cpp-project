@@ -99,6 +99,72 @@ jobs:
           !${{github.workspace}}/build/_deps
           !${{github.workspace}}/build/CMakeFiles
 
+  build-systems-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build-system: [cmake, xmake, premake, meson]
+        template-type: [console, lib, gui, header-only-lib]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install build system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build
+
+        # Install XMake
+        if [ "${{ matrix.build-system }}" = "xmake" ]; then
+          curl -fsSL https://xmake.io/shget.text | bash
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        fi
+
+        # Install Premake
+        if [ "${{ matrix.build-system }}" = "premake" ]; then
+          wget https://github.com/premake/premake-core/releases/download/v5.0.0-beta2/premake-5.0.0-beta2-linux.tar.gz
+          tar -xzf premake-5.0.0-beta2-linux.tar.gz
+          sudo mv premake5 /usr/local/bin/
+        fi
+
+        # Install Meson
+        if [ "${{ matrix.build-system }}" = "meson" ]; then
+          pip3 install meson
+        fi
+
+    - name: Build CPP-Scaffold
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
+        cmake --build build
+
+    - name: Test project creation with different build systems
+      run: |
+        cd build
+        ./cpp-scaffold test-project-${{ matrix.build-system }}-${{ matrix.template-type }} \
+          --type ${{ matrix.template-type }} \
+          --build ${{ matrix.build-system }} \
+          --test gtest \
+          --no-interactive
+
+        # Verify the correct build file was created
+        case "${{ matrix.build-system }}" in
+          cmake)
+            test -f test-project-${{ matrix.build-system }}-${{ matrix.template-type }}/CMakeLists.txt
+            ;;
+          xmake)
+            test -f test-project-${{ matrix.build-system }}-${{ matrix.template-type }}/xmake.lua
+            ;;
+          premake)
+            test -f test-project-${{ matrix.build-system }}-${{ matrix.template-type }}/premake5.lua
+            ;;
+          meson)
+            test -f test-project-${{ matrix.build-system }}-${{ matrix.template-type }}/meson.build
+            ;;
+        esac
+
   code-quality:
     runs-on: ubuntu-latest
     

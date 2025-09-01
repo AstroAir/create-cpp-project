@@ -1,11 +1,14 @@
 #include "progress_indicator.h"
-#include "terminal_utils.h"
-#include <iostream>
-#include <iomanip>
-#include <sstream>
+
 #include <algorithm>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+
+#include "terminal_utils.h"
 
 #ifdef _WIN32
+#define NOMINMAX
 #include <windows.h>
 #else
 #include <unistd.h>
@@ -14,10 +17,7 @@
 namespace utils {
 
 // SpinnerIndicator Implementation
-SpinnerIndicator::SpinnerIndicator()
-    : m_spinnerChars{"|", "/", "-", "\\"}
-    , m_spinnerSpeed(100) {
-}
+SpinnerIndicator::SpinnerIndicator() : m_spinnerChars{"|", "/", "-", "\\"}, m_spinnerSpeed(100) {}
 
 SpinnerIndicator::~SpinnerIndicator() {
     stop();
@@ -46,9 +46,11 @@ void SpinnerIndicator::finish(const std::string& message) {
     // Clear the line and show completion message
     std::cout << "\r" << std::string(80, ' ') << "\r";
     if (!m_finishMessage.empty()) {
-        std::cout << TerminalUtils::colorize("✓ " + m_finishMessage, utils::Color::BrightGreen) << std::endl;
+        std::cout << TerminalUtils::colorize("✓ " + m_finishMessage, utils::Color::BrightGreen)
+                  << std::endl;
     } else if (!m_message.empty()) {
-        std::cout << TerminalUtils::colorize("✓ " + m_message, utils::Color::BrightGreen) << std::endl;
+        std::cout << TerminalUtils::colorize("✓ " + m_message, utils::Color::BrightGreen)
+                  << std::endl;
     }
 }
 
@@ -109,7 +111,8 @@ void SpinnerIndicator::render() {
     output << "\r";
 
     // Spinner character
-    output << TerminalUtils::colorize(m_spinnerChars[charIndex % m_spinnerChars.size()], utils::Color::BrightCyan);
+    output << TerminalUtils::colorize(m_spinnerChars[charIndex % m_spinnerChars.size()],
+                                      utils::Color::BrightCyan);
     output << " ";
 
     // Message
@@ -138,16 +141,15 @@ void SpinnerIndicator::render() {
 
 std::string SpinnerIndicator::formatTime(std::chrono::seconds seconds) const {
     auto hours = std::chrono::duration_cast<std::chrono::hours>(seconds);
-    auto minutes = std::chrono::duration_cast<std::chrono::minutes>(seconds % std::chrono::hours(1));
+    auto minutes =
+            std::chrono::duration_cast<std::chrono::minutes>(seconds % std::chrono::hours(1));
     auto secs = seconds % std::chrono::minutes(1);
 
     if (hours.count() > 0) {
-        return std::to_string(hours.count()) + "h " +
-               std::to_string(minutes.count()) + "m " +
+        return std::to_string(hours.count()) + "h " + std::to_string(minutes.count()) + "m " +
                std::to_string(secs.count()) + "s";
     } else if (minutes.count() > 0) {
-        return std::to_string(minutes.count()) + "m " +
-               std::to_string(secs.count()) + "s";
+        return std::to_string(minutes.count()) + "m " + std::to_string(secs.count()) + "s";
     } else {
         return std::to_string(secs.count()) + "s";
     }
@@ -183,12 +185,7 @@ std::string SpinnerIndicator::getETA() const {
 
 // ProgressBarIndicator Implementation
 ProgressBarIndicator::ProgressBarIndicator(int width)
-    : m_width(width)
-    , m_fillChar('=')
-    , m_emptyChar(' ')
-    , m_leftBracket('[')
-    , m_rightBracket(']') {
-}
+    : m_width(width), m_fillChar('='), m_emptyChar(' '), m_leftBracket('['), m_rightBracket(']') {}
 
 ProgressBarIndicator::~ProgressBarIndicator() {
     if (m_started) {
@@ -221,7 +218,8 @@ void ProgressBarIndicator::finish(const std::string& message) {
     std::cout << std::endl;
 
     if (!message.empty()) {
-        std::cout << TerminalUtils::colorize("✓ " + message, utils::Color::BrightGreen) << std::endl;
+        std::cout << TerminalUtils::colorize("✓ " + message, utils::Color::BrightGreen)
+                  << std::endl;
     }
 
     m_started = false;
@@ -320,16 +318,15 @@ void ProgressBarIndicator::render() {
 
 std::string ProgressBarIndicator::formatTime(std::chrono::seconds seconds) const {
     auto hours = std::chrono::duration_cast<std::chrono::hours>(seconds);
-    auto minutes = std::chrono::duration_cast<std::chrono::minutes>(seconds % std::chrono::hours(1));
+    auto minutes =
+            std::chrono::duration_cast<std::chrono::minutes>(seconds % std::chrono::hours(1));
     auto secs = seconds % std::chrono::minutes(1);
 
     if (hours.count() > 0) {
-        return std::to_string(hours.count()) + "h " +
-               std::to_string(minutes.count()) + "m " +
+        return std::to_string(hours.count()) + "h " + std::to_string(minutes.count()) + "m " +
                std::to_string(secs.count()) + "s";
     } else if (minutes.count() > 0) {
-        return std::to_string(minutes.count()) + "m " +
-               std::to_string(secs.count()) + "s";
+        return std::to_string(minutes.count()) + "m " + std::to_string(secs.count()) + "s";
     } else {
         return std::to_string(secs.count()) + "s";
     }
@@ -364,8 +361,7 @@ std::string ProgressBarIndicator::getETA() const {
 }
 
 // MultiStepIndicator Implementation
-MultiStepIndicator::MultiStepIndicator() {
-}
+MultiStepIndicator::MultiStepIndicator() {}
 
 MultiStepIndicator::~MultiStepIndicator() {
     if (m_started) {
@@ -386,7 +382,7 @@ void MultiStepIndicator::start(const std::string& message) {
 
 void MultiStepIndicator::update(double progress, const std::string& message) {
     // Update current step progress
-    (void)message; // TODO: Use message to update step description
+    (void)message;  // TODO: Use message to update step description
     if (m_currentStepIndex >= 0 && m_currentStepIndex < static_cast<int>(m_steps.size())) {
         m_currentStepProgress = std::clamp(progress, 0.0, 1.0);
     }
@@ -407,7 +403,8 @@ void MultiStepIndicator::finish(const std::string& message) {
     std::cout << std::endl;
 
     if (!message.empty()) {
-        std::cout << TerminalUtils::colorize("✓ " + message, utils::Color::BrightGreen) << std::endl;
+        std::cout << TerminalUtils::colorize("✓ " + message, utils::Color::BrightGreen)
+                  << std::endl;
     }
 
     m_started = false;
@@ -547,13 +544,16 @@ void MultiStepIndicator::render() {
         }
 
         // Step progress
-        if (m_showStepProgress && static_cast<int>(i) == m_currentStepIndex && m_currentStepProgress > 0.0) {
-            std::cout << " (" << std::fixed << std::setprecision(1) << (m_currentStepProgress * 100.0) << "%)";
+        if (m_showStepProgress && static_cast<int>(i) == m_currentStepIndex &&
+            m_currentStepProgress > 0.0) {
+            std::cout << " (" << std::fixed << std::setprecision(1)
+                      << (m_currentStepProgress * 100.0) << "%)";
         }
 
         // Step timing
         if (m_showStepTimes && (step.completed || step.failed)) {
-            auto duration = std::chrono::duration_cast<std::chrono::seconds>(step.endTime - step.startTime);
+            auto duration =
+                    std::chrono::duration_cast<std::chrono::seconds>(step.endTime - step.startTime);
             std::cout << " [" << formatTime(duration) << "]";
         }
 
@@ -570,16 +570,15 @@ void MultiStepIndicator::render() {
 
 std::string MultiStepIndicator::formatTime(std::chrono::seconds seconds) const {
     auto hours = std::chrono::duration_cast<std::chrono::hours>(seconds);
-    auto minutes = std::chrono::duration_cast<std::chrono::minutes>(seconds % std::chrono::hours(1));
+    auto minutes =
+            std::chrono::duration_cast<std::chrono::minutes>(seconds % std::chrono::hours(1));
     auto secs = seconds % std::chrono::minutes(1);
 
     if (hours.count() > 0) {
-        return std::to_string(hours.count()) + "h " +
-               std::to_string(minutes.count()) + "m " +
+        return std::to_string(hours.count()) + "h " + std::to_string(minutes.count()) + "m " +
                std::to_string(secs.count()) + "s";
     } else if (minutes.count() > 0) {
-        return std::to_string(minutes.count()) + "m " +
-               std::to_string(secs.count()) + "s";
+        return std::to_string(minutes.count()) + "m " + std::to_string(secs.count()) + "s";
     } else {
         return std::to_string(secs.count()) + "s";
     }
@@ -662,7 +661,8 @@ std::unique_ptr<MultiStepIndicator> ProgressManager::createMultiStep() {
 }
 
 // ScopedProgress Implementation
-ScopedProgress::ScopedProgress(std::unique_ptr<ProgressIndicator> indicator, const std::string& message)
+ScopedProgress::ScopedProgress(std::unique_ptr<ProgressIndicator> indicator,
+                               const std::string& message)
     : m_indicator(std::move(indicator)) {
     if (m_indicator) {
         m_indicator->start(message);
@@ -704,28 +704,28 @@ ProgressIndicator& ScopedProgress::operator*() {
 
 // Utility functions
 namespace progress {
-    std::unique_ptr<ScopedProgress> spinner(const std::string& message) {
-        auto indicator = ProgressManager::getInstance().createSpinner();
-        return std::make_unique<ScopedProgress>(std::move(indicator), message);
-    }
-
-    std::unique_ptr<ScopedProgress> progressBar(const std::string& message, int width) {
-        auto indicator = ProgressManager::getInstance().createProgressBar(width);
-        return std::make_unique<ScopedProgress>(std::move(indicator), message);
-    }
-
-    std::unique_ptr<ScopedProgress> multiStep(const std::string& message) {
-        auto indicator = ProgressManager::getInstance().createMultiStep();
-        return std::make_unique<ScopedProgress>(std::move(indicator), message);
-    }
-
-    std::unique_ptr<ScopedProgress> templateCreation(const std::string& templateType) {
-        return spinner("Creating " + templateType + " template");
-    }
-
-    std::unique_ptr<ScopedProgress> projectGeneration(const std::string& projectName) {
-        return spinner("Generating project: " + projectName);
-    }
+std::unique_ptr<ScopedProgress> spinner(const std::string& message) {
+    auto indicator = ProgressManager::getInstance().createSpinner();
+    return std::make_unique<ScopedProgress>(std::move(indicator), message);
 }
 
-} // namespace utils
+std::unique_ptr<ScopedProgress> progressBar(const std::string& message, int width) {
+    auto indicator = ProgressManager::getInstance().createProgressBar(width);
+    return std::make_unique<ScopedProgress>(std::move(indicator), message);
+}
+
+std::unique_ptr<ScopedProgress> multiStep(const std::string& message) {
+    auto indicator = ProgressManager::getInstance().createMultiStep();
+    return std::make_unique<ScopedProgress>(std::move(indicator), message);
+}
+
+std::unique_ptr<ScopedProgress> templateCreation(const std::string& templateType) {
+    return spinner("Creating " + templateType + " template");
+}
+
+std::unique_ptr<ScopedProgress> projectGeneration(const std::string& projectName) {
+    return spinner("Generating project: " + projectName);
+}
+}  // namespace progress
+
+}  // namespace utils

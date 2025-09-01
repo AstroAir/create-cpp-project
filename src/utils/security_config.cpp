@@ -1,6 +1,8 @@
 #include "security_config.h"
-#include <fmt/format.h>
+
+#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
+
 #include <algorithm>
 #include <unordered_map>
 
@@ -34,7 +36,8 @@ SecurityConfig SecurityConfigManager::getDefaultConfig(SecurityLevel level) cons
     return defaultConfigs_.at(SecurityLevel::Basic);
 }
 
-SecurityConfig SecurityConfigManager::createCustomConfig(const std::vector<std::string>& options) const {
+SecurityConfig SecurityConfigManager::createCustomConfig(
+        const std::vector<std::string>& options) const {
     SecurityConfig config = getDefaultConfig(SecurityLevel::Basic);
 
     for (const auto& option : options) {
@@ -61,14 +64,15 @@ SecurityConfig SecurityConfigManager::createCustomConfig(const std::vector<std::
 bool SecurityConfigManager::validateConfig(const SecurityConfig& config) const {
     // Check for conflicting sanitizers
     bool hasASan = std::find(config.sanitizers.begin(), config.sanitizers.end(),
-                            Sanitizer::AddressSanitizer) != config.sanitizers.end();
+                             Sanitizer::AddressSanitizer) != config.sanitizers.end();
     bool hasTSan = std::find(config.sanitizers.begin(), config.sanitizers.end(),
-                            Sanitizer::ThreadSanitizer) != config.sanitizers.end();
+                             Sanitizer::ThreadSanitizer) != config.sanitizers.end();
     bool hasMSan = std::find(config.sanitizers.begin(), config.sanitizers.end(),
-                            Sanitizer::MemorySanitizer) != config.sanitizers.end();
+                             Sanitizer::MemorySanitizer) != config.sanitizers.end();
 
     if ((hasASan && hasTSan) || (hasASan && hasMSan) || (hasTSan && hasMSan)) {
-        spdlog::warn("Conflicting sanitizers detected. ASan, TSan, and MSan cannot be used together.");
+        spdlog::warn(
+                "Conflicting sanitizers detected. ASan, TSan, and MSan cannot be used together.");
         return false;
     }
 
@@ -117,7 +121,9 @@ std::string SecurityConfigManager::generateCMakeSecurityConfig(const SecurityCon
             } else if (analyzer == StaticAnalyzer::CppCheck) {
                 cmake_config += "find_program(CPPCHECK_EXECUTABLE cppcheck)\n";
                 cmake_config += "if(CPPCHECK_EXECUTABLE)\n";
-                cmake_config += "    set(CMAKE_CXX_CPPCHECK ${CPPCHECK_EXECUTABLE} --enable=all --std=c++17)\n";
+                cmake_config +=
+                        "    set(CMAKE_CXX_CPPCHECK ${CPPCHECK_EXECUTABLE} --enable=all "
+                        "--std=c++17)\n";
                 cmake_config += "endif()\n";
             } else if (analyzer == StaticAnalyzer::IncludeWhatYouUse) {
                 cmake_config += "find_program(IWYU_EXECUTABLE include-what-you-use)\n";
@@ -151,27 +157,31 @@ std::string SecurityConfigManager::generateCMakeSecurityConfig(const SecurityCon
     return cmake_config;
 }
 
-std::string SecurityConfigManager::generateSanitizerFlags(const SecurityConfig& config, bool isDebug) const {
+std::string SecurityConfigManager::generateSanitizerFlags(const SecurityConfig& config,
+                                                          bool isDebug) const {
     if (!isDebug && !config.enableSanitizersInRelease) {
         return "";
     }
 
     std::string flags;
     for (const auto& sanitizer : config.sanitizers) {
-        if (!flags.empty()) flags += " ";
+        if (!flags.empty())
+            flags += " ";
         flags += getSanitizerFlag(sanitizer);
     }
 
     return flags;
 }
 
-std::string SecurityConfigManager::generateSecurityFlags(const SecurityConfig& config, const std::string& compiler) const {
+std::string SecurityConfigManager::generateSecurityFlags(const SecurityConfig& config,
+                                                         const std::string& compiler) const {
     std::string flags;
 
     for (const auto& flag : config.securityFlags) {
         std::string flag_str = getSecurityFlagString(flag, compiler);
         if (!flag_str.empty()) {
-            if (!flags.empty()) flags += " ";
+            if (!flags.empty())
+                flags += " ";
             flags += flag_str;
         }
     }
@@ -196,7 +206,7 @@ void SecurityConfigManager::initializeDefaultConfigs() {
     enhanced.staticAnalyzers = {StaticAnalyzer::ClangStaticAnalyzer, StaticAnalyzer::CppCheck};
     enhanced.sanitizers = {Sanitizer::AddressSanitizer, Sanitizer::UndefinedBehaviorSanitizer};
     enhanced.securityFlags = {SecurityFlag::StackProtector, SecurityFlag::Fortify,
-                             SecurityFlag::RelRO, SecurityFlag::NowBinding};
+                              SecurityFlag::RelRO, SecurityFlag::NowBinding};
     enhanced.enableDependencyScanning = true;
     enhanced.enableVulnerabilityChecks = true;
     enhanced.enableExtraWarnings = true;
@@ -207,12 +217,15 @@ void SecurityConfigManager::initializeDefaultConfigs() {
     SecurityConfig paranoid;
     paranoid.level = SecurityLevel::Paranoid;
     paranoid.staticAnalyzers = {StaticAnalyzer::ClangStaticAnalyzer, StaticAnalyzer::CppCheck,
-                               StaticAnalyzer::PVSStudio, StaticAnalyzer::IncludeWhatYouUse};
+                                StaticAnalyzer::PVSStudio, StaticAnalyzer::IncludeWhatYouUse};
     paranoid.sanitizers = {Sanitizer::AddressSanitizer, Sanitizer::UndefinedBehaviorSanitizer,
-                          Sanitizer::ControlFlowIntegrity};
-    paranoid.securityFlags = {SecurityFlag::StackProtector, SecurityFlag::Fortify,
-                             SecurityFlag::RelRO, SecurityFlag::NowBinding,
-                             SecurityFlag::NoExecutableStack, SecurityFlag::PieExecutable};
+                           Sanitizer::ControlFlowIntegrity};
+    paranoid.securityFlags = {SecurityFlag::StackProtector,
+                              SecurityFlag::Fortify,
+                              SecurityFlag::RelRO,
+                              SecurityFlag::NowBinding,
+                              SecurityFlag::NoExecutableStack,
+                              SecurityFlag::PieExecutable};
     paranoid.enableDependencyScanning = true;
     paranoid.enableVulnerabilityChecks = true;
     paranoid.enableWarningsAsErrors = true;
@@ -228,7 +241,8 @@ void SecurityConfigManager::initializeDefaultConfigs() {
     defaultConfigs_[SecurityLevel::None] = none;
 }
 
-std::string SecurityConfigManager::getSecurityFlagString(SecurityFlag flag, const std::string& compiler) const {
+std::string SecurityConfigManager::getSecurityFlagString(SecurityFlag flag,
+                                                         const std::string& compiler) const {
     switch (flag) {
         case SecurityFlag::StackProtector:
             return "-fstack-protector-strong";
@@ -319,7 +333,8 @@ std::string SecurityConfigManager::generateBazelSecurityConfig(const SecurityCon
     return bazel_config;
 }
 
-std::string SecurityConfigManager::generateClangStaticAnalyzerConfig(const SecurityConfig& config) const {
+std::string SecurityConfigManager::generateClangStaticAnalyzerConfig(
+        const SecurityConfig& config) const {
     if (std::find(config.staticAnalyzers.begin(), config.staticAnalyzers.end(),
                   StaticAnalyzer::ClangStaticAnalyzer) == config.staticAnalyzers.end()) {
         return "";
@@ -393,7 +408,8 @@ skip-cl-exe = yes
 )";
 }
 
-std::string SecurityConfigManager::generateSanitizerCMakeConfig(const SecurityConfig& config) const {
+std::string SecurityConfigManager::generateSanitizerCMakeConfig(
+        const SecurityConfig& config) const {
     if (config.sanitizers.empty()) {
         return "";
     }
@@ -425,7 +441,8 @@ std::string SecurityConfigManager::generateLinkerSecurityFlags(const SecurityCon
     for (const auto& flag : config.securityFlags) {
         std::string flag_str = getSecurityFlagString(flag, "gcc");
         if (flag_str.find("-Wl,") == 0 || flag_str == "-fPIE") {
-            if (!flags.empty()) flags += " ";
+            if (!flags.empty())
+                flags += " ";
             flags += flag_str;
         }
     }
@@ -433,7 +450,8 @@ std::string SecurityConfigManager::generateLinkerSecurityFlags(const SecurityCon
     return flags;
 }
 
-std::string SecurityConfigManager::generateGitHubActionsSecurityConfig(const SecurityConfig& config) const {
+std::string SecurityConfigManager::generateGitHubActionsSecurityConfig(
+        const SecurityConfig& config) const {
     std::string yaml_config = "# Security scanning workflow\n";
     yaml_config += "name: Security Scan\n\n";
     yaml_config += "on:\n";
@@ -455,7 +473,8 @@ std::string SecurityConfigManager::generateGitHubActionsSecurityConfig(const Sec
                 yaml_config += "    - name: Run Cppcheck\n";
                 yaml_config += "      run: |\n";
                 yaml_config += "        sudo apt-get install cppcheck\n";
-                yaml_config += "        cppcheck --enable=all --std=c++17 --error-exitcode=1 src/\n\n";
+                yaml_config +=
+                        "        cppcheck --enable=all --std=c++17 --error-exitcode=1 src/\n\n";
             } else if (analyzer == StaticAnalyzer::ClangStaticAnalyzer) {
                 yaml_config += "    - name: Run Clang Static Analyzer\n";
                 yaml_config += "      run: |\n";
@@ -489,7 +508,8 @@ std::string SecurityConfigManager::generateGitHubActionsSecurityConfig(const Sec
     return yaml_config;
 }
 
-std::string SecurityConfigManager::generateGitLabCISecurityConfig(const SecurityConfig& config) const {
+std::string SecurityConfigManager::generateGitLabCISecurityConfig(
+        const SecurityConfig& config) const {
     std::string yaml_config = "# Security scanning configuration for GitLab CI\n";
     yaml_config += "include:\n";
     yaml_config += "  - template: Security/SAST.gitlab-ci.yml\n";
@@ -529,7 +549,8 @@ std::string SecurityConfigManager::generateGitLabCISecurityConfig(const Security
     return yaml_config;
 }
 
-std::string SecurityConfigManager::generateSecurityDocumentation(const SecurityConfig& config) const {
+std::string SecurityConfigManager::generateSecurityDocumentation(
+        const SecurityConfig& config) const {
     std::string doc = "# Security Configuration\n\n";
 
     doc += fmt::format("**Security Level**: {}\n\n", to_string(config.level));
@@ -538,7 +559,8 @@ std::string SecurityConfigManager::generateSecurityDocumentation(const SecurityC
     if (!config.staticAnalyzers.empty()) {
         doc += "## Static Analysis Tools\n\n";
         for (const auto& analyzer : config.staticAnalyzers) {
-            doc += fmt::format("- **{}**: {}\n", to_string(analyzer), getAnalyzerDescription(analyzer));
+            doc += fmt::format("- **{}**: {}\n", to_string(analyzer),
+                               getAnalyzerDescription(analyzer));
         }
         doc += "\n";
     }
@@ -547,7 +569,8 @@ std::string SecurityConfigManager::generateSecurityDocumentation(const SecurityC
     if (!config.sanitizers.empty()) {
         doc += "## Runtime Sanitizers\n\n";
         for (const auto& sanitizer : config.sanitizers) {
-            doc += fmt::format("- **{}**: {}\n", to_string(sanitizer), getSanitizerDescription(sanitizer));
+            doc += fmt::format("- **{}**: {}\n", to_string(sanitizer),
+                               getSanitizerDescription(sanitizer));
         }
         doc += "\n";
     }
@@ -696,63 +719,94 @@ std::string SecurityConfigManager::getSecurityFlagDescription(SecurityFlag flag)
 // Utility functions implementation
 std::string to_string(SecurityLevel level) {
     switch (level) {
-        case SecurityLevel::None: return "none";
-        case SecurityLevel::Basic: return "basic";
-        case SecurityLevel::Enhanced: return "enhanced";
-        case SecurityLevel::Paranoid: return "paranoid";
-        default: return "unknown";
+        case SecurityLevel::None:
+            return "none";
+        case SecurityLevel::Basic:
+            return "basic";
+        case SecurityLevel::Enhanced:
+            return "enhanced";
+        case SecurityLevel::Paranoid:
+            return "paranoid";
+        default:
+            return "unknown";
     }
 }
 
 std::string to_string(StaticAnalyzer analyzer) {
     switch (analyzer) {
-        case StaticAnalyzer::None: return "none";
-        case StaticAnalyzer::ClangStaticAnalyzer: return "clang-static-analyzer";
-        case StaticAnalyzer::CppCheck: return "cppcheck";
-        case StaticAnalyzer::PVSStudio: return "pvs-studio";
-        case StaticAnalyzer::SonarQube: return "sonarqube";
-        case StaticAnalyzer::Clazy: return "clazy";
-        case StaticAnalyzer::IncludeWhatYouUse: return "include-what-you-use";
-        default: return "unknown";
+        case StaticAnalyzer::None:
+            return "none";
+        case StaticAnalyzer::ClangStaticAnalyzer:
+            return "clang-static-analyzer";
+        case StaticAnalyzer::CppCheck:
+            return "cppcheck";
+        case StaticAnalyzer::PVSStudio:
+            return "pvs-studio";
+        case StaticAnalyzer::SonarQube:
+            return "sonarqube";
+        case StaticAnalyzer::Clazy:
+            return "clazy";
+        case StaticAnalyzer::IncludeWhatYouUse:
+            return "include-what-you-use";
+        default:
+            return "unknown";
     }
 }
 
 std::string to_string(Sanitizer sanitizer) {
     switch (sanitizer) {
-        case Sanitizer::None: return "none";
-        case Sanitizer::AddressSanitizer: return "address";
-        case Sanitizer::ThreadSanitizer: return "thread";
-        case Sanitizer::UndefinedBehaviorSanitizer: return "undefined";
-        case Sanitizer::MemorySanitizer: return "memory";
-        case Sanitizer::LeakSanitizer: return "leak";
-        case Sanitizer::ControlFlowIntegrity: return "cfi";
-        default: return "unknown";
+        case Sanitizer::None:
+            return "none";
+        case Sanitizer::AddressSanitizer:
+            return "address";
+        case Sanitizer::ThreadSanitizer:
+            return "thread";
+        case Sanitizer::UndefinedBehaviorSanitizer:
+            return "undefined";
+        case Sanitizer::MemorySanitizer:
+            return "memory";
+        case Sanitizer::LeakSanitizer:
+            return "leak";
+        case Sanitizer::ControlFlowIntegrity:
+            return "cfi";
+        default:
+            return "unknown";
     }
 }
 
 std::string to_string(SecurityFlag flag) {
     switch (flag) {
-        case SecurityFlag::StackProtector: return "stack-protector";
-        case SecurityFlag::Fortify: return "fortify";
-        case SecurityFlag::RelRO: return "relro";
-        case SecurityFlag::NowBinding: return "now-binding";
-        case SecurityFlag::NoExecutableStack: return "no-exec-stack";
-        case SecurityFlag::PieExecutable: return "pie";
-        case SecurityFlag::ControlFlowGuard: return "control-flow-guard";
-        case SecurityFlag::ShadowStack: return "shadow-stack";
-        case SecurityFlag::ReturnAddressAuth: return "return-address-auth";
-        case SecurityFlag::BranchTargetId: return "branch-target-id";
-        default: return "unknown";
+        case SecurityFlag::StackProtector:
+            return "stack-protector";
+        case SecurityFlag::Fortify:
+            return "fortify";
+        case SecurityFlag::RelRO:
+            return "relro";
+        case SecurityFlag::NowBinding:
+            return "now-binding";
+        case SecurityFlag::NoExecutableStack:
+            return "no-exec-stack";
+        case SecurityFlag::PieExecutable:
+            return "pie";
+        case SecurityFlag::ControlFlowGuard:
+            return "control-flow-guard";
+        case SecurityFlag::ShadowStack:
+            return "shadow-stack";
+        case SecurityFlag::ReturnAddressAuth:
+            return "return-address-auth";
+        case SecurityFlag::BranchTargetId:
+            return "branch-target-id";
+        default:
+            return "unknown";
     }
 }
 
 std::optional<SecurityLevel> to_security_level(const std::string& str) {
     static const std::unordered_map<std::string, SecurityLevel> map = {
-        {"none", SecurityLevel::None},
-        {"basic", SecurityLevel::Basic},
-        {"enhanced", SecurityLevel::Enhanced},
-        {"paranoid", SecurityLevel::Paranoid}
-    };
+            {"none", SecurityLevel::None},
+            {"basic", SecurityLevel::Basic},
+            {"enhanced", SecurityLevel::Enhanced},
+            {"paranoid", SecurityLevel::Paranoid}};
 
     auto it = map.find(str);
     return it != map.end() ? std::optional<SecurityLevel>{it->second} : std::nullopt;
@@ -760,14 +814,13 @@ std::optional<SecurityLevel> to_security_level(const std::string& str) {
 
 std::optional<StaticAnalyzer> to_static_analyzer(const std::string& str) {
     static const std::unordered_map<std::string, StaticAnalyzer> map = {
-        {"none", StaticAnalyzer::None},
-        {"clang-static-analyzer", StaticAnalyzer::ClangStaticAnalyzer},
-        {"cppcheck", StaticAnalyzer::CppCheck},
-        {"pvs-studio", StaticAnalyzer::PVSStudio},
-        {"sonarqube", StaticAnalyzer::SonarQube},
-        {"clazy", StaticAnalyzer::Clazy},
-        {"include-what-you-use", StaticAnalyzer::IncludeWhatYouUse}
-    };
+            {"none", StaticAnalyzer::None},
+            {"clang-static-analyzer", StaticAnalyzer::ClangStaticAnalyzer},
+            {"cppcheck", StaticAnalyzer::CppCheck},
+            {"pvs-studio", StaticAnalyzer::PVSStudio},
+            {"sonarqube", StaticAnalyzer::SonarQube},
+            {"clazy", StaticAnalyzer::Clazy},
+            {"include-what-you-use", StaticAnalyzer::IncludeWhatYouUse}};
 
     auto it = map.find(str);
     return it != map.end() ? std::optional<StaticAnalyzer>{it->second} : std::nullopt;
@@ -775,14 +828,13 @@ std::optional<StaticAnalyzer> to_static_analyzer(const std::string& str) {
 
 std::optional<Sanitizer> to_sanitizer(const std::string& str) {
     static const std::unordered_map<std::string, Sanitizer> map = {
-        {"none", Sanitizer::None},
-        {"address", Sanitizer::AddressSanitizer},
-        {"thread", Sanitizer::ThreadSanitizer},
-        {"undefined", Sanitizer::UndefinedBehaviorSanitizer},
-        {"memory", Sanitizer::MemorySanitizer},
-        {"leak", Sanitizer::LeakSanitizer},
-        {"cfi", Sanitizer::ControlFlowIntegrity}
-    };
+            {"none", Sanitizer::None},
+            {"address", Sanitizer::AddressSanitizer},
+            {"thread", Sanitizer::ThreadSanitizer},
+            {"undefined", Sanitizer::UndefinedBehaviorSanitizer},
+            {"memory", Sanitizer::MemorySanitizer},
+            {"leak", Sanitizer::LeakSanitizer},
+            {"cfi", Sanitizer::ControlFlowIntegrity}};
 
     auto it = map.find(str);
     return it != map.end() ? std::optional<Sanitizer>{it->second} : std::nullopt;
@@ -790,20 +842,19 @@ std::optional<Sanitizer> to_sanitizer(const std::string& str) {
 
 std::optional<SecurityFlag> to_security_flag(const std::string& str) {
     static const std::unordered_map<std::string, SecurityFlag> map = {
-        {"stack-protector", SecurityFlag::StackProtector},
-        {"fortify", SecurityFlag::Fortify},
-        {"relro", SecurityFlag::RelRO},
-        {"now-binding", SecurityFlag::NowBinding},
-        {"no-exec-stack", SecurityFlag::NoExecutableStack},
-        {"pie", SecurityFlag::PieExecutable},
-        {"control-flow-guard", SecurityFlag::ControlFlowGuard},
-        {"shadow-stack", SecurityFlag::ShadowStack},
-        {"return-address-auth", SecurityFlag::ReturnAddressAuth},
-        {"branch-target-id", SecurityFlag::BranchTargetId}
-    };
+            {"stack-protector", SecurityFlag::StackProtector},
+            {"fortify", SecurityFlag::Fortify},
+            {"relro", SecurityFlag::RelRO},
+            {"now-binding", SecurityFlag::NowBinding},
+            {"no-exec-stack", SecurityFlag::NoExecutableStack},
+            {"pie", SecurityFlag::PieExecutable},
+            {"control-flow-guard", SecurityFlag::ControlFlowGuard},
+            {"shadow-stack", SecurityFlag::ShadowStack},
+            {"return-address-auth", SecurityFlag::ReturnAddressAuth},
+            {"branch-target-id", SecurityFlag::BranchTargetId}};
 
     auto it = map.find(str);
     return it != map.end() ? std::optional<SecurityFlag>{it->second} : std::nullopt;
 }
 
-} // namespace utils
+}  // namespace utils

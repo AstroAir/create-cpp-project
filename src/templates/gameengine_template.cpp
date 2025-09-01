@@ -1,322 +1,357 @@
 #include "gameengine_template.h"
+
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/spdlog.h>
+
+#include <filesystem>
+
 #include "../utils/file_utils.h"
 #include "../utils/terminal_utils.h"
-#include <filesystem>
-#include <fmt/format.h>
-#include <spdlog/spdlog.h>
 
 using utils::FileUtils;
 
-GameEngineTemplate::GameEngineTemplate(const CliOptions &options) : TemplateBase(options) {}
+GameEngineTemplate::GameEngineTemplate(const CliOptions& options) : TemplateBase(options) {}
 
 bool GameEngineTemplate::create() {
-  spdlog::info("Creating game engine project: {}", options_.projectName);
+    spdlog::info("Creating game engine project: {}", options_.projectName);
 
-  // Show progress
-  utils::TerminalUtils::showNpmStyleProgress("Creating game engine project", 0, "Initializing");
+    // Show progress
+    utils::TerminalUtils::showNpmStyleProgress("Creating game engine project", 0, "Initializing");
 
-  if (!createProjectStructure()) {
-    spdlog::error("Failed to create project structure");
-    return false;
-  }
-
-  utils::TerminalUtils::showNpmStyleProgress("Creating game engine project", 20, "Setting up graphics framework");
-
-  if (!setupGraphicsFramework()) {
-    spdlog::error("Failed to setup graphics framework");
-    return false;
-  }
-
-  utils::TerminalUtils::showNpmStyleProgress("Creating game engine project", 40, "Configuring build system");
-
-  if (!createBuildSystem()) {
-    spdlog::error("Failed to create build system");
-    return false;
-  }
-
-  utils::TerminalUtils::showNpmStyleProgress("Creating game engine project", 60, "Setting up package manager");
-
-  if (!setupPackageManager()) {
-    spdlog::error("Failed to setup package manager");
-    return false;
-  }
-
-  utils::TerminalUtils::showNpmStyleProgress("Creating game engine project", 80, "Configuring testing framework");
-
-  if (options_.includeTests && !setupTestFramework()) {
-    spdlog::error("Failed to setup test framework");
-    return false;
-  }
-
-  utils::TerminalUtils::showNpmStyleProgress("Creating game engine project", 90, "Setting up asset pipeline");
-
-  if (!setupAssetPipeline()) {
-    spdlog::error("Failed to setup asset pipeline");
-    return false;
-  }
-
-  utils::TerminalUtils::showNpmStyleProgress("Creating game engine project", 100, "Finalizing");
-
-  // Initialize Git if requested
-  if (options_.initGit) {
-    if (!initializeGit(options_.projectName)) {
-      spdlog::error("Failed to initialize Git repository");
-      return false;
+    if (!createProjectStructure()) {
+        spdlog::error("Failed to create project structure");
+        return false;
     }
-    spdlog::info("✅ Git repository initialized");
-  }
 
-  utils::TerminalUtils::showNpmStyleSuccess("Game engine project created successfully!", options_.projectName);
+    utils::TerminalUtils::showNpmStyleProgress("Creating game engine project", 20,
+                                               "Setting up graphics framework");
 
-  // Print usage guide
-  printUsageGuide();
+    if (!setupGraphicsFramework()) {
+        spdlog::error("Failed to setup graphics framework");
+        return false;
+    }
 
-  return true;
+    utils::TerminalUtils::showNpmStyleProgress("Creating game engine project", 40,
+                                               "Configuring build system");
+
+    if (!createBuildSystem()) {
+        spdlog::error("Failed to create build system");
+        return false;
+    }
+
+    utils::TerminalUtils::showNpmStyleProgress("Creating game engine project", 60,
+                                               "Setting up package manager");
+
+    if (!setupPackageManager()) {
+        spdlog::error("Failed to setup package manager");
+        return false;
+    }
+
+    utils::TerminalUtils::showNpmStyleProgress("Creating game engine project", 80,
+                                               "Configuring testing framework");
+
+    if (options_.includeTests && !setupTestFramework()) {
+        spdlog::error("Failed to setup test framework");
+        return false;
+    }
+
+    utils::TerminalUtils::showNpmStyleProgress("Creating game engine project", 90,
+                                               "Setting up asset pipeline");
+
+    if (!setupAssetPipeline()) {
+        spdlog::error("Failed to setup asset pipeline");
+        return false;
+    }
+
+    utils::TerminalUtils::showNpmStyleProgress("Creating game engine project", 100, "Finalizing");
+
+    // Initialize Git if requested
+    if (options_.initGit) {
+        if (!initializeGit(options_.projectName)) {
+            spdlog::error("Failed to initialize Git repository");
+            return false;
+        }
+        spdlog::info("✅ Git repository initialized");
+    }
+
+    utils::TerminalUtils::showNpmStyleSuccess("Game engine project created successfully!",
+                                              options_.projectName);
+
+    // Print usage guide
+    printUsageGuide();
+
+    return true;
 }
 
 bool GameEngineTemplate::createProjectStructure() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // Create main directories
-  std::vector<std::string> directories = {
-    projectPath,
-    projectPath + "/src",
-    projectPath + "/src/engine",
-    projectPath + "/src/engine/core",
-    projectPath + "/src/engine/graphics",
-    projectPath + "/src/engine/audio",
-    projectPath + "/src/engine/input",
-    projectPath + "/src/engine/physics",
-    projectPath + "/src/engine/scripting",
-    projectPath + "/src/engine/resources",
-    projectPath + "/src/engine/scene",
-    projectPath + "/src/game",
-    projectPath + "/include",
-    projectPath + "/include/engine",
-    projectPath + "/include/game",
-    projectPath + "/assets",
-    projectPath + "/assets/textures",
-    projectPath + "/assets/models",
-    projectPath + "/assets/sounds",
-    projectPath + "/assets/shaders",
-    projectPath + "/assets/fonts",
-    projectPath + "/assets/scenes",
-    projectPath + "/tools",
-    projectPath + "/tools/asset_pipeline",
-    projectPath + "/tools/shader_compiler",
-    projectPath + "/examples",
-    projectPath + "/docs",
-    projectPath + "/tests",
-    projectPath + "/tests/engine",
-    projectPath + "/tests/game",
-    projectPath + "/build",
-    projectPath + "/bin",
-    projectPath + "/lib"
-  };
+    // Create main directories
+    std::vector<std::string> directories = {projectPath,
+                                            projectPath + "/src",
+                                            projectPath + "/src/engine",
+                                            projectPath + "/src/engine/core",
+                                            projectPath + "/src/engine/graphics",
+                                            projectPath + "/src/engine/audio",
+                                            projectPath + "/src/engine/input",
+                                            projectPath + "/src/engine/physics",
+                                            projectPath + "/src/engine/scripting",
+                                            projectPath + "/src/engine/resources",
+                                            projectPath + "/src/engine/scene",
+                                            projectPath + "/src/game",
+                                            projectPath + "/include",
+                                            projectPath + "/include/engine",
+                                            projectPath + "/include/game",
+                                            projectPath + "/assets",
+                                            projectPath + "/assets/textures",
+                                            projectPath + "/assets/models",
+                                            projectPath + "/assets/sounds",
+                                            projectPath + "/assets/shaders",
+                                            projectPath + "/assets/fonts",
+                                            projectPath + "/assets/scenes",
+                                            projectPath + "/tools",
+                                            projectPath + "/tools/asset_pipeline",
+                                            projectPath + "/tools/shader_compiler",
+                                            projectPath + "/examples",
+                                            projectPath + "/docs",
+                                            projectPath + "/tests",
+                                            projectPath + "/tests/engine",
+                                            projectPath + "/tests/game",
+                                            projectPath + "/build",
+                                            projectPath + "/bin",
+                                            projectPath + "/lib"};
 
-  for (const auto &dir : directories) {
-    if (!FileUtils::createDirectory(dir)) {
-      spdlog::error("Failed to create directory: {}", dir);
-      return false;
+    for (const auto& dir : directories) {
+        if (!FileUtils::createDirectory(dir)) {
+            spdlog::error("Failed to create directory: {}", dir);
+            return false;
+        }
     }
-  }
 
-  // Create main engine files
-  if (!FileUtils::writeToFile(projectPath + "/src/engine/core/engine.h", getEngineHeaderContent())) {
-    return false;
-  }
+    // Create main engine files
+    if (!FileUtils::writeToFile(projectPath + "/src/engine/core/engine.h",
+                                getEngineHeaderContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(projectPath + "/src/engine/core/engine.cpp", getEngineSourceContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(projectPath + "/src/engine/core/engine.cpp",
+                                getEngineSourceContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(projectPath + "/src/game/game.h", getGameHeaderContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(projectPath + "/src/game/game.h", getGameHeaderContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(projectPath + "/src/game/game.cpp", getGameSourceContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(projectPath + "/src/game/game.cpp", getGameSourceContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(projectPath + "/src/main.cpp", getExampleGameContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(projectPath + "/src/main.cpp", getExampleGameContent())) {
+        return false;
+    }
 
-  // Create graphics system files
-  if (!FileUtils::writeToFile(projectPath + "/src/engine/graphics/renderer.h", getRendererHeaderContent())) {
-    return false;
-  }
+    // Create graphics system files
+    if (!FileUtils::writeToFile(projectPath + "/src/engine/graphics/renderer.h",
+                                getRendererHeaderContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(projectPath + "/src/engine/graphics/renderer.cpp", getRendererSourceContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(projectPath + "/src/engine/graphics/renderer.cpp",
+                                getRendererSourceContent())) {
+        return false;
+    }
 
-  // Create input system files
-  if (!FileUtils::writeToFile(projectPath + "/src/engine/input/input_manager.h", getInputManagerHeaderContent())) {
-    return false;
-  }
+    // Create input system files
+    if (!FileUtils::writeToFile(projectPath + "/src/engine/input/input_manager.h",
+                                getInputManagerHeaderContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(projectPath + "/src/engine/input/input_manager.cpp", getInputManagerSourceContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(projectPath + "/src/engine/input/input_manager.cpp",
+                                getInputManagerSourceContent())) {
+        return false;
+    }
 
-  // Create resource manager files
-  if (!FileUtils::writeToFile(projectPath + "/src/engine/resources/resource_manager.h", getResourceManagerHeaderContent())) {
-    return false;
-  }
+    // Create resource manager files
+    if (!FileUtils::writeToFile(projectPath + "/src/engine/resources/resource_manager.h",
+                                getResourceManagerHeaderContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(projectPath + "/src/engine/resources/resource_manager.cpp", getResourceManagerSourceContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(projectPath + "/src/engine/resources/resource_manager.cpp",
+                                getResourceManagerSourceContent())) {
+        return false;
+    }
 
-  // Create scene system files
-  if (!FileUtils::writeToFile(projectPath + "/src/engine/scene/scene_manager.h", getSceneManagerHeaderContent())) {
-    return false;
-  }
+    // Create scene system files
+    if (!FileUtils::writeToFile(projectPath + "/src/engine/scene/scene_manager.h",
+                                getSceneManagerHeaderContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(projectPath + "/src/engine/scene/scene_manager.cpp", getSceneManagerSourceContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(projectPath + "/src/engine/scene/scene_manager.cpp",
+                                getSceneManagerSourceContent())) {
+        return false;
+    }
 
-  // Create ECS files
-  if (!FileUtils::writeToFile(projectPath + "/src/engine/core/entity.h", getEntityHeaderContent())) {
-    return false;
-  }
+    // Create ECS files
+    if (!FileUtils::writeToFile(projectPath + "/src/engine/core/entity.h",
+                                getEntityHeaderContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(projectPath + "/src/engine/core/entity.cpp", getEntitySourceContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(projectPath + "/src/engine/core/entity.cpp",
+                                getEntitySourceContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(projectPath + "/src/engine/core/component.h", getComponentHeaderContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(projectPath + "/src/engine/core/component.h",
+                                getComponentHeaderContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(projectPath + "/src/engine/core/system.h", getSystemHeaderContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(projectPath + "/src/engine/core/system.h",
+                                getSystemHeaderContent())) {
+        return false;
+    }
 
-  // Create basic shaders
-  if (!FileUtils::writeToFile(projectPath + "/assets/shaders/vertex.glsl", getShaderContent("vertex"))) {
-    return false;
-  }
+    // Create basic shaders
+    if (!FileUtils::writeToFile(projectPath + "/assets/shaders/vertex.glsl",
+                                getShaderContent("vertex"))) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(projectPath + "/assets/shaders/fragment.glsl", getShaderContent("fragment"))) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(projectPath + "/assets/shaders/fragment.glsl",
+                                getShaderContent("fragment"))) {
+        return false;
+    }
 
-  // Create configuration files
-  if (!FileUtils::writeToFile(projectPath + "/config/engine.json", getEngineConfigContent())) {
-    return false;
-  }
+    // Create configuration files
+    if (!FileUtils::writeToFile(projectPath + "/config/engine.json", getEngineConfigContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(projectPath + "/config/graphics.json", getGraphicsConfigContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(projectPath + "/config/graphics.json",
+                                getGraphicsConfigContent())) {
+        return false;
+    }
 
-  // Create README
-  if (!FileUtils::writeToFile(projectPath + "/README.md", getGameEngineReadmeContent())) {
-    return false;
-  }
+    // Create README
+    if (!FileUtils::writeToFile(projectPath + "/README.md", getGameEngineReadmeContent())) {
+        return false;
+    }
 
-  // Create assets README
-  if (!FileUtils::writeToFile(projectPath + "/assets/README.md", getAssetsReadmeContent())) {
-    return false;
-  }
+    // Create assets README
+    if (!FileUtils::writeToFile(projectPath + "/assets/README.md", getAssetsReadmeContent())) {
+        return false;
+    }
 
-  return true;
+    return true;
 }
 
 bool GameEngineTemplate::createBuildSystem() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  switch (options_.buildSystem) {
-    case BuildSystem::CMake:
-      return FileUtils::writeToFile(projectPath + "/CMakeLists.txt", getGameEngineCMakeContent());
-    case BuildSystem::Meson:
-      return FileUtils::writeToFile(projectPath + "/meson.build", getGameEngineMesonContent());
-    case BuildSystem::Bazel:
-      return FileUtils::writeToFile(projectPath + "/BUILD.bazel", getGameEngineBazelContent());
-    default:
-      spdlog::error("Unsupported build system for game engine template");
-      return false;
-  }
+    switch (options_.buildSystem) {
+        case BuildSystem::CMake:
+            return FileUtils::writeToFile(projectPath + "/CMakeLists.txt",
+                                          getGameEngineCMakeContent());
+        case BuildSystem::Meson:
+            return FileUtils::writeToFile(projectPath + "/meson.build",
+                                          getGameEngineMesonContent());
+        case BuildSystem::Bazel:
+            return FileUtils::writeToFile(projectPath + "/BUILD.bazel",
+                                          getGameEngineBazelContent());
+        case BuildSystem::XMake:
+            return FileUtils::writeToFile(projectPath + "/xmake.lua", getGameEngineXMakeContent());
+        case BuildSystem::Premake:
+            return FileUtils::writeToFile(projectPath + "/premake5.lua",
+                                          getGameEnginePremakeContent());
+        default:
+            spdlog::error("Unsupported build system for game engine template");
+            return false;
+    }
 }
 
 bool GameEngineTemplate::setupPackageManager() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  switch (options_.packageManager) {
-    case PackageManager::Vcpkg:
-      return FileUtils::writeToFile(projectPath + "/vcpkg.json", getGameEngineVcpkgContent());
-    case PackageManager::Conan:
-      return FileUtils::writeToFile(projectPath + "/conanfile.txt", getGameEngineConanContent());
-    case PackageManager::None:
-      return true; // No package manager setup needed
-    default:
-      spdlog::error("Unsupported package manager for game engine template");
-      return false;
-  }
+    switch (options_.packageManager) {
+        case PackageManager::Vcpkg:
+            return FileUtils::writeToFile(projectPath + "/vcpkg.json", getGameEngineVcpkgContent());
+        case PackageManager::Conan:
+            return FileUtils::writeToFile(projectPath + "/conanfile.txt",
+                                          getGameEngineConanContent());
+        case PackageManager::None:
+            return true;  // No package manager setup needed
+        default:
+            spdlog::error("Unsupported package manager for game engine template");
+            return false;
+    }
 }
 
 bool GameEngineTemplate::setupTestFramework() {
-  // Use the base class implementation for now
-  return true;
+    // Use the base class implementation for now
+    return true;
 }
 
 bool GameEngineTemplate::setupGraphicsFramework() {
-  // Graphics framework setup is handled in the build system and package manager
-  return true;
+    // Graphics framework setup is handled in the build system and package manager
+    return true;
 }
 
 bool GameEngineTemplate::setupAudioSystem() {
-  // Audio system setup
-  return true;
+    // Audio system setup
+    return true;
 }
 
 bool GameEngineTemplate::setupInputSystem() {
-  // Input system setup
-  return true;
+    // Input system setup
+    return true;
 }
 
 bool GameEngineTemplate::setupResourceManager() {
-  // Resource manager setup
-  return true;
+    // Resource manager setup
+    return true;
 }
 
 bool GameEngineTemplate::setupSceneSystem() {
-  // Scene system setup
-  return true;
+    // Scene system setup
+    return true;
 }
 
 bool GameEngineTemplate::setupPhysicsEngine() {
-  // Physics engine setup
-  return true;
+    // Physics engine setup
+    return true;
 }
 
 bool GameEngineTemplate::setupScriptingEngine() {
-  // Scripting engine setup
-  return true;
+    // Scripting engine setup
+    return true;
 }
 
 bool GameEngineTemplate::setupAssetPipeline() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // Create asset pipeline script
-  if (!FileUtils::writeToFile(projectPath + "/tools/asset_pipeline/process_assets.py", getAssetPipelineScriptContent())) {
-    return false;
-  }
+    // Create asset pipeline script
+    if (!FileUtils::writeToFile(projectPath + "/tools/asset_pipeline/process_assets.py",
+                                getAssetPipelineScriptContent())) {
+        return false;
+    }
 
-  // Create shader compiler script
-  if (!FileUtils::writeToFile(projectPath + "/tools/shader_compiler/compile_shaders.py", getShaderCompilerScriptContent())) {
-    return false;
-  }
+    // Create shader compiler script
+    if (!FileUtils::writeToFile(projectPath + "/tools/shader_compiler/compile_shaders.py",
+                                getShaderCompilerScriptContent())) {
+        return false;
+    }
 
-  return true;
+    return true;
 }
 
 // Content generation methods
 std::string GameEngineTemplate::getEngineHeaderContent() {
-  return fmt::format(R"(#pragma once
+    return fmt::format(R"(#pragma once
 
 #include <memory>
 #include <string>
@@ -367,11 +402,12 @@ private:
 }};
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getEngineSourceContent() {
-  return fmt::format(R"(#include "engine.h"
+    return fmt::format(R"(#include "engine.h"
 #include "../graphics/renderer.h"
 #include "../input/input_manager.h"
 #include "../resources/resource_manager.h"
@@ -471,11 +507,12 @@ void Engine::Shutdown() {{
 }}
 
 }} // namespace {}
-)", options_.projectName, options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getGameHeaderContent() {
-  return fmt::format(R"(#pragma once
+    return fmt::format(R"(#pragma once
 
 #include "engine/core/engine.h"
 
@@ -499,11 +536,12 @@ private:
 }};
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getGameSourceContent() {
-  return fmt::format(R"(#include "game.h"
+    return fmt::format(R"(#include "game.h"
 #include <iostream>
 
 namespace {} {{
@@ -551,11 +589,12 @@ void Game::Shutdown() {{
 }}
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getExampleGameContent() {
-  return fmt::format(R"(#include "game/game.h"
+    return fmt::format(R"(#include "game/game.h"
 #include <iostream>
 
 int main() {{
@@ -574,11 +613,12 @@ int main() {{
     std::cout << "Game exited successfully." << std::endl;
     return 0;
 }}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getRendererHeaderContent() {
-  return fmt::format(R"(#pragma once
+    return fmt::format(R"(#pragma once
 
 #include <memory>
 #include <string>
@@ -609,11 +649,12 @@ private:
 }};
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getRendererSourceContent() {
-  return fmt::format(R"(#include "renderer.h"
+    return fmt::format(R"(#include "renderer.h"
 #include <iostream>
 
 namespace {} {{
@@ -680,11 +721,12 @@ void Renderer::SetClearColor(float r, float g, float b, float a) {{
 }}
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getInputManagerHeaderContent() {
-  return fmt::format(R"(#pragma once
+    return fmt::format(R"(#pragma once
 
 #include <string>
 #include <unordered_map>
@@ -717,11 +759,12 @@ private:
 }};
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getInputManagerSourceContent() {
-  return fmt::format(R"(#include "input_manager.h"
+    return fmt::format(R"(#include "input_manager.h"
 #include <iostream>
 
 namespace {} {{
@@ -825,11 +868,12 @@ void InputManager::GetMousePosition(int& x, int& y) const {{
 }}
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getResourceManagerHeaderContent() {
-  return fmt::format(R"(#pragma once
+    return fmt::format(R"(#pragma once
 
 #include <string>
 #include <unordered_map>
@@ -874,11 +918,12 @@ private:
 }};
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getResourceManagerSourceContent() {
-  return fmt::format(R"(#include "resource_manager.h"
+    return fmt::format(R"(#include "resource_manager.h"
 #include <iostream>
 
 namespace {} {{
@@ -920,11 +965,12 @@ void ResourceManager::UnloadAllResources() {{
 // Template specializations would go here in a real implementation
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getSceneManagerHeaderContent() {
-  return fmt::format(R"(#pragma once
+    return fmt::format(R"(#pragma once
 
 #include <memory>
 #include <vector>
@@ -975,11 +1021,12 @@ private:
 }};
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getSceneManagerSourceContent() {
-  return fmt::format(R"(#include "scene_manager.h"
+    return fmt::format(R"(#include "scene_manager.h"
 #include "entity.h"
 #include "../graphics/renderer.h"
 #include <iostream>
@@ -1072,11 +1119,12 @@ Scene* SceneManager::GetCurrentScene() const {{
 }}
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getEntityHeaderContent() {
-  return fmt::format(R"(#pragma once
+    return fmt::format(R"(#pragma once
 
 #include <memory>
 #include <vector>
@@ -1122,11 +1170,12 @@ private:
 }};
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getEntitySourceContent() {
-  return fmt::format(R"(#include "entity.h"
+    return fmt::format(R"(#include "entity.h"
 #include "component.h"
 
 namespace {} {{
@@ -1142,11 +1191,12 @@ Entity::~Entity() {{
 // for template instantiation, but here's the basic structure
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getComponentHeaderContent() {
-  return fmt::format(R"(#pragma once
+    return fmt::format(R"(#pragma once
 
 namespace {} {{
 
@@ -1195,11 +1245,12 @@ private:
 }};
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getSystemHeaderContent() {
-  return fmt::format(R"(#pragma once
+    return fmt::format(R"(#pragma once
 
 #include <vector>
 #include <memory>
@@ -1236,12 +1287,13 @@ public:
 }};
 
 }} // namespace {}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getShaderContent(const std::string& shaderType) {
-  if (shaderType == "vertex") {
-    return R"(#version 330 core
+    if (shaderType == "vertex") {
+        return R"(#version 330 core
 
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aTexCoord;
@@ -1258,8 +1310,8 @@ void main()
     TexCoord = aTexCoord;
 }
 )";
-  } else if (shaderType == "fragment") {
-    return R"(#version 330 core
+    } else if (shaderType == "fragment") {
+        return R"(#version 330 core
 
 out vec4 FragColor;
 
@@ -1273,12 +1325,12 @@ void main()
     FragColor = texture(ourTexture, TexCoord) * vec4(color, 1.0);
 }
 )";
-  }
-  return "// Unknown shader type";
+    }
+    return "// Unknown shader type";
 }
 
 std::string GameEngineTemplate::getEngineConfigContent() {
-  return fmt::format(R"({{
+    return fmt::format(R"({{
   "engine": {{
     "name": "{}",
     "version": "1.0.0",
@@ -1306,11 +1358,12 @@ std::string GameEngineTemplate::getEngineConfigContent() {
     }}
   }}
 }}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getGraphicsConfigContent() {
-  return R"({
+    return R"({
   "graphics": {
     "clearColor": [0.2, 0.3, 0.3, 1.0],
     "wireframe": false,
@@ -1337,7 +1390,7 @@ std::string GameEngineTemplate::getGraphicsConfigContent() {
 }
 
 std::string GameEngineTemplate::getAssetsReadmeContent() {
-  return fmt::format(R"(# {} Assets
+    return fmt::format(R"(# {} Assets
 
 This directory contains all the assets for the {} game engine project.
 
@@ -1408,11 +1461,12 @@ python tools/asset_pipeline/process_assets.py
 - Use lowercase with underscores: `player_texture.png`
 - Include descriptive names: `explosion_sound_01.wav`
 - Use consistent prefixes for related assets: `ui_button_normal.png`, `ui_button_hover.png`
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getGameEngineCMakeContent() {
-  return fmt::format(R"(cmake_minimum_required(VERSION 3.16)
+    return fmt::format(R"(cmake_minimum_required(VERSION 3.16)
 project({} VERSION 1.0.0 LANGUAGES CXX)
 
 # Set C++ standard
@@ -1502,11 +1556,15 @@ endif()
 if(BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
-)", options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getGameEngineMesonContent() {
-  return fmt::format(R"(project('{}', 'cpp',
+    return fmt::format(R"(project('{}', 'cpp',
   version : '1.0.0',
   default_options : ['warning_level=3', 'cpp_std=c++17'])
 
@@ -1539,11 +1597,12 @@ executable('{}',
   link_with : engine_lib,
   dependencies : [opengl_dep, glfw_dep, glm_dep]
 )
-)", options_.projectName, options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getGameEngineBazelContent() {
-  return fmt::format(R"(load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+    return fmt::format(R"(load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 cc_library(
     name = "{}_engine",
@@ -1581,11 +1640,156 @@ cc_binary(
     srcs = ["src/main.cpp"],
     deps = [":{}_engine"],
 )
-)", options_.projectName, options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName, options_.projectName);
+}
+
+std::string GameEngineTemplate::getGameEngineXMakeContent() {
+    return fmt::format(R"(set_project("{0}")
+set_version("1.0.0")
+
+-- Set C++ standard
+set_languages("c++17")
+
+-- Add build modes
+add_rules("mode.debug", "mode.release")
+
+-- Game engine dependencies
+add_requires("opengl", "glfw", "glm", "stb")
+
+-- Engine core library
+target("{1}_engine")
+    set_kind("static")
+    add_files("src/engine/**.cpp")
+    add_headerfiles("include/engine/**.h")
+    add_includedirs("include", {{public = true}})
+
+    -- Add packages
+    add_packages("opengl", "glfw", "glm", "stb")
+
+    -- Set output directory
+    set_targetdir("lib")
+
+    -- Enable C++ features
+    set_languages("c++17")
+
+    -- Add compile flags
+    if is_mode("debug") then
+        add_defines("DEBUG", "ENGINE_DEBUG")
+        set_symbols("debug")
+        set_optimize("none")
+    elseif is_mode("release") then
+        add_defines("NDEBUG", "ENGINE_RELEASE")
+        set_symbols("hidden")
+        set_optimize("fastest")
+    end
+
+-- Game executable
+target("{2}")
+    set_kind("binary")
+    add_files("src/game/**.cpp", "src/main.cpp")
+    add_headerfiles("include/game/**.h")
+    add_includedirs("include")
+    add_deps("{3}_engine")
+
+    -- Add packages
+    add_packages("opengl", "glfw", "glm", "stb")
+
+    -- Set output directory
+    set_targetdir("bin")
+
+    -- Enable C++ features
+    set_languages("c++17")
+)",
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName);
+}
+
+std::string GameEngineTemplate::getGameEnginePremakeContent() {
+    return fmt::format(R"(workspace "{0}"
+    configurations {{ "Debug", "Release" }}
+    platforms {{ "x64" }}
+
+project "{1}_engine"
+    kind "StaticLib"
+    language "C++"
+    cppdialect "C++17"
+    targetdir "lib/%{{cfg.buildcfg}}"
+
+    files {{
+        "src/engine/**.cpp",
+        "include/engine/**.h"
+    }}
+
+    includedirs {{
+        "include",
+        "vendor/glfw/include",
+        "vendor/glm",
+        "vendor/stb"
+    }}
+
+    links {{
+        "opengl32",
+        "glfw3",
+        "gdi32",
+        "user32",
+        "kernel32"
+    }}
+
+    filter "configurations:Debug"
+        defines {{ "DEBUG", "ENGINE_DEBUG" }}
+        symbols "On"
+        optimize "Off"
+
+    filter "configurations:Release"
+        defines {{ "NDEBUG", "ENGINE_RELEASE" }}
+        symbols "Off"
+        optimize "Speed"
+
+project "{2}"
+    kind "WindowedApp"
+    language "C++"
+    cppdialect "C++17"
+    targetdir "bin/%{{cfg.buildcfg}}"
+
+    files {{
+        "src/game/**.cpp",
+        "src/main.cpp",
+        "include/game/**.h"
+    }}
+
+    includedirs {{
+        "include",
+        "vendor/glfw/include",
+        "vendor/glm",
+        "vendor/stb"
+    }}
+
+    links {{
+        "{3}_engine",
+        "opengl32",
+        "glfw3",
+        "gdi32",
+        "user32",
+        "kernel32"
+    }}
+
+    filter "configurations:Debug"
+        defines {{ "DEBUG" }}
+        symbols "On"
+        optimize "Off"
+
+    filter "configurations:Release"
+        defines {{ "NDEBUG" }}
+        symbols "Off"
+        optimize "Speed"
+)",
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName);
 }
 
 std::string GameEngineTemplate::getGameEngineVcpkgContent() {
-  return fmt::format(R"({{
+    return fmt::format(R"({{
   "name": "{}",
   "version": "1.0.0",
   "description": "A modern C++ game engine",
@@ -1619,11 +1823,12 @@ std::string GameEngineTemplate::getGameEngineVcpkgContent() {
     }}
   }}
 }}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string GameEngineTemplate::getGameEngineConanContent() {
-  return fmt::format(R"([requires]
+    return fmt::format(R"([requires]
 opengl/system
 glfw/3.3.8
 glm/0.9.9.8
@@ -1646,11 +1851,12 @@ arch
 
 [build_requires]
 cmake/[>=3.16]
-)", options_.projectName);
+)",
+                       options_.projectName);
 }
 
 std::string GameEngineTemplate::getAssetPipelineScriptContent() {
-  return R"(#!/usr/bin/env python3
+    return R"(#!/usr/bin/env python3
 """
 Asset Pipeline for Game Engine
 Processes and optimizes game assets
@@ -1786,7 +1992,7 @@ if __name__ == "__main__":
 }
 
 std::string GameEngineTemplate::getGameEngineReadmeContent() {
-  return fmt::format(R"(# {} Game Engine
+    return fmt::format(R"(# {} Game Engine
 
 A modern C++ game engine built with performance and flexibility in mind.
 
@@ -1904,11 +2110,13 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [Documentation](docs/)
 - [Issues](https://github.com/your-username/{}/issues)
 - [Discussions](https://github.com/your-username/{}/discussions)
-)", options_.projectName, options_.projectName, options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName);
 }
 
 std::string GameEngineTemplate::getShaderCompilerScriptContent() {
-  return R"(#!/usr/bin/env python3
+    return R"(#!/usr/bin/env python3
 """
 Shader Compiler Script for Game Engine
 Compiles HLSL/GLSL shaders to various formats

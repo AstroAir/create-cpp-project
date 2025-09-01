@@ -1,376 +1,372 @@
 ﻿#include "gui_template.h"
+
+#include <spdlog/fmt/fmt.h>
+
+#include <iostream>
+
 #include "../utils/file_utils.h"
 #include "../utils/string_utils.h"
-#include <fmt/format.h>
-#include <iostream>
 
 using namespace utils;
 using namespace cli_enums;
 
-GuiTemplate::GuiTemplate(const CliOptions &options) : TemplateBase(options) {
-  // 确定GUI框架类型 (默认为Qt)
-  guiFramework_ = "qt";
+GuiTemplate::GuiTemplate(const CliOptions& options) : TemplateBase(options) {
+    // 确定GUI框架类型 (默认为Qt)
+    guiFramework_ = "qt";
 
-  // 优先使用命令行指定的GUI框架
-  if (!options.guiFrameworks.empty()) {
-    guiFramework_ = options.guiFrameworks[0]; // 使用第一个指定的框架
-  } else {
-    // 检查是否有框架指定在项目名称中
-    std::string projectName = StringUtils::toLower(options.projectName);
-    if (projectName.find("qt") != std::string::npos) {
-      guiFramework_ = "qt";
-    } else if (projectName.find("wx") != std::string::npos ||
-               projectName.find("wxwidgets") != std::string::npos) {
-      guiFramework_ = "wxwidgets";
-    } else if (projectName.find("gtk") != std::string::npos) {
-      guiFramework_ = "gtk";
-    } else if (projectName.find("fltk") != std::string::npos) {
-      guiFramework_ = "fltk";
-    } else if (projectName.find("imgui") != std::string::npos) {
-      guiFramework_ = "imgui";
+    // 优先使用命令行指定的GUI框架
+    if (!options.guiFrameworks.empty()) {
+        guiFramework_ = options.guiFrameworks[0];  // 使用第一个指定的框架
+    } else {
+        // 检查是否有框架指定在项目名称中
+        std::string projectName = StringUtils::toLower(options.projectName);
+        if (projectName.find("qt") != std::string::npos) {
+            guiFramework_ = "qt";
+        } else if (projectName.find("wx") != std::string::npos ||
+                   projectName.find("wxwidgets") != std::string::npos) {
+            guiFramework_ = "wxwidgets";
+        } else if (projectName.find("gtk") != std::string::npos) {
+            guiFramework_ = "gtk";
+        } else if (projectName.find("fltk") != std::string::npos) {
+            guiFramework_ = "fltk";
+        } else if (projectName.find("imgui") != std::string::npos) {
+            guiFramework_ = "imgui";
+        }
     }
-  }
 
-  std::cout << "🎨 选择的GUI框架: " << guiFramework_ << std::endl;
+    std::cout << "🎨 选择的GUI框架: " << guiFramework_ << std::endl;
 }
 
 bool GuiTemplate::create() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // 检查项目目录是否已存在
-  if (FileUtils::directoryExists(projectPath)) {
-    std::cout << "错误: 目录 '" << projectPath << "' 已存在。\n";
-    return false;
-  }
-
-  std::cout << "🚀 正在创建GUI项目 (" << guiFramework_ << ")...\n";
-
-  // 创建基本结构
-  if (!createProjectStructure()) {
-    std::cout << "创建项目结构失败\n";
-    return false;
-  }
-  std::cout << "�?项目结构已创建\n";
-
-  // 创建GUI特定文件
-  if (!createGuiSpecificFiles()) {
-    std::cout << "创建GUI特定文件失败\n";
-    return false;
-  }
-  std::cout << "�?GUI特定文件已创建\n";
-
-  // 创建构建系统
-  if (!createBuildSystem()) {
-    std::cout << "配置构建系统失败\n";
-    return false;
-  }
-  std::cout << "�?构建系统已配置\n";
-
-  // 设置包管理器
-  if (!setupPackageManager()) {
-    std::cout << "设置包管理器失败\n";
-    return false;
-  }
-  std::cout << "�?包管理器已设置\n";
-
-  // 设置测试框架
-  if (options_.includeTests) {
-    if (!setupTestFramework()) {
-      std::cout << "设置测试框架失败\n";
-      return false;
+    // 检查项目目录是否已存在
+    if (FileUtils::directoryExists(projectPath)) {
+        std::cout << "错误: 目录 '" << projectPath << "' 已存在。\n";
+        return false;
     }
-    std::cout << "�?测试框架已配置\n";
-  }
 
-  // 设置文档
-  if (options_.includeDocumentation) {
-    if (!setupDocumentation()) {
-      std::cout << "设置文档失败\n";
-      return false;
+    std::cout << "🚀 正在创建GUI项目 (" << guiFramework_ << ")...\n";
+
+    // 创建基本结构
+    if (!createProjectStructure()) {
+        std::cout << "创建项目结构失败\n";
+        return false;
     }
-    std::cout << "�?文档已配置\n";
-  }
+    std::cout << "�?项目结构已创建\n";
 
-  // 初始化Git
-  if (options_.initGit) {
-    if (!initializeGit(projectPath)) {
-      std::cout << "初始化Git仓库失败\n";
-      return false;
+    // 创建GUI特定文件
+    if (!createGuiSpecificFiles()) {
+        std::cout << "创建GUI特定文件失败\n";
+        return false;
     }
-    std::cout << "�?已初始化Git仓库\n";
-  }
+    std::cout << "�?GUI特定文件已创建\n";
 
-  std::cout << "\n你的GUI项目已准备就绪！\n\n";
+    // 创建构建系统
+    if (!createBuildSystem()) {
+        std::cout << "配置构建系统失败\n";
+        return false;
+    }
+    std::cout << "�?构建系统已配置\n";
 
-  // 打印使用说明
-  std::cout << "cd " << options_.projectName << "\n";
+    // 设置包管理器
+    if (!setupPackageManager()) {
+        std::cout << "设置包管理器失败\n";
+        return false;
+    }
+    std::cout << "�?包管理器已设置\n";
 
-  if (to_string(options_.buildSystem) == "cmake") {
-    std::cout << "mkdir build && cd build\n";
-    std::cout << "cmake ..\n";
-    std::cout << "make\n";
-  } else if (to_string(options_.buildSystem) == "meson") {
-    std::cout << "meson setup build\n";
-    std::cout << "cd build\n";
-    std::cout << "meson compile\n";
-  } else if (to_string(options_.buildSystem) == "bazel") {
-    std::cout << "bazel build //...\n";
-  }
+    // 设置测试框架
+    if (options_.includeTests) {
+        if (!setupTestFramework()) {
+            std::cout << "设置测试框架失败\n";
+            return false;
+        }
+        std::cout << "�?测试框架已配置\n";
+    }
 
-  std::cout << "\n祝编码愉�? 🎉\n";
+    // 设置文档
+    if (options_.includeDocumentation) {
+        if (!setupDocumentation()) {
+            std::cout << "设置文档失败\n";
+            return false;
+        }
+        std::cout << "�?文档已配置\n";
+    }
 
-  return true;
+    // 初始化Git
+    if (options_.initGit) {
+        if (!initializeGit(projectPath)) {
+            std::cout << "初始化Git仓库失败\n";
+            return false;
+        }
+        std::cout << "�?已初始化Git仓库\n";
+    }
+
+    std::cout << "\n你的GUI项目已准备就绪！\n\n";
+
+    // 打印使用说明
+    std::cout << "cd " << options_.projectName << "\n";
+
+    if (to_string(options_.buildSystem) == "cmake") {
+        std::cout << "mkdir build && cd build\n";
+        std::cout << "cmake ..\n";
+        std::cout << "make\n";
+    } else if (to_string(options_.buildSystem) == "meson") {
+        std::cout << "meson setup build\n";
+        std::cout << "cd build\n";
+        std::cout << "meson compile\n";
+    } else if (to_string(options_.buildSystem) == "bazel") {
+        std::cout << "bazel build //...\n";
+    } else if (to_string(options_.buildSystem) == "xmake") {
+        std::cout << "xmake\n";
+    } else if (to_string(options_.buildSystem) == "premake") {
+        std::cout << "premake5 gmake2\n";
+        std::cout << "make config=release\n";
+    }
+
+    std::cout << "\n祝编码愉�? 🎉\n";
+
+    return true;
 }
 
 bool GuiTemplate::createProjectStructure() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // 创建主目�?
-  if (!FileUtils::createDirectory(projectPath)) {
-    return false;
-  }
-
-  // 创建src目录
-  std::string srcPath = FileUtils::combinePath(projectPath, "src");
-  if (!FileUtils::createDirectory(srcPath)) {
-    return false;
-  }
-
-  // 创建include目录
-  std::string includePath = FileUtils::combinePath(projectPath, "include");
-  if (!FileUtils::createDirectory(includePath)) {
-    return false;
-  }
-
-  std::string includeProjectPath =
-      FileUtils::combinePath(includePath, options_.projectName);
-  if (!FileUtils::createDirectory(includeProjectPath)) {
-    return false;
-  }
-
-  // 创建资源目录
-  std::string resourcesPath = FileUtils::combinePath(projectPath, "resources");
-  if (!FileUtils::createDirectory(resourcesPath)) {
-    return false;
-  }
-
-  // 创建UI目录 (对于界面设计文件)
-  if (guiFramework_ == "qt" || guiFramework_ == "gtk") {
-    std::string uiPath = FileUtils::combinePath(projectPath, "ui");
-    if (!FileUtils::createDirectory(uiPath)) {
-      return false;
+    // 创建主目�?
+    if (!FileUtils::createDirectory(projectPath)) {
+        return false;
     }
-  }
 
-  // 写入README.md
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "README.md"),
-                              getReadmeContent())) {
-    return false;
-  }
+    // 创建src目录
+    std::string srcPath = FileUtils::combinePath(projectPath, "src");
+    if (!FileUtils::createDirectory(srcPath)) {
+        return false;
+    }
 
-  return true;
+    // 创建include目录
+    std::string includePath = FileUtils::combinePath(projectPath, "include");
+    if (!FileUtils::createDirectory(includePath)) {
+        return false;
+    }
+
+    std::string includeProjectPath = FileUtils::combinePath(includePath, options_.projectName);
+    if (!FileUtils::createDirectory(includeProjectPath)) {
+        return false;
+    }
+
+    // 创建资源目录
+    std::string resourcesPath = FileUtils::combinePath(projectPath, "resources");
+    if (!FileUtils::createDirectory(resourcesPath)) {
+        return false;
+    }
+
+    // 创建UI目录 (对于界面设计文件)
+    if (guiFramework_ == "qt" || guiFramework_ == "gtk") {
+        std::string uiPath = FileUtils::combinePath(projectPath, "ui");
+        if (!FileUtils::createDirectory(uiPath)) {
+            return false;
+        }
+    }
+
+    // 写入README.md
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "README.md"),
+                                getReadmeContent())) {
+        return false;
+    }
+
+    return true;
 }
 
 bool GuiTemplate::createGuiSpecificFiles() {
-  std::string projectPath = options_.projectName;
-  std::string srcPath = FileUtils::combinePath(projectPath, "src");
-  std::string includePath = FileUtils::combinePath(projectPath, "include");
-  std::string includeProjectPath =
-      FileUtils::combinePath(includePath, options_.projectName);
+    std::string projectPath = options_.projectName;
+    std::string srcPath = FileUtils::combinePath(projectPath, "src");
+    std::string includePath = FileUtils::combinePath(projectPath, "include");
+    std::string includeProjectPath = FileUtils::combinePath(includePath, options_.projectName);
 
-  // 创建主要源文�?
-  if (!FileUtils::writeToFile(FileUtils::combinePath(srcPath, "main.cpp"),
-                              getMainCppContent())) {
-    return false;
-  }
-
-  // 根据不同的GUI框架创建不同的文�?
-  if (guiFramework_ == "qt") {
-    // Qt特定文件
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(includeProjectPath, "main_window.h"),
-            getMainWindowHeaderContent())) {
-      return false;
+    // 创建主要源文�?
+    if (!FileUtils::writeToFile(FileUtils::combinePath(srcPath, "main.cpp"), getMainCppContent())) {
+        return false;
     }
 
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(srcPath, "main_window.cpp"),
-            getMainWindowCppContent())) {
-      return false;
+    // 根据不同的GUI框架创建不同的文�?
+    if (guiFramework_ == "qt") {
+        // Qt特定文件
+        if (!FileUtils::writeToFile(FileUtils::combinePath(includeProjectPath, "main_window.h"),
+                                    getMainWindowHeaderContent())) {
+            return false;
+        }
+
+        if (!FileUtils::writeToFile(FileUtils::combinePath(srcPath, "main_window.cpp"),
+                                    getMainWindowCppContent())) {
+            return false;
+        }
+
+        if (!FileUtils::writeToFile(FileUtils::combinePath(includeProjectPath, "application.h"),
+                                    getAppHeaderContent())) {
+            return false;
+        }
+
+        if (!FileUtils::writeToFile(FileUtils::combinePath(srcPath, "application.cpp"),
+                                    getAppCppContent())) {
+            return false;
+        }
+    } else if (guiFramework_ == "gtk" || guiFramework_ == "fltk" || guiFramework_ == "wxwidgets" ||
+               guiFramework_ == "imgui") {
+        // 对于其他框架，创建简化的结构
+        if (!FileUtils::writeToFile(FileUtils::combinePath(includeProjectPath, "app.h"),
+                                    getFrameworkSpecificHeaderContent())) {
+            return false;
+        }
+
+        if (!FileUtils::writeToFile(FileUtils::combinePath(srcPath, "app.cpp"),
+                                    getFrameworkSpecificSourceContent())) {
+            return false;
+        }
     }
 
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(includeProjectPath, "application.h"),
-            getAppHeaderContent())) {
-      return false;
+    // 创建日志工具�?
+    if (!FileUtils::writeToFile(FileUtils::combinePath(includeProjectPath, "logging.h"),
+                                getLoggingHeaderContent())) {
+        return false;
     }
 
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(srcPath, "application.cpp"),
-            getAppCppContent())) {
-      return false;
-    }
-  } else if (guiFramework_ == "gtk" || guiFramework_ == "fltk" ||
-             guiFramework_ == "wxwidgets" || guiFramework_ == "imgui") {
-    // 对于其他框架，创建简化的结构
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(includeProjectPath, "app.h"),
-            getFrameworkSpecificHeaderContent())) {
-      return false;
+    if (!FileUtils::writeToFile(FileUtils::combinePath(srcPath, "logging.cpp"),
+                                getLoggingCppContent())) {
+        return false;
     }
 
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(srcPath, "app.cpp"),
-            getFrameworkSpecificSourceContent())) {
-      return false;
-    }
-  }
+    // 为不同框架创建特定文�?
+    if (guiFramework_ == "qt") {
+        std::string uiPath = FileUtils::combinePath(projectPath, "ui");
+        if (!FileUtils::writeToFile(FileUtils::combinePath(uiPath, "main_window.ui"),
+                                    getQtUiContent())) {
+            return false;
+        }
 
-  // 创建日志工具�?
-  if (!FileUtils::writeToFile(
-          FileUtils::combinePath(includeProjectPath, "logging.h"),
-          getLoggingHeaderContent())) {
-    return false;
-  }
-
-  if (!FileUtils::writeToFile(FileUtils::combinePath(srcPath, "logging.cpp"),
-                              getLoggingCppContent())) {
-    return false;
-  }
-
-  // 为不同框架创建特定文�?
-  if (guiFramework_ == "qt") {
-    std::string uiPath = FileUtils::combinePath(projectPath, "ui");
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(uiPath, "main_window.ui"),
-            getQtUiContent())) {
-      return false;
+        std::string resourcesPath = FileUtils::combinePath(projectPath, "resources");
+        if (!FileUtils::writeToFile(FileUtils::combinePath(resourcesPath, "resources.qrc"),
+                                    getQtResourceContent())) {
+            return false;
+        }
+    } else if (guiFramework_ == "wxwidgets") {
+        std::string resourcesPath = FileUtils::combinePath(projectPath, "resources");
+        if (!FileUtils::writeToFile(FileUtils::combinePath(resourcesPath, "resource.rc"),
+                                    getWxResourceContent())) {
+            return false;
+        }
+    } else if (guiFramework_ == "gtk") {
+        std::string uiPath = FileUtils::combinePath(projectPath, "ui");
+        if (!FileUtils::writeToFile(FileUtils::combinePath(uiPath, "main_window.glade"),
+                                    getGtkGladeContent())) {
+            return false;
+        }
     }
 
-    std::string resourcesPath =
-        FileUtils::combinePath(projectPath, "resources");
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(resourcesPath, "resources.qrc"),
-            getQtResourceContent())) {
-      return false;
-    }
-  } else if (guiFramework_ == "wxwidgets") {
-    std::string resourcesPath =
-        FileUtils::combinePath(projectPath, "resources");
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(resourcesPath, "resource.rc"),
-            getWxResourceContent())) {
-      return false;
-    }
-  } else if (guiFramework_ == "gtk") {
-    std::string uiPath = FileUtils::combinePath(projectPath, "ui");
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(uiPath, "main_window.glade"),
-            getGtkGladeContent())) {
-      return false;
-    }
-  }
-
-  return true;
+    return true;
 }
 
 bool GuiTemplate::createBuildSystem() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  if (to_string(options_.buildSystem) == "cmake") {
-    // 创建CMakeLists.txt
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "CMakeLists.txt"),
-            getCMakeContent())) {
-      return false;
-    }
-  } else if (to_string(options_.buildSystem) == "meson") {
-    // 创建meson.build
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "meson.build"),
-            getMesonContent())) {
-      return false;
-    }
-  } else if (to_string(options_.buildSystem) == "bazel") {
-    // 创建WORKSPACE和BUILD文件
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "WORKSPACE"),
-            "workspace(name = \"" + options_.projectName + "\")\n")) {
-      return false;
+    if (to_string(options_.buildSystem) == "cmake") {
+        // 创建CMakeLists.txt
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "CMakeLists.txt"),
+                                    getCMakeContent())) {
+            return false;
+        }
+    } else if (to_string(options_.buildSystem) == "meson") {
+        // 创建meson.build
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "meson.build"),
+                                    getMesonContent())) {
+            return false;
+        }
+    } else if (to_string(options_.buildSystem) == "bazel") {
+        // 创建WORKSPACE和BUILD文件
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "WORKSPACE"),
+                                    "workspace(name = \"" + options_.projectName + "\")\n")) {
+            return false;
+        }
+
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "BUILD"),
+                                    getBazelContent())) {
+            return false;
+        }
+    } else if (to_string(options_.buildSystem) == "xmake") {
+        // 创建xmake.lua
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "xmake.lua"),
+                                    getXMakeContent())) {
+            return false;
+        }
+    } else if (to_string(options_.buildSystem) == "premake") {
+        // 创建premake5.lua
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "premake5.lua"),
+                                    getPremakeContent())) {
+            return false;
+        }
     }
 
-    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "BUILD"),
-                                getBazelContent())) {
-      return false;
-    }
-  }
-
-  return true;
+    return true;
 }
 
 bool GuiTemplate::setupPackageManager() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  if (to_string(options_.packageManager) == "vcpkg") {
-    // 创建vcpkg.json
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "vcpkg.json"),
-            getVcpkgJsonContent())) {
-      return false;
+    if (to_string(options_.packageManager) == "vcpkg") {
+        // 创建vcpkg.json
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "vcpkg.json"),
+                                    getVcpkgJsonContent())) {
+            return false;
+        }
+    } else if (to_string(options_.packageManager) == "conan") {
+        // 创建conanfile.txt
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "conanfile.txt"),
+                                    getConanfileContent())) {
+            return false;
+        }
+    } else if (to_string(options_.packageManager) == "msys2") {
+        // 创建PKGBUILD
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "PKGBUILD"),
+                                    getMSYS2PKGBUILDContent())) {
+            return false;
+        }
     }
-  } else if (to_string(options_.packageManager) == "conan") {
-    // 创建conanfile.txt
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "conanfile.txt"),
-            getConanfileContent())) {
-      return false;
-    }
-  } else if (to_string(options_.packageManager) == "msys2") {
-    // 创建PKGBUILD
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "PKGBUILD"),
-            getMSYS2PKGBUILDContent())) {
-      return false;
-    }
-  }
 
-  return true;
+    return true;
 }
 
 bool GuiTemplate::setupTestFramework() {
-  if (!options_.includeTests) {
-    return true;
-  }
+    if (!options_.includeTests) {
+        return true;
+    }
 
-  std::string projectPath = options_.projectName;
-  std::string testsPath = FileUtils::combinePath(projectPath, "tests");
+    std::string projectPath = options_.projectName;
+    std::string testsPath = FileUtils::combinePath(projectPath, "tests");
 
-  if (!FileUtils::createDirectory(testsPath)) {
-    return false;
-  }
+    if (!FileUtils::createDirectory(testsPath)) {
+        return false;
+    }
 
-  std::string testContent;
-  if (to_string(options_.testFramework) == "gtest") {
-    testContent = getGTestContent();
-  } else if (to_string(options_.testFramework) == "catch2") {
-    testContent = getCatch2Content();
-  } else if (to_string(options_.testFramework) == "doctest") {
-    testContent = getDocTestContent();
-  }
+    std::string testContent;
+    if (to_string(options_.testFramework) == "gtest") {
+        testContent = getGTestContent();
+    } else if (to_string(options_.testFramework) == "catch2") {
+        testContent = getCatch2Content();
+    } else if (to_string(options_.testFramework) == "doctest") {
+        testContent = getDocTestContent();
+    }
 
-  if (!FileUtils::writeToFile(
-          FileUtils::combinePath(testsPath, "test_main.cpp"), testContent)) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(FileUtils::combinePath(testsPath, "test_main.cpp"), testContent)) {
+        return false;
+    }
 
-  // 更新构建系统以包含测�?
-  if (to_string(options_.buildSystem) == "cmake") {
-    std::string cmakePath =
-        FileUtils::combinePath(projectPath, "CMakeLists.txt");
-    std::string cmakeContent = FileUtils::readFromFile(cmakePath);
+    // 更新构建系统以包含测�?
+    if (to_string(options_.buildSystem) == "cmake") {
+        std::string cmakePath = FileUtils::combinePath(projectPath, "CMakeLists.txt");
+        std::string cmakeContent = FileUtils::readFromFile(cmakePath);
 
-    // 添加测试配置
-    cmakeContent += R"(
+        // 添加测试配置
+        cmakeContent += R"(
 # Tests
 if(BUILD_TESTING)
     enable_testing()
@@ -378,14 +374,14 @@ if(BUILD_TESTING)
 endif()
 )";
 
-    if (!FileUtils::writeToFile(cmakePath, cmakeContent)) {
-      return false;
-    }
+        if (!FileUtils::writeToFile(cmakePath, cmakeContent)) {
+            return false;
+        }
 
-    // 创建tests/CMakeLists.txt
-    std::string testCmakeContent;
-    if (to_string(options_.testFramework) == "gtest") {
-      testCmakeContent = R"(
+        // 创建tests/CMakeLists.txt
+        std::string testCmakeContent;
+        if (to_string(options_.testFramework) == "gtest") {
+            testCmakeContent = R"(
 find_package(GTest REQUIRED)
 add_executable(${PROJECT_NAME}_tests
     test_main.cpp
@@ -398,8 +394,8 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
 )
 add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
 )";
-    } else if (to_string(options_.testFramework) == "catch2") {
-      testCmakeContent = R"(
+        } else if (to_string(options_.testFramework) == "catch2") {
+            testCmakeContent = R"(
 find_package(Catch2 REQUIRED)
 add_executable(${PROJECT_NAME}_tests
     test_main.cpp
@@ -411,8 +407,8 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
 )
 add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
 )";
-    } else if (to_string(options_.testFramework) == "doctest") {
-      testCmakeContent = R"(
+        } else if (to_string(options_.testFramework) == "doctest") {
+            testCmakeContent = R"(
 find_package(doctest REQUIRED)
 add_executable(${PROJECT_NAME}_tests
     test_main.cpp
@@ -424,33 +420,32 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
 )
 add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
 )";
+        }
+
+        if (!FileUtils::writeToFile(FileUtils::combinePath(testsPath, "CMakeLists.txt"),
+                                    testCmakeContent)) {
+            return false;
+        }
     }
 
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(testsPath, "CMakeLists.txt"),
-            testCmakeContent)) {
-      return false;
-    }
-  }
-
-  return true;
+    return true;
 }
 
 std::string GuiTemplate::getMainCppContent() {
-  if (guiFramework_ == "qt") {
-    return R"(#include <QApplication>
-#include ")" +
-           options_.projectName + R"(/logging.h"
+    if (guiFramework_ == "qt") {
+        return R"(#include <QApplication>
+#include ")" + options_.projectName +
+               R"(/logging.h"
 
 int main(int argc, char* argv[]) {
     // 初始化日志系�?
     )" + options_.projectName +
-           R"(::Logging::init("logs/app.log");
+               R"(::Logging::init("logs/app.log");
 
     // 创建应用实例
     QApplication qtApp(argc, argv);
     )" + options_.projectName +
-           R"(::Application app;
+               R"(::Application app;
 
     // 显示主窗�?
     if (!app.initialize()) {
@@ -466,19 +461,19 @@ int main(int argc, char* argv[]) {
     return result;
 }
 )";
-  } else if (guiFramework_ == "wxwidgets") {
-    return R"(#include <wx/wx.h>
-#include ")" +
-           options_.projectName + R"(/logging.h"
+    } else if (guiFramework_ == "wxwidgets") {
+        return R"(#include <wx/wx.h>
+#include ")" + options_.projectName +
+               R"(/logging.h"
 
 // 注册wx应用
 wxIMPLEMENT_APP_NO_MAIN()" +
-           options_.projectName + R"(::Application);
+               options_.projectName + R"(::Application);
 
 int main(int argc, char* argv[]) {
     // 初始化日志系�?
     )" + options_.projectName +
-           R"(::Logging::init("logs/app.log");
+               R"(::Logging::init("logs/app.log");
     SPDLOG_INFO("应用启动�?);
 
     // 运行wxWidgets应用
@@ -490,15 +485,15 @@ int main(int argc, char* argv[]) {
     return result;
 }
 )";
-  } else if (guiFramework_ == "gtk") {
-    return R"(#include <gtk/gtk.h>
-#include ")" +
-           options_.projectName + R"(/logging.h"
+    } else if (guiFramework_ == "gtk") {
+        return R"(#include <gtk/gtk.h>
+#include ")" + options_.projectName +
+               R"(/logging.h"
 
 int main(int argc, char* argv[]) {
     // 初始化日志系�?
     )" + options_.projectName +
-           R"(::Logging::init("logs/app.log");
+               R"(::Logging::init("logs/app.log");
     SPDLOG_INFO("应用启动�?);
 
     // 初始化GTK
@@ -506,7 +501,7 @@ int main(int argc, char* argv[]) {
 
     // 创建应用实例
     )" + options_.projectName +
-           R"(::Application app;
+               R"(::Application app;
 
     if (!app.initialize()) {
         SPDLOG_ERROR("应用初始化失�?);
@@ -521,22 +516,22 @@ int main(int argc, char* argv[]) {
     return result;
 }
 )";
-  }
+    }
 
-  // 默认返回Qt实现
-  return R"(#include <iostream>
+    // 默认返回Qt实现
+    return R"(#include <iostream>
 #include ")" +
-         options_.projectName + R"(/logging.h"
+           options_.projectName + R"(/logging.h"
 
 int main(int argc, char* argv[]) {
     // 初始化日志系�?
     )" + options_.projectName +
-         R"(::Logging::init("logs/app.log");
+           R"(::Logging::init("logs/app.log");
     SPDLOG_INFO("应用启动�?);
 
     // 创建应用实例
     )" + options_.projectName +
-         R"(::Application app;
+           R"(::Application app;
     if (!app.initialize()) {
         SPDLOG_ERROR("应用初始化失�?);
         return 1;
@@ -553,15 +548,14 @@ int main(int argc, char* argv[]) {
 }
 
 std::string GuiTemplate::getMainWindowHeaderContent() {
-  std::string headerGuard =
-      StringUtils::toUpper(options_.projectName) + "_MAIN_WINDOW_H";
+    std::string headerGuard = StringUtils::toUpper(options_.projectName) + "_MAIN_WINDOW_H";
 
-  if (guiFramework_ == "qt") {
-    return R"(#pragma once
-#ifndef )" +
-           headerGuard + R"(
-#define )" +
-           headerGuard + R"(
+    if (guiFramework_ == "qt") {
+        return R"(#pragma once
+#ifndef )" + headerGuard +
+               R"(
+#define )" + headerGuard +
+               R"(
 
 #include <QMainWindow>
 #include <memory>
@@ -572,8 +566,8 @@ namespace Ui {
 class MainWindow;
 }
 
-namespace )" +
-           options_.projectName + R"( {
+namespace )" + options_.projectName +
+               R"( {
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -605,24 +599,24 @@ private:
 };
 
 } // namespace )" +
-           options_.projectName + R"(
+               options_.projectName + R"(
 
-#endif // )" +
-           headerGuard + R"(
+#endif // )" + headerGuard +
+               R"(
 )";
-  } else if (guiFramework_ == "wxwidgets") {
-    return R"(#pragma once
-#ifndef )" +
-           headerGuard + R"(
-#define )" +
-           headerGuard + R"(
+    } else if (guiFramework_ == "wxwidgets") {
+        return R"(#pragma once
+#ifndef )" + headerGuard +
+               R"(
+#define )" + headerGuard +
+               R"(
 
 #include <spdlog/spdlog.h>
 #include <wx/frame.h>
 #include <wx/wx.h>
 
-namespace )" +
-           options_.projectName + R"( {
+namespace )" + options_.projectName +
+               R"( {
 
 // 窗口标识�?
 enum {
@@ -659,24 +653,24 @@ private:
 };
 
 } // namespace )" +
-           options_.projectName + R"(
+               options_.projectName + R"(
 
-#endif // )" +
-           headerGuard + R"(
+#endif // )" + headerGuard +
+               R"(
 )";
-  } else if (guiFramework_ == "gtk") {
-    return R"(#pragma once
-#ifndef )" +
-           headerGuard + R"(
-#define )" +
-           headerGuard + R"(
+    } else if (guiFramework_ == "gtk") {
+        return R"(#pragma once
+#ifndef )" + headerGuard +
+               R"(
+#define )" + headerGuard +
+               R"(
 
 #include <gtk/gtk.h>
 #include <spdlog/spdlog.h>
 #include <string>
 
-namespace )" +
-           options_.projectName + R"( {
+namespace )" + options_.projectName +
+               R"( {
 
 class MainWindow {
 public:
@@ -714,25 +708,25 @@ private:
 };
 
 } // namespace )" +
-           options_.projectName + R"(
+               options_.projectName + R"(
 
-#endif // )" +
-           headerGuard + R"(
+#endif // )" + headerGuard +
+               R"(
 )";
-  }
+    }
 
-  // 默认返回一个通用实现
-  return R"(#pragma once
+    // 默认返回一个通用实现
+    return R"(#pragma once
 #ifndef )" +
-         headerGuard + R"(
+           headerGuard + R"(
 #define )" +
-         headerGuard + R"(
+           headerGuard + R"(
 
 #include <spdlog/spdlog.h>
 #include <string>
 
 namespace )" +
-         options_.projectName + R"( {
+           options_.projectName + R"( {
 
 class MainWindow {
 public:
@@ -760,22 +754,23 @@ private:
 };
 
 } // namespace )" +
-         options_.projectName + R"(
+           options_.projectName + R"(
 
 #endif // )" +
-         headerGuard + R"(
+           headerGuard + R"(
 )";
 }
 
 std::string GuiTemplate::getMainWindowCppContent() {
-  if (guiFramework_ == "qt") {
-    return R"(#include ")" + options_.projectName + R"(/main_window.h"
-#include "ui_main_window.h"
+    if (guiFramework_ == "qt") {
+        return R"(#include ")" + options_.projectName + R"(/main_window.h"
 #include <QCloseEvent>
 #include <QMessageBox>
 
-namespace )" +
-           options_.projectName + R"( {
+#include "ui_main_window.h"
+
+namespace )" + options_.projectName +
+               R"( {
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -798,7 +793,7 @@ bool MainWindow::initialize()
 
     // 设置窗口标题
     setWindowTitle(tr(")" +
-           options_.projectName + R"("));
+               options_.projectName + R"("));
 
     // 初始化菜�?
     setupMenus();
@@ -846,20 +841,20 @@ void MainWindow::onActionAbout()
     SPDLOG_DEBUG("触发关于操作");
     QMessageBox::about(this, tr("关于"),
                        tr(")" +
-           options_.projectName + R"( v1.0\n\n"
+               options_.projectName + R"( v1.0\n\n"
                           "一个使用Qt框架的GUI应用�?));
 }
 
 } // namespace )" +
-           options_.projectName + R"(
+               options_.projectName + R"(
 )";
-  } else if (guiFramework_ == "wxwidgets") {
-    return R"(#include ")" + options_.projectName + R"(/main_window.h"
+    } else if (guiFramework_ == "wxwidgets") {
+        return R"(#include ")" + options_.projectName + R"(/main_window.h"
 #include <wx/aboutdlg.h>
 #include <wx/stattext.h>
 
-namespace )" +
-           options_.projectName + R"( {
+namespace )" + options_.projectName +
+               R"( {
 
 // 事件表定�?
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
@@ -937,7 +932,7 @@ void MainWindow::setupControls()
     // 添加一个文本标�?
     sizer->Add(
         new wxStaticText(mainPanel, wxID_ANY, "欢迎使用 )" +
-           options_.projectName + R"("),
+               options_.projectName + R"("),
         0, wxALL | wxALIGN_CENTER_HORIZONTAL, 20
     );
 
@@ -958,7 +953,7 @@ void MainWindow::onAbout(wxCommandEvent& event)
 
     wxAboutDialogInfo aboutInfo;
     aboutInfo.SetName(")" +
-           options_.projectName + R"(");
+               options_.projectName + R"(");
     aboutInfo.SetVersion("1.0");
     aboutInfo.SetDescription("一个使用wxWidgets框架的GUI应用");
     aboutInfo.SetCopyright("(C) 2025");
@@ -967,14 +962,14 @@ void MainWindow::onAbout(wxCommandEvent& event)
 }
 
 } // namespace )" +
-           options_.projectName + R"(
+               options_.projectName + R"(
 )";
-  } else if (guiFramework_ == "gtk") {
-    return R"(#include ")" + options_.projectName + R"(/main_window.h"
+    } else if (guiFramework_ == "gtk") {
+        return R"(#include ")" + options_.projectName + R"(/main_window.h"
 #include <iostream>
 
-namespace )" +
-           options_.projectName + R"( {
+namespace )" + options_.projectName +
+               R"( {
 
 MainWindow::MainWindow()
     : uiFilePath("ui/main_window.glade")
@@ -1076,7 +1071,7 @@ void MainWindow::onAbout(GtkWidget* widget, gpointer data)
     GtkAboutDialog* about_dialog = GTK_ABOUT_DIALOG(dialog);
 
     gtk_about_dialog_set_program_name(about_dialog, ")" +
-           options_.projectName + R"(");
+               options_.projectName + R"(");
     gtk_about_dialog_set_version(about_dialog, "1.0");
     gtk_about_dialog_set_copyright(about_dialog, "(C) 2025");
     gtk_about_dialog_set_comments(about_dialog, "一个使用GTK框架的GUI应用");
@@ -1086,15 +1081,15 @@ void MainWindow::onAbout(GtkWidget* widget, gpointer data)
 }
 
 } // namespace )" +
-           options_.projectName + R"(
+               options_.projectName + R"(
 )";
-  }
+    }
 
-  // 默认返回一个通用�?
-  return R"(#include ")" + options_.projectName + R"(/main_window.h"
+    // 默认返回一个通用�?
+    return R"(#include ")" + options_.projectName + R"(/main_window.h"
 
 namespace )" +
-         options_.projectName + R"( {
+           options_.projectName + R"( {
 
 MainWindow::MainWindow()
 {
@@ -1136,28 +1131,27 @@ void MainWindow::setupUI()
 }
 
 } // namespace )" +
-         options_.projectName + R"(
+           options_.projectName + R"(
 )";
 }
 
 std::string GuiTemplate::getAppHeaderContent() {
-  std::string headerGuard =
-      StringUtils::toUpper(options_.projectName) + "_APPLICATION_H";
+    std::string headerGuard = StringUtils::toUpper(options_.projectName) + "_APPLICATION_H";
 
-  if (guiFramework_ == "qt") {
-    return R"(#pragma once
-#ifndef )" +
-           headerGuard + R"(
-#define )" +
-           headerGuard + R"(
+    if (guiFramework_ == "qt") {
+        return R"(#pragma once
+#ifndef )" + headerGuard +
+               R"(
+#define )" + headerGuard +
+               R"(
 
 #include "main_window.h"
 #include <QObject>
 #include <memory>
 #include <spdlog/spdlog.h>
 
-namespace )" +
-           options_.projectName + R"( {
+namespace )" + options_.projectName +
+               R"( {
 
 class Application : public QObject {
     Q_OBJECT
@@ -1184,25 +1178,25 @@ private:
 };
 
 } // namespace )" +
-           options_.projectName + R"(
+               options_.projectName + R"(
 
-#endif // )" +
-           headerGuard + R"(
+#endif // )" + headerGuard +
+               R"(
 )";
-  } else if (guiFramework_ == "wxwidgets") {
-    return R"(#pragma once
-#ifndef )" +
-           headerGuard + R"(
-#define )" +
-           headerGuard + R"(
+    } else if (guiFramework_ == "wxwidgets") {
+        return R"(#pragma once
+#ifndef )" + headerGuard +
+               R"(
+#define )" + headerGuard +
+               R"(
 
 #include "main_window.h"
 #include <memory>
 #include <spdlog/spdlog.h>
 #include <wx/wx.h>
 
-namespace )" +
-           options_.projectName + R"( {
+namespace )" + options_.projectName +
+               R"( {
 
 class Application : public wxApp {
 public:
@@ -1230,24 +1224,24 @@ private:
 };
 
 } // namespace )" +
-           options_.projectName + R"(
+               options_.projectName + R"(
 
-#endif // )" +
-           headerGuard + R"(
+#endif // )" + headerGuard +
+               R"(
 )";
-  } else if (guiFramework_ == "gtk") {
-    return R"(#pragma once
-#ifndef )" +
-           headerGuard + R"(
-#define )" +
-           headerGuard + R"(
+    } else if (guiFramework_ == "gtk") {
+        return R"(#pragma once
+#ifndef )" + headerGuard +
+               R"(
+#define )" + headerGuard +
+               R"(
 
 #include "main_window.h"
 #include <memory>
 #include <spdlog/spdlog.h>
 
-namespace )" +
-           options_.projectName + R"( {
+namespace )" + options_.projectName +
+               R"( {
 
 class Application {
 public:
@@ -1275,26 +1269,26 @@ private:
 };
 
 } // namespace )" +
-           options_.projectName + R"(
+               options_.projectName + R"(
 
-#endif // )" +
-           headerGuard + R"(
+#endif // )" + headerGuard +
+               R"(
 )";
-  }
+    }
 
-  // 默认返回通用�?
-  return R"(#pragma once
+    // 默认返回通用�?
+    return R"(#pragma once
 #ifndef )" +
-         headerGuard + R"(
+           headerGuard + R"(
 #define )" +
-         headerGuard + R"(
+           headerGuard + R"(
 
 #include "main_window.h"
 #include <memory>
 #include <spdlog/spdlog.h>
 
 namespace )" +
-         options_.projectName + R"( {
+           options_.projectName + R"( {
 
 class Application {
 public:
@@ -1325,19 +1319,19 @@ private:
 };
 
 } // namespace )" +
-         options_.projectName + R"(
+           options_.projectName + R"(
 
 #endif // )" +
-         headerGuard + R"(
+           headerGuard + R"(
 )";
 }
 
 std::string GuiTemplate::getAppCppContent() {
-  if (guiFramework_ == "qt") {
-    return R"(#include ")" + options_.projectName + R"(/application.h"
+    if (guiFramework_ == "qt") {
+        return R"(#include ")" + options_.projectName + R"(/application.h"
 
-namespace )" +
-           options_.projectName + R"( {
+namespace )" + options_.projectName +
+               R"( {
 
 Application::Application()
     : QObject(nullptr)
@@ -1389,13 +1383,13 @@ bool Application::saveSettings()
 }
 
 } // namespace )" +
-           options_.projectName + R"(
+               options_.projectName + R"(
 )";
-  } else if (guiFramework_ == "wxwidgets") {
-    return R"(#include ")" + options_.projectName + R"(/application.h"
+    } else if (guiFramework_ == "wxwidgets") {
+        return R"(#include ")" + options_.projectName + R"(/application.h"
 
-namespace )" +
-           options_.projectName + R"( {
+namespace )" + options_.projectName +
+               R"( {
 
 Application::Application()
 {
@@ -1414,7 +1408,7 @@ bool Application::OnInit()
 
     // 设置应用程序名称
     SetAppName(")" +
-           options_.projectName + R"(");
+               options_.projectName + R"(");
 
     // 加载设置
     if (!loadSettings()) {
@@ -1423,7 +1417,7 @@ bool Application::OnInit()
 
     // 创建并初始化主窗�?
     mainWindow_ = new MainWindow(")" +
-           options_.projectName + R"(", wxPoint(50, 50), wxSize(800, 600));
+               options_.projectName + R"(", wxPoint(50, 50), wxSize(800, 600));
     if (!mainWindow_->initialize()) {
         SPDLOG_ERROR("初始化主窗口失败");
         return false;
@@ -1461,13 +1455,13 @@ bool Application::saveSettings()
 }
 
 } // namespace )" +
-           options_.projectName + R"(
+               options_.projectName + R"(
 )";
-  } else if (guiFramework_ == "gtk") {
-    return R"(#include ")" + options_.projectName + R"(/application.h"
+    } else if (guiFramework_ == "gtk") {
+        return R"(#include ")" + options_.projectName + R"(/application.h"
 
-namespace )" +
-           options_.projectName + R"( {
+namespace )" + options_.projectName +
+               R"( {
 
 Application::Application()
 {
@@ -1525,17 +1519,17 @@ bool Application::saveSettings()
 }
 
 } // namespace )" +
-           options_.projectName + R"(
+               options_.projectName + R"(
 )";
-  }
+    }
 
-  // 默认返回通用�?
-  return R"(#include ")" + options_.projectName + R"(/application.h"
+    // 默认返回通用�?
+    return R"(#include ")" + options_.projectName + R"(/application.h"
 #include <chrono>
 #include <thread>
 
 namespace )" +
-         options_.projectName + R"( {
+           options_.projectName + R"( {
 
 Application::Application()
 {
@@ -1616,19 +1610,18 @@ bool Application::saveSettings()
 }
 
 } // namespace )" +
-         options_.projectName + R"(
+           options_.projectName + R"(
 )";
 }
 
 std::string GuiTemplate::getLoggingHeaderContent() {
-  std::string headerGuard =
-      StringUtils::toUpper(options_.projectName) + "_LOGGING_H";
+    std::string headerGuard = StringUtils::toUpper(options_.projectName) + "_LOGGING_H";
 
-  return R"(#pragma once
+    return R"(#pragma once
 #ifndef )" +
-         headerGuard + R"(
+           headerGuard + R"(
 #define )" +
-         headerGuard + R"(
+           headerGuard + R"(
 
 #include <memory>
 #include <spdlog/spdlog.h>
@@ -1643,7 +1636,7 @@ std::string GuiTemplate::getLoggingHeaderContent() {
 #define SPDLOG_CRITICAL(...) SPDLOG_LOGGER_CRITICAL(spdlog::default_logger_raw(), __VA_ARGS__)
 
 namespace )" +
-         options_.projectName + R"( {
+           options_.projectName + R"( {
 
 class Logging {
 public:
@@ -1678,25 +1671,26 @@ private:
 };
 
 } // namespace )" +
-         options_.projectName + R"(
+           options_.projectName + R"(
 
 #endif // )" +
-         headerGuard + R"(
+           headerGuard + R"(
 )";
 }
 
 std::string GuiTemplate::getLoggingCppContent() {
-  return R"(#include ")" + options_.projectName + R"(/logging.h"
-#include <chrono>
-#include <filesystem>
-#include <iomanip>
+    return R"(#include ")" + options_.projectName + R"(/logging.h"
 #include <spdlog/sinks/daily_file_sink.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+
+#include <chrono>
+#include <filesystem>
+#include <iomanip>
 #include <sstream>
 
 namespace )" +
-         options_.projectName + R"( {
+           options_.projectName + R"( {
 
 // 静态成员初始化
 bool Logging::initialized_ = false;
@@ -1808,45 +1802,45 @@ bool Logging::createLogDirectory(const std::string& path) {
 }
 
 } // namespace )" +
-         options_.projectName + R"(
+           options_.projectName + R"(
 )";
 }
 
 std::string GuiTemplate::getReadmeContent() {
-  // 确定GUI框架名称
-  std::string guiName = guiFramework_ == "qt"          ? "Qt"
-                        : guiFramework_ == "wxwidgets" ? "wxWidgets"
-                        : guiFramework_ == "gtk"       ? "GTK"
-                                                       : "通用UI框架";
+    // 确定GUI框架名称
+    std::string guiName = guiFramework_ == "qt"          ? "Qt"
+                          : guiFramework_ == "wxwidgets" ? "wxWidgets"
+                          : guiFramework_ == "gtk"       ? "GTK"
+                                                         : "通用UI框架";
 
-  // 确定GUI框架依赖
-  std::string guiDependency = guiFramework_ == "qt"          ? "Qt 6.x"
-                              : guiFramework_ == "wxwidgets" ? "wxWidgets 3.x"
-                              : guiFramework_ == "gtk"       ? "GTK 3.x"
-                                                             : "GUI框架库";
+    // 确定GUI框架依赖
+    std::string guiDependency = guiFramework_ == "qt"          ? "Qt 6.x"
+                                : guiFramework_ == "wxwidgets" ? "wxWidgets 3.x"
+                                : guiFramework_ == "gtk"       ? "GTK 3.x"
+                                                               : "GUI框架库";
 
-  // 包管理器信息
-  std::string packageManagerInfo =
-      to_string(options_.packageManager) != "none"
-          ? fmt::format("- {}包管理\n", to_string(options_.packageManager))
-          : "";
+    // 包管理器信息
+    std::string packageManagerInfo =
+            to_string(options_.packageManager) != "none"
+                    ? fmt::format("- {}包管理\n", to_string(options_.packageManager))
+                    : "";
 
-  // 测试框架信息
-  std::string testFrameworkInfo =
-      options_.includeTests
-          ? fmt::format("- 集成{}测试框架\n", to_string(options_.testFramework))
-          : "";
+    // 测试框架信息
+    std::string testFrameworkInfo =
+            options_.includeTests
+                    ? fmt::format("- 集成{}测试框架\n", to_string(options_.testFramework))
+                    : "";
 
-  // 包管理器依赖
-  std::string packageManagerDep =
-      to_string(options_.packageManager) != "none"
-          ? fmt::format("- {}\n", to_string(options_.packageManager))
-          : "";
+    // 包管理器依赖
+    std::string packageManagerDep =
+            to_string(options_.packageManager) != "none"
+                    ? fmt::format("- {}\n", to_string(options_.packageManager))
+                    : "";
 
-  // 构建步骤
-  std::string buildSteps;
-  if (to_string(options_.buildSystem) == "cmake") {
-    buildSteps = R"(# 创建构建目录
+    // 构建步骤
+    std::string buildSteps;
+    if (to_string(options_.buildSystem) == "cmake") {
+        buildSteps = R"(# 创建构建目录
 mkdir build && cd build
 
 # 配置项目
@@ -1854,70 +1848,84 @@ cmake ..
 
 # 编译
 make)";
-  } else if (to_string(options_.buildSystem) == "meson") {
-    buildSteps = R"(# 配置项目
+    } else if (to_string(options_.buildSystem) == "meson") {
+        buildSteps = R"(# 配置项目
 meson setup build
 
 # 编译
 cd build
 meson compile)";
-  } else {
-    buildSteps = R"(# 使用Bazel构建
-bazel build //...)";
-  }
-
-  // 测试部分
-  std::string testSection = "";
-  if (options_.includeTests) {
-    std::string testCmd;
-    if (to_string(options_.buildSystem) == "cmake") {
-      testCmd = R"(cd build
-ctest)";
-    } else if (to_string(options_.buildSystem) == "meson") {
-      testCmd = R"(cd build
-meson test)";
+    } else if (to_string(options_.buildSystem) == "xmake") {
+        buildSteps = R"(# 使用XMake构建
+xmake)";
+    } else if (to_string(options_.buildSystem) == "premake") {
+        buildSteps = R"(# 使用Premake构建
+premake5 gmake2
+make config=release)";
     } else {
-      testCmd = R"(bazel test //...)";
+        buildSteps = R"(# 使用Bazel构建
+bazel build //...)";
     }
 
-    testSection = fmt::format(R"(### 运行测试
+    // 测试部分
+    std::string testSection = "";
+    if (options_.includeTests) {
+        std::string testCmd;
+        if (to_string(options_.buildSystem) == "cmake") {
+            testCmd = R"(cd build
+ctest)";
+        } else if (to_string(options_.buildSystem) == "meson") {
+            testCmd = R"(cd build
+meson test)";
+        } else if (to_string(options_.buildSystem) == "xmake") {
+            testCmd = R"(xmake test)";
+        } else if (to_string(options_.buildSystem) == "premake") {
+            testCmd = fmt::format(R"(bin/Release/{}_tests)", options_.projectName);
+        } else {
+            testCmd = R"(bazel test //...)";
+        }
+
+        testSection = fmt::format(R"(### 运行测试
 
 ```bash
 {}
 ```
 )",
-                              testCmd);
-  }
+                                  testCmd);
+    }
 
-  // 运行命令
-  std::string runCmd;
-  if (to_string(options_.buildSystem) == "cmake" || to_string(options_.buildSystem) == "meson") {
-    runCmd = fmt::format(R"(cd build
+    // 运行命令
+    std::string runCmd;
+    if (to_string(options_.buildSystem) == "cmake" || to_string(options_.buildSystem) == "meson") {
+        runCmd = fmt::format(R"(cd build
 ./{})",
-                         options_.projectName);
-  } else {
-    runCmd = fmt::format(R"(bazel run //:{})", options_.projectName);
-  }
+                             options_.projectName);
+    } else if (to_string(options_.buildSystem) == "xmake") {
+        runCmd = fmt::format(R"(xmake run {})", options_.projectName);
+    } else if (to_string(options_.buildSystem) == "premake") {
+        runCmd = fmt::format(R"(bin/Release/{})", options_.projectName);
+    } else {
+        runCmd = fmt::format(R"(bazel run //:{})", options_.projectName);
+    }
 
-  // UI部分
-  std::string uiSection = "";
-  if (guiFramework_ == "qt" || guiFramework_ == "gtk") {
-    uiSection = fmt::format(R"(├── ui/                    # UI设计文件
+    // UI部分
+    std::string uiSection = "";
+    if (guiFramework_ == "qt" || guiFramework_ == "gtk") {
+        uiSection = fmt::format(R"(├── ui/                    # UI设计文件
 �?  └── main_window.{}  # 主窗口界面设�?
 )",
-                            (guiFramework_ == "qt" ? "ui" : "glade"));
-  }
+                                (guiFramework_ == "qt" ? "ui" : "glade"));
+    }
 
-  // 测试目录
-  std::string testsDir = options_.includeTests
-                             ?
-                             R"(├── tests/                 # 测试目录
+    // 测试目录
+    std::string testsDir = options_.includeTests ?
+                                                 R"(├── tests/                 # 测试目录
 �?  └── test_main.cpp       # 测试入口
 )"
-                             : "";
+                                                 : "";
 
-  // 使用fmt格式化整个README内容
-  return fmt::format(R"(# {0}
+    // 使用fmt格式化整个README内容
+    return fmt::format(R"(# {0}
 
 一个使用{1}开发的C++ GUI应用，由CPP-Scaffold创建�?
 
@@ -1989,18 +1997,17 @@ SPDLOG_CRITICAL("这是一个严重错误日�?);
 ## 许可�?
 
 此项目使用MIT许可�?- 详见LICENSE文件)",
-                     options_.projectName, guiName, options_.buildSystem,
-                     packageManagerInfo, testFrameworkInfo, guiDependency,
-                     packageManagerDep, buildSteps, testSection, runCmd,
-                     uiSection, testsDir);
+                       options_.projectName, guiName, options_.buildSystem, packageManagerInfo,
+                       testFrameworkInfo, guiDependency, packageManagerDep, buildSteps, testSection,
+                       runCmd, uiSection, testsDir);
 }
 
 std::string GuiTemplate::getCMakeContent() {
-  std::string content;
+    std::string content;
 
-  content = R"(cmake_minimum_required(VERSION 3.14)
+    content = R"(cmake_minimum_required(VERSION 3.14)
 project()" + options_.projectName +
-            R"( VERSION 0.1.0 LANGUAGES CXX)
+              R"( VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -2008,15 +2015,15 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Options
 option(BUILD_TESTING "Build tests" )" +
-            (options_.includeTests ? "ON" : "OFF") + R"()
+              (options_.includeTests ? "ON" : "OFF") + R"()
 
 # Find packages
 find_package(spdlog REQUIRED)
 )";
 
-  // GUI框架特定配置
-  if (guiFramework_ == "qt") {
-    content += R"(
+    // GUI框架特定配置
+    if (guiFramework_ == "qt") {
+        content += R"(
 # Qt configuration
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -2029,14 +2036,14 @@ endif()
 
 set(QT_LIBS Qt::Core Qt::Gui Qt::Widgets)
 )";
-  } else if (guiFramework_ == "wxwidgets") {
-    content += R"(
+    } else if (guiFramework_ == "wxwidgets") {
+        content += R"(
 # wxWidgets configuration
 find_package(wxWidgets REQUIRED COMPONENTS core base)
 include(${wxWidgets_USE_FILE})
 )";
-  } else if (guiFramework_ == "gtk") {
-    content += R"(
+    } else if (guiFramework_ == "gtk") {
+        content += R"(
 # GTK configuration
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
@@ -2044,20 +2051,20 @@ include_directories(${GTK3_INCLUDE_DIRS})
 link_directories(${GTK3_LIBRARY_DIRS})
 add_definitions(${GTK3_CFLAGS_OTHER})
 )";
-  }
+    }
 
-  // vcpkg集成
-  if (to_string(options_.packageManager) == "vcpkg") {
-    content += R"(
+    // vcpkg集成
+    if (to_string(options_.packageManager) == "vcpkg") {
+        content += R"(
 # vcpkg integration
 if(DEFINED ENV{VCPKG_ROOT})
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 endif()
 )";
-  }
+    }
 
-  // 源文件定�?
-  content += R"(
+    // 源文件定�?
+    content += R"(
 # Source files
 set(SOURCES
     src/main.cpp
@@ -2071,9 +2078,9 @@ include_directories(include)
 
 # Resources)";
 
-  // 资源文件
-  if (guiFramework_ == "qt") {
-    content += R"(
+    // 资源文件
+    if (guiFramework_ == "qt") {
+        content += R"(
 set(RESOURCES
     resources/resources.qrc
 )
@@ -2081,106 +2088,106 @@ set(RESOURCES
 set(UI_FILES
     ui/main_window.ui
 ))";
-  } else if (guiFramework_ == "wxwidgets") {
-    content += R"(
+    } else if (guiFramework_ == "wxwidgets") {
+        content += R"(
 set(RESOURCES
     resources/resource.rc
 ))";
-  }
+    }
 
-  // 主可执行文件
-  content += R"(
+    // 主可执行文件
+    content += R"(
 
 # Main executable
 add_executable(${PROJECT_NAME} ${SOURCES})";
 
-  if (guiFramework_ == "qt") {
-    content += R"( ${RESOURCES} ${UI_FILES})";
-  } else if (guiFramework_ == "wxwidgets") {
-    content += R"( ${RESOURCES})";
-  }
+    if (guiFramework_ == "qt") {
+        content += R"( ${RESOURCES} ${UI_FILES})";
+    } else if (guiFramework_ == "wxwidgets") {
+        content += R"( ${RESOURCES})";
+    }
 
-  content += R"(
+    content += R"(
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 )";
 
-  // 链接�?
-  if (guiFramework_ == "qt") {
-    content += R"(
+    // 链接�?
+    if (guiFramework_ == "qt") {
+        content += R"(
 target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_LIBS} spdlog::spdlog)
 )";
-  } else if (guiFramework_ == "wxwidgets") {
-    content += R"(
+    } else if (guiFramework_ == "wxwidgets") {
+        content += R"(
 target_link_libraries(${PROJECT_NAME} PRIVATE ${wxWidgets_LIBRARIES} spdlog::spdlog)
 )";
-  } else if (guiFramework_ == "gtk") {
-    content += R"(
+    } else if (guiFramework_ == "gtk") {
+        content += R"(
 target_link_libraries(${PROJECT_NAME} PRIVATE ${GTK3_LIBRARIES} spdlog::spdlog)
 )";
-  } else {
-    content += R"(
+    } else {
+        content += R"(
 target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog)
 )";
-  }
+    }
 
-  // 库目�?用于测试)
-  content += R"(
+    // 库目�?用于测试)
+    content += R"(
 # Library target (for reuse in tests)
 add_library(${PROJECT_NAME}_lib STATIC ${SOURCES})";
 
-  if (guiFramework_ == "qt") {
-    content += R"( ${RESOURCES} ${UI_FILES})";
-  } else if (guiFramework_ == "wxwidgets") {
-    content += R"( ${RESOURCES})";
-  }
+    if (guiFramework_ == "qt") {
+        content += R"( ${RESOURCES} ${UI_FILES})";
+    } else if (guiFramework_ == "wxwidgets") {
+        content += R"( ${RESOURCES})";
+    }
 
-  content += R"(
+    content += R"(
 target_include_directories(${PROJECT_NAME}_lib PUBLIC include)
 )";
 
-  // 链接库目标的�?
-  if (guiFramework_ == "qt") {
-    content += R"(
+    // 链接库目标的�?
+    if (guiFramework_ == "qt") {
+        content += R"(
 target_link_libraries(${PROJECT_NAME}_lib PUBLIC ${QT_LIBS} spdlog::spdlog)
 )";
-  } else if (guiFramework_ == "wxwidgets") {
-    content += R"(
+    } else if (guiFramework_ == "wxwidgets") {
+        content += R"(
 target_link_libraries(${PROJECT_NAME}_lib PUBLIC ${wxWidgets_LIBRARIES} spdlog::spdlog)
 )";
-  } else if (guiFramework_ == "gtk") {
-    content += R"(
+    } else if (guiFramework_ == "gtk") {
+        content += R"(
 target_link_libraries(${PROJECT_NAME}_lib PUBLIC ${GTK3_LIBRARIES} spdlog::spdlog)
 )";
-  } else {
-    content += R"(
+    } else {
+        content += R"(
 target_link_libraries(${PROJECT_NAME}_lib PUBLIC spdlog::spdlog)
 )";
-  }
+    }
 
-  // 安装目标
-  content += R"(
+    // 安装目标
+    content += R"(
 # Installation
 install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
 )
 )";
 
-  // 测试配置
-  if (options_.includeTests) {
-    content += R"(
+    // 测试配置
+    if (options_.includeTests) {
+        content += R"(
 # Tests
 if(BUILD_TESTING)
     enable_testing()
     add_subdirectory(tests)
 endif()
 )";
-  }
+    }
 
-  return content;
+    return content;
 }
 
 std::string GuiTemplate::getMesonContent() {
-  std::string content = R"(project(')" + options_.projectName + R"(', 'cpp',
+    std::string content = R"(project(')" + options_.projectName + R"(', 'cpp',
   version : '0.1.0',
   default_options : ['warning_level=3', 'cpp_std=c++17']
 )
@@ -2189,50 +2196,50 @@ std::string GuiTemplate::getMesonContent() {
 spdlog_dep = dependency('spdlog')
 )";
 
-  // GUI框架特定配置
-  if (guiFramework_ == "qt") {
-    content += R"(
+    // GUI框架特定配置
+    if (guiFramework_ == "qt") {
+        content += R"(
 # Qt dependencies
 qt5_dep = dependency('qt5', modules : ['Core', 'Gui', 'Widgets'])
 qt_deps = [qt5_dep]
 )";
-  } else if (guiFramework_ == "wxwidgets") {
-    content += R"(
+    } else if (guiFramework_ == "wxwidgets") {
+        content += R"(
 # wxWidgets dependencies
 wx_dep = dependency('wxwidgets', version : '>=3.0.0')
 )";
-  } else if (guiFramework_ == "gtk") {
-    content += R"(
+    } else if (guiFramework_ == "gtk") {
+        content += R"(
 # GTK dependencies
 gtk_dep = dependency('gtk+-3.0', version : '>=3.20')
 )";
-  }
+    }
 
-  // 测试框架依赖
-  if (options_.includeTests) {
-    if (to_string(options_.testFramework) == "gtest") {
-      content += R"(
+    // 测试框架依赖
+    if (options_.includeTests) {
+        if (to_string(options_.testFramework) == "gtest") {
+            content += R"(
 # Test dependencies
 gtest_dep = dependency('gtest', main : true)
 test_deps = [gtest_dep]
 )";
-    } else if (to_string(options_.testFramework) == "catch2") {
-      content += R"(
+        } else if (to_string(options_.testFramework) == "catch2") {
+            content += R"(
 # Test dependencies
 catch2_dep = dependency('catch2')
 test_deps = [catch2_dep]
 )";
-    } else if (to_string(options_.testFramework) == "doctest") {
-      content += R"(
+        } else if (to_string(options_.testFramework) == "doctest") {
+            content += R"(
 # Test dependencies
 doctest_dep = dependency('doctest')
 test_deps = [doctest_dep]
 )";
+        }
     }
-  }
 
-  // 源文�?
-  content += R"(
+    // 源文�?
+    content += R"(
 # Source files
 src_files = [
   'src/main.cpp',
@@ -2247,21 +2254,21 @@ inc_dirs = include_directories('include')
 # Dependencies list
 dependencies = [spdlog_dep, )";
 
-  if (guiFramework_ == "qt") {
-    content += "qt_deps";
-  } else if (guiFramework_ == "wxwidgets") {
-    content += "wx_dep";
-  } else if (guiFramework_ == "gtk") {
-    content += "gtk_dep";
-  } else {
-    content += "[]"; // 空依赖列�?
-  }
+    if (guiFramework_ == "qt") {
+        content += "qt_deps";
+    } else if (guiFramework_ == "wxwidgets") {
+        content += "wx_dep";
+    } else if (guiFramework_ == "gtk") {
+        content += "gtk_dep";
+    } else {
+        content += "[]";  // 空依赖列�?
+    }
 
-  content += R"(]
+    content += R"(]
 
 # Main executable
 executable(')" +
-             options_.projectName + R"(',
+               options_.projectName + R"(',
   src_files,
   include_directories : inc_dirs,
   dependencies : dependencies,
@@ -2271,31 +2278,31 @@ executable(')" +
 # Tests
 )";
 
-  if (options_.includeTests) {
-    content += R"(test_exe = executable('test_runner',
+    if (options_.includeTests) {
+        content += R"(test_exe = executable('test_runner',
   ['tests/test_main.cpp'],
   include_directories : inc_dirs,
   dependencies : dependencies + test_deps
 )
 
 test(')" + options_.projectName +
-               R"(_tests', test_exe)
+                   R"(_tests', test_exe)
 )";
-  } else {
-    content += "# No tests configured\n";
-  }
+    } else {
+        content += "# No tests configured\n";
+    }
 
-  return content;
+    return content;
 }
 
 std::string GuiTemplate::getBazelContent() {
-  std::string content =
-      R"(load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+    std::string content =
+            R"(load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
 )";
 
-  if (guiFramework_ == "qt") {
-    content += R"(# Qt rules - requires qt_rules repository setup in WORKSPACE
+    if (guiFramework_ == "qt") {
+        content += R"(# Qt rules - requires qt_rules repository setup in WORKSPACE
 load("@qt_rules//:qt.bzl", "qt_cc_library", "qt_resource", "qt_ui_library")
 
 qt_ui_library(
@@ -2308,13 +2315,13 @@ qt_resource(
     resource_files = ["resources/resources.qrc"],
 )
 )";
-  }
+    }
 
-  // 主库
-  content += R"(
+    // 主库
+    content += R"(
 cc_library(
     name = ")" +
-             options_.projectName + R"(_lib",
+               options_.projectName + R"(_lib",
     srcs = [
         "src/application.cpp",
         "src/main_window.cpp",
@@ -2325,20 +2332,20 @@ cc_library(
     deps = [
         "@spdlog",)";
 
-  if (guiFramework_ == "qt") {
-    content += R"(
+    if (guiFramework_ == "qt") {
+        content += R"(
         ":resources",
         ":ui_main_window",
         "@qt//:qt_widgets",)";
-  } else if (guiFramework_ == "wxwidgets") {
-    content += R"(
+    } else if (guiFramework_ == "wxwidgets") {
+        content += R"(
         "@wxwidgets//:wx",)";
-  } else if (guiFramework_ == "gtk") {
-    content += R"(
+    } else if (guiFramework_ == "gtk") {
+        content += R"(
         "@gtk//:gtk",)";
-  }
+    }
 
-  content += R"(
+    content += R"(
     ],
     visibility = ["//visibility:public"],
 )
@@ -2346,88 +2353,291 @@ cc_library(
 # Main executable
 cc_binary(
     name = ")" +
-             options_.projectName + R"(",
+               options_.projectName + R"(",
     srcs = ["src/main.cpp"],
     deps = [":)" +
-             options_.projectName + R"(_lib"],
+               options_.projectName + R"(_lib"],
 )
 )";
 
-  // 测试
-  if (options_.includeTests) {
-    content += R"(
+    // 测试
+    if (options_.includeTests) {
+        content +=
+                R"(
 # Tests
 cc_test(
-    name = ")" +
-               options_.projectName + R"(_test",
+    name = ")" + options_.projectName +
+                R"(_test",
     srcs = ["tests/test_main.cpp"],
     deps = [
         ":)" + options_.projectName +
-               R"(_lib",
+                R"(_lib",
         "@)" +
-               (to_string(options_.testFramework) == "gtest"
-                    ? "com_google_googletest//:gtest_main"
-                : to_string(options_.testFramework) == "catch2" ? "catch2//:catch2"
-                                                     : "doctest//:doctest") +
-               R"(",
+                (to_string(options_.testFramework) == "gtest" ? "com_google_googletest//:gtest_main"
+                 : to_string(options_.testFramework) == "catch2" ? "catch2//:catch2"
+                                                                 : "doctest//:doctest") +
+                R"(",
     ],
 )
 )";
-  }
+    }
 
-  return content;
+    return content;
+}
+
+std::string GuiTemplate::getXMakeContent() {
+    std::string guiDependencies;
+    std::string guiPackages;
+    std::string guiFiles;
+
+    if (guiFramework_ == "qt") {
+        guiDependencies = R"(add_requires("qt6base", "qt6tools"))";
+        guiPackages = R"(add_packages("qt6base", "qt6tools"))";
+        guiFiles = R"(add_files("src/*.cpp", "include/{}/*.h")
+    add_files("ui/*.ui")
+    add_files("resources/*.qrc"))";
+    } else if (guiFramework_ == "wxwidgets") {
+        guiDependencies = R"(add_requires("wxwidgets"))";
+        guiPackages = R"(add_packages("wxwidgets"))";
+        guiFiles = R"(add_files("src/*.cpp", "include/{}/*.h"))";
+    } else if (guiFramework_ == "gtk") {
+        guiDependencies = R"(add_requires("gtk+3"))";
+        guiPackages = R"(add_packages("gtk+3"))";
+        guiFiles = R"(add_files("src/*.cpp", "include/{}/*.h")
+    add_files("ui/*.glade"))";
+    } else {
+        guiDependencies = R"(-- Add GUI framework dependencies here)";
+        guiPackages = R"(-- Add GUI framework packages here)";
+        guiFiles = R"(add_files("src/*.cpp", "include/{}/*.h"))";
+    }
+
+    std::string testSection;
+    if (options_.includeTests) {
+        std::string testFramework;
+        if (to_string(options_.testFramework) == "gtest") {
+            testFramework = "gtest";
+        } else if (to_string(options_.testFramework) == "catch2") {
+            testFramework = "catch2";
+        } else if (to_string(options_.testFramework) == "doctest") {
+            testFramework = "doctest";
+        }
+
+        if (!testFramework.empty()) {
+            testSection = fmt::format(R"(
+add_requires("{}")
+
+target("{}_tests")
+    set_kind("binary")
+    add_files("tests/test_main.cpp")
+    add_packages("{}")
+    add_deps("{}")
+    set_targetdir("tests/bin")
+)",
+                                      testFramework, options_.projectName, testFramework,
+                                      options_.projectName);
+        }
+    }
+
+    return fmt::format(R"(set_project("{0}")
+set_version("1.0.0")
+
+-- Set C++ standard
+set_languages("c++17")
+
+-- Add build modes
+add_rules("mode.debug", "mode.release")
+
+-- GUI dependencies
+{1}
+add_requires("spdlog")
+
+-- Main executable
+target("{2}")
+    set_kind("binary")
+    {3}
+    add_headerfiles("include/{4}/*.h")
+    add_includedirs("include", {{public = true}})
+
+    -- Add packages
+    {5}
+    add_packages("spdlog")
+
+    -- Set output directory
+    set_targetdir("bin")
+
+    -- Enable C++ features
+    set_languages("c++17")
+
+    -- Add compile flags
+    if is_mode("debug") then
+        add_defines("DEBUG")
+        set_symbols("debug")
+        set_optimize("none")
+    elseif is_mode("release") then
+        add_defines("NDEBUG")
+        set_symbols("hidden")
+        set_optimize("fastest")
+    end
+{6})",
+                       options_.projectName, guiDependencies, options_.projectName,
+                       fmt::format(guiFiles, options_.projectName), options_.projectName,
+                       guiPackages, testSection);
+}
+
+std::string GuiTemplate::getPremakeContent() {
+    std::string guiLinks;
+    std::string guiIncludes;
+
+    if (guiFramework_ == "qt") {
+        guiLinks = R"(links {
+        "Qt6Core",
+        "Qt6Gui",
+        "Qt6Widgets"
+    })";
+        guiIncludes = R"(includedirs {
+        "/usr/include/qt6",
+        "/usr/include/qt6/QtCore",
+        "/usr/include/qt6/QtGui",
+        "/usr/include/qt6/QtWidgets"
+    })";
+    } else if (guiFramework_ == "wxwidgets") {
+        guiLinks = R"(links {
+        "wx_gtk3u_core-3.2",
+        "wx_baseu-3.2"
+    })";
+        guiIncludes = R"(includedirs {
+        "/usr/include/wx-3.2"
+    })";
+    } else if (guiFramework_ == "gtk") {
+        guiLinks = R"(links {
+        "gtk-3",
+        "gdk-3",
+        "glib-2.0",
+        "gobject-2.0"
+    })";
+        guiIncludes = R"(includedirs {
+        "/usr/include/gtk-3.0",
+        "/usr/include/glib-2.0"
+    })";
+    }
+
+    std::string testSection;
+    if (options_.includeTests) {
+        testSection = fmt::format(R"(
+project "{}_tests"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++17"
+    targetdir "bin/%{{cfg.buildcfg}}"
+
+    files {{
+        "tests/**.cpp",
+        "tests/**.h"
+    }}
+
+    includedirs {{
+        "include",
+        "tests"
+    }}
+
+    links {{
+        "{}"
+    }}
+)",
+                                  options_.projectName, options_.projectName);
+    }
+
+    return fmt::format(R"(workspace "{0}"
+    configurations {{ "Debug", "Release" }}
+    platforms {{ "x64" }}
+
+project "{1}"
+    kind "WindowedApp"
+    language "C++"
+    cppdialect "C++17"
+    targetdir "bin/%{{cfg.buildcfg}}"
+
+    files {{
+        "src/**.cpp",
+        "include/**.h"
+    }}
+
+    includedirs {{
+        "include"
+    }}
+
+    {2}
+
+    {3}
+
+    links {{
+        "spdlog"
+    }}
+
+    filter "configurations:Debug"
+        defines {{ "DEBUG" }}
+        symbols "On"
+        optimize "Off"
+
+    filter "configurations:Release"
+        defines {{ "NDEBUG" }}
+        symbols "Off"
+        optimize "Speed"
+{4})",
+                       options_.projectName, options_.projectName, guiIncludes, guiLinks,
+                       testSection);
 }
 
 std::string GuiTemplate::getVcpkgJsonContent() {
-  // 创建依赖项列表，从spdlog开�?
-  std::vector<std::string> dependencies = {
-      R"({
+    // 创建依赖项列表，从spdlog开�?
+    std::vector<std::string> dependencies = {
+            R"({
         "name": "spdlog"
       })"};
 
-  // 根据GUI框架添加相应依赖
-  if (guiFramework_ == "qt") {
-    dependencies.push_back(R"({
+    // 根据GUI框架添加相应依赖
+    if (guiFramework_ == "qt") {
+        dependencies.push_back(R"({
         "name": "qtbase"
       })");
-  } else if (guiFramework_ == "wxwidgets") {
-    dependencies.push_back(R"({
+    } else if (guiFramework_ == "wxwidgets") {
+        dependencies.push_back(R"({
         "name": "wxwidgets"
       })");
-  } else if (guiFramework_ == "gtk") {
-    dependencies.push_back(R"({
+    } else if (guiFramework_ == "gtk") {
+        dependencies.push_back(R"({
         "name": "gtk"
       })");
-  }
-
-  // 根据测试配置添加测试框架依赖
-  if (options_.includeTests) {
-    std::string testFrameworkName;
-    if (to_string(options_.testFramework) == "gtest") {
-      testFrameworkName = "gtest";
-    } else if (to_string(options_.testFramework) == "catch2") {
-      testFrameworkName = "catch2";
-    } else {
-      testFrameworkName = "doctest";
     }
-    dependencies.push_back(fmt::format(R"({{
+
+    // 根据测试配置添加测试框架依赖
+    if (options_.includeTests) {
+        std::string testFrameworkName;
+        if (to_string(options_.testFramework) == "gtest") {
+            testFrameworkName = "gtest";
+        } else if (to_string(options_.testFramework) == "catch2") {
+            testFrameworkName = "catch2";
+        } else {
+            testFrameworkName = "doctest";
+        }
+        dependencies.push_back(fmt::format(R"({{
         "name": "{}"
       }})",
-                                       testFrameworkName));
-  }
-
-  // 构建依赖项字符串，每个依赖项之间用逗号和换行连�?
-  std::string dependenciesStr;
-  for (size_t i = 0; i < dependencies.size(); ++i) {
-    dependenciesStr += dependencies[i];
-    if (i < dependencies.size() - 1) {
-      dependenciesStr += ",";
+                                           testFrameworkName));
     }
-    dependenciesStr += "\n    ";
-  }
 
-  // 使用fmt创建完整JSON内容
-  return fmt::format(R"({{
+    // 构建依赖项字符串，每个依赖项之间用逗号和换行连�?
+    std::string dependenciesStr;
+    for (size_t i = 0; i < dependencies.size(); ++i) {
+        dependenciesStr += dependencies[i];
+        if (i < dependencies.size() - 1) {
+            dependenciesStr += ",";
+        }
+        dependenciesStr += "\n    ";
+    }
+
+    // 使用fmt创建完整JSON内容
+    return fmt::format(R"({{
     "name": "{}",
     "version": "0.1.0",
     "dependencies": [
@@ -2435,129 +2645,138 @@ std::string GuiTemplate::getVcpkgJsonContent() {
     ]
   }}
   )",
-                     options_.projectName, dependenciesStr);
+                       options_.projectName, dependenciesStr);
 }
 
 std::string GuiTemplate::getConanfileContent() {
-  std::string content = R"([requires]
+    std::string content = R"([requires]
 spdlog/1.10.0
 )";
 
-  if (guiFramework_ == "qt") {
-    content += "qt/6.2.3\n";
-  } else if (guiFramework_ == "wxwidgets") {
-    content += "wxwidgets/3.1.7\n";
-  } else if (guiFramework_ == "gtk") {
-    content += "gtk/3.24.30\n";
-  }
-
-  if (options_.includeTests) {
-    if (to_string(options_.testFramework) == "gtest") {
-      content += "gtest/1.12.1\n";
-    } else if (to_string(options_.testFramework) == "catch2") {
-      content += "catch2/3.1.0\n";
-    } else if (to_string(options_.testFramework) == "doctest") {
-      content += "doctest/2.4.9\n";
+    if (guiFramework_ == "qt") {
+        content += "qt/6.2.3\n";
+    } else if (guiFramework_ == "wxwidgets") {
+        content += "wxwidgets/3.1.7\n";
+    } else if (guiFramework_ == "gtk") {
+        content += "gtk/3.24.30\n";
     }
-  }
 
-  content += R"(
+    if (options_.includeTests) {
+        if (to_string(options_.testFramework) == "gtest") {
+            content += "gtest/1.12.1\n";
+        } else if (to_string(options_.testFramework) == "catch2") {
+            content += "catch2/3.1.0\n";
+        } else if (to_string(options_.testFramework) == "doctest") {
+            content += "doctest/2.4.9\n";
+        }
+    }
+
+    content += R"(
 [generators]
 )";
 
-  if (to_string(options_.buildSystem) == "cmake") {
-    content += "cmake\n";
-  } else if (to_string(options_.buildSystem) == "meson") {
-    content += "pkg_config\n";
-  } else {
-    content += "cmake_find_package\n";
-  }
+    if (to_string(options_.buildSystem) == "cmake") {
+        content += "cmake\n";
+    } else if (to_string(options_.buildSystem) == "meson") {
+        content += "pkg_config\n";
+    } else {
+        content += "cmake_find_package\n";
+    }
 
-  return content;
+    return content;
 }
 
 std::string GuiTemplate::getMSYS2PKGBUILDContent() {
-  std::string testDependencies;
-  if (options_.includeTests) {
-    if (to_string(options_.testFramework) == "gtest") {
-      testDependencies = "  \"${MINGW_PACKAGE_PREFIX}-gtest\"";
-    } else if (to_string(options_.testFramework) == "catch2") {
-      testDependencies = "  \"${MINGW_PACKAGE_PREFIX}-catch2\"";
+    std::string testDependencies;
+    if (options_.includeTests) {
+        if (to_string(options_.testFramework) == "gtest") {
+            testDependencies = "  \"${MINGW_PACKAGE_PREFIX}-gtest\"";
+        } else if (to_string(options_.testFramework) == "catch2") {
+            testDependencies = "  \"${MINGW_PACKAGE_PREFIX}-catch2\"";
+        }
     }
-  }
 
-  std::string guiDependencies;
-  if (guiFramework_ == "qt") {
-    guiDependencies = "  \"${MINGW_PACKAGE_PREFIX}-qt6-base\"\n  \"${MINGW_PACKAGE_PREFIX}-qt6-tools\"";
-  } else if (guiFramework_ == "wxwidgets") {
-    guiDependencies = "  \"${MINGW_PACKAGE_PREFIX}-wxwidgets\"";
-  } else if (guiFramework_ == "gtk") {
-    guiDependencies = "  \"${MINGW_PACKAGE_PREFIX}-gtk3\"";
-  }
+    std::string guiDependencies;
+    if (guiFramework_ == "qt") {
+        guiDependencies =
+                "  \"${MINGW_PACKAGE_PREFIX}-qt6-base\"\n  \"${MINGW_PACKAGE_PREFIX}-qt6-tools\"";
+    } else if (guiFramework_ == "wxwidgets") {
+        guiDependencies = "  \"${MINGW_PACKAGE_PREFIX}-wxwidgets\"";
+    } else if (guiFramework_ == "gtk") {
+        guiDependencies = "  \"${MINGW_PACKAGE_PREFIX}-gtk3\"";
+    }
 
-  std::string pkgbuildContent =
-    "# Maintainer: Your Name <your.email@example.com>\n"
-    "_realname=" + options_.projectName + "\n"
-    "pkgbase=mingw-w64-${_realname}\n"
-    "pkgname=\"${MINGW_PACKAGE_PREFIX}-${_realname}\"\n"
-    "pkgver=1.0.0\n"
-    "pkgrel=1\n"
-    "pkgdesc=\"A C++ GUI application (mingw-w64)\"\n"
-    "arch=(\"any\")\n"
-    "mingw_arch=(\"mingw32\" \"mingw64\" \"ucrt64\" \"clang64\" \"clangarm64\")\n"
-    "url=\"https://github.com/yourname/" + options_.projectName + "\"\n"
-    "license=(\"MIT\")\n"
-    "makedepends=(\n"
-    "  \"${MINGW_PACKAGE_PREFIX}-cc\"\n"
-    "  \"${MINGW_PACKAGE_PREFIX}-cmake\"\n"
-    "  \"${MINGW_PACKAGE_PREFIX}-ninja\"\n"
-    ")\n"
-    "depends=(\n"
-    "  \"${MINGW_PACKAGE_PREFIX}-gcc-libs\"\n" +
-    guiDependencies + "\n" +
-    testDependencies + "\n"
-    ")\n"
-    "source=(\"${_realname}-${pkgver}.tar.gz\")\n"
-    "sha256sums=(\"SKIP\")\n\n"
-    "build() {\n"
-    "  cd \"${srcdir}/${_realname}-${pkgver}\"\n"
-    "  \n"
-    "  mkdir -p build && cd build\n"
-    "  \n"
-    "  MSYS2_ARG_CONV_EXCL=\"-DCMAKE_INSTALL_PREFIX=\" \\\n"
-    "  ${MINGW_PREFIX}/bin/cmake.exe \\\n"
-    "    -GNinja \\\n"
-    "    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \\\n"
-    "    -DCMAKE_BUILD_TYPE=Release \\\n"
-    "    ..\n"
-    "  \n"
-    "  ${MINGW_PREFIX}/bin/cmake.exe --build .\n"
-    "}\n\n"
-    "check() {\n"
-    "  cd \"${srcdir}/${_realname}-${pkgver}/build\"\n"
-    "  \n"
-    "  # Run tests if available\n"
-    "  if [ -f \"test_" + options_.projectName + "\" ]; then\n"
-    "    ./test_" + options_.projectName + "\n"
-    "  fi\n"
-    "}\n\n"
-    "package() {\n"
-    "  cd \"${srcdir}/${_realname}-${pkgver}/build\"\n"
-    "  \n"
-    "  DESTDIR=\"${pkgdir}\" ${MINGW_PREFIX}/bin/cmake.exe --install .\n"
-    "  \n"
-    "  # Install license\n"
-    "  install -Dm644 \"${srcdir}/${_realname}-${pkgver}/LICENSE\" \\\n"
-    "    \"${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE\"\n"
-    "}\n";
+    std::string pkgbuildContent =
+            "# Maintainer: Your Name <your.email@example.com>\n"
+            "_realname=" +
+            options_.projectName +
+            "\n"
+            "pkgbase=mingw-w64-${_realname}\n"
+            "pkgname=\"${MINGW_PACKAGE_PREFIX}-${_realname}\"\n"
+            "pkgver=1.0.0\n"
+            "pkgrel=1\n"
+            "pkgdesc=\"A C++ GUI application (mingw-w64)\"\n"
+            "arch=(\"any\")\n"
+            "mingw_arch=(\"mingw32\" \"mingw64\" \"ucrt64\" \"clang64\" \"clangarm64\")\n"
+            "url=\"https://github.com/yourname/" +
+            options_.projectName +
+            "\"\n"
+            "license=(\"MIT\")\n"
+            "makedepends=(\n"
+            "  \"${MINGW_PACKAGE_PREFIX}-cc\"\n"
+            "  \"${MINGW_PACKAGE_PREFIX}-cmake\"\n"
+            "  \"${MINGW_PACKAGE_PREFIX}-ninja\"\n"
+            ")\n"
+            "depends=(\n"
+            "  \"${MINGW_PACKAGE_PREFIX}-gcc-libs\"\n" +
+            guiDependencies + "\n" + testDependencies +
+            "\n"
+            ")\n"
+            "source=(\"${_realname}-${pkgver}.tar.gz\")\n"
+            "sha256sums=(\"SKIP\")\n\n"
+            "build() {\n"
+            "  cd \"${srcdir}/${_realname}-${pkgver}\"\n"
+            "  \n"
+            "  mkdir -p build && cd build\n"
+            "  \n"
+            "  MSYS2_ARG_CONV_EXCL=\"-DCMAKE_INSTALL_PREFIX=\" \\\n"
+            "  ${MINGW_PREFIX}/bin/cmake.exe \\\n"
+            "    -GNinja \\\n"
+            "    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \\\n"
+            "    -DCMAKE_BUILD_TYPE=Release \\\n"
+            "    ..\n"
+            "  \n"
+            "  ${MINGW_PREFIX}/bin/cmake.exe --build .\n"
+            "}\n\n"
+            "check() {\n"
+            "  cd \"${srcdir}/${_realname}-${pkgver}/build\"\n"
+            "  \n"
+            "  # Run tests if available\n"
+            "  if [ -f \"test_" +
+            options_.projectName +
+            "\" ]; then\n"
+            "    ./test_" +
+            options_.projectName +
+            "\n"
+            "  fi\n"
+            "}\n\n"
+            "package() {\n"
+            "  cd \"${srcdir}/${_realname}-${pkgver}/build\"\n"
+            "  \n"
+            "  DESTDIR=\"${pkgdir}\" ${MINGW_PREFIX}/bin/cmake.exe --install .\n"
+            "  \n"
+            "  # Install license\n"
+            "  install -Dm644 \"${srcdir}/${_realname}-${pkgver}/LICENSE\" \\\n"
+            "    \"${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE\"\n"
+            "}\n";
 
-  return pkgbuildContent;
+    return pkgbuildContent;
 }
 
 std::string GuiTemplate::getGTestContent() {
-  return R"(#include <gtest/gtest.h>
+    return R"(#include <gtest/gtest.h>
 #include ")" +
-         options_.projectName + R"(/logging.h"
+           options_.projectName + R"(/logging.h"
 #include <memory>
 
 // 初始化日志系�?
@@ -2568,8 +2787,8 @@ public:
     // 测试开始前设置
     void SetUp() override {
         )" +
-         options_.projectName +
-         R"(::Logging::init("logs/test.log", spdlog::level::debug);
+           options_.projectName +
+           R"(::Logging::init("logs/test.log", spdlog::level::debug);
         SPDLOG_INFO("测试开�?);
     }
 
@@ -2577,7 +2796,7 @@ public:
     void TearDown() override {
         SPDLOG_INFO("测试结束");
         )" +
-         options_.projectName + R"(::Logging::shutdown();
+           options_.projectName + R"(::Logging::shutdown();
     }
 };
 
@@ -2585,17 +2804,17 @@ public:
 TEST(LoggingTest, InitializationWorks) {
     // 由于在Environment中已经初始化，所以这里应该可以正常使�?
     EXPECT_EQ()" +
-         options_.projectName + R"(::Logging::getLevel(), spdlog::level::debug);
+           options_.projectName + R"(::Logging::getLevel(), spdlog::level::debug);
 
     // 测试日志级别设置
     )" + options_.projectName +
-         R"(::Logging::setLevel(spdlog::level::info);
+           R"(::Logging::setLevel(spdlog::level::info);
     EXPECT_EQ()" +
-         options_.projectName + R"(::Logging::getLevel(), spdlog::level::info);
+           options_.projectName + R"(::Logging::getLevel(), spdlog::level::info);
 
     // 测试获取格式化时间戳
     auto timestamp = )" +
-         options_.projectName + R"(::Logging::getFormattedTimestamp();
+           options_.projectName + R"(::Logging::getFormattedTimestamp();
     EXPECT_FALSE(timestamp.empty());
 }
 
@@ -2609,45 +2828,45 @@ int main(int argc, char argv) {
 }
 
 std::string GuiTemplate::getCatch2Content() {
-  return R"(#define CATCH_CONFIG_MAIN
+    return R"(#define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 #include ")" +
-         options_.projectName + R"(/logging.h"
+           options_.projectName + R"(/logging.h"
 #include <memory>
 
 // 初始化日志系�?
 struct LoggingFixture {
     LoggingFixture() {
         )" +
-         options_.projectName +
-         R"(::Logging::init("logs/test.log", spdlog::level::debug);
+           options_.projectName +
+           R"(::Logging::init("logs/test.log", spdlog::level::debug);
         SPDLOG_INFO("测试开�?);
     }
 
     ~LoggingFixture() {
         SPDLOG_INFO("测试结束");
         )" +
-         options_.projectName + R"(::Logging::shutdown();
+           options_.projectName + R"(::Logging::shutdown();
     }
 };
 
 TEST_CASE_METHOD(LoggingFixture, "测试Logging�?, "[logging]") {
     SECTION("测试日志级别") {
         REQUIRE()" +
-         options_.projectName +
-         R"(::Logging::getLevel() == spdlog::level::debug);
+           options_.projectName +
+           R"(::Logging::getLevel() == spdlog::level::debug);
 
         // 测试日志级别设置
         )" +
-         options_.projectName + R"(::Logging::setLevel(spdlog::level::info);
+           options_.projectName + R"(::Logging::setLevel(spdlog::level::info);
         REQUIRE()" +
-         options_.projectName +
-         R"(::Logging::getLevel() == spdlog::level::info);
+           options_.projectName +
+           R"(::Logging::getLevel() == spdlog::level::info);
     }
 
     SECTION("测试格式化时间戳") {
         auto timestamp = )" +
-         options_.projectName + R"(::Logging::getFormattedTimestamp();
+           options_.projectName + R"(::Logging::getFormattedTimestamp();
         REQUIRE_FALSE(timestamp.empty());
     }
 }
@@ -2655,10 +2874,10 @@ TEST_CASE_METHOD(LoggingFixture, "测试Logging�?, "[logging]") {
 }
 
 std::string GuiTemplate::getDocTestContent() {
-  return R"(#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+    return R"(#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 #include ")" +
-         options_.projectName + R"(/logging.h"
+           options_.projectName + R"(/logging.h"
 #include <memory>
 
 // 初始化日志系�?
@@ -2666,35 +2885,35 @@ class LoggingFixture {
 public:
     LoggingFixture() {
         )" +
-         options_.projectName +
-         R"(::Logging::init("logs/test.log", spdlog::level::debug);
+           options_.projectName +
+           R"(::Logging::init("logs/test.log", spdlog::level::debug);
         SPDLOG_INFO("测试开�?);
     }
 
     ~LoggingFixture() {
         SPDLOG_INFO("测试结束");
         )" +
-         options_.projectName + R"(::Logging::shutdown();
+           options_.projectName + R"(::Logging::shutdown();
     }
 };
 
 TEST_CASE_FIXTURE(LoggingFixture, "测试Logging�?) {
     SUBCASE("测试日志级别") {
         CHECK()" +
-         options_.projectName +
-         R"(::Logging::getLevel() == spdlog::level::debug);
+           options_.projectName +
+           R"(::Logging::getLevel() == spdlog::level::debug);
 
         // 测试日志级别设置
         )" +
-         options_.projectName + R"(::Logging::setLevel(spdlog::level::info);
+           options_.projectName + R"(::Logging::setLevel(spdlog::level::info);
         CHECK()" +
-         options_.projectName +
-         R"(::Logging::getLevel() == spdlog::level::info);
+           options_.projectName +
+           R"(::Logging::getLevel() == spdlog::level::info);
     }
 
     SUBCASE("测试格式化时间戳") {
         auto timestamp = )" +
-         options_.projectName + R"(::Logging::getFormattedTimestamp();
+           options_.projectName + R"(::Logging::getFormattedTimestamp();
         CHECK(!timestamp.empty());
     }
 }
@@ -2702,7 +2921,7 @@ TEST_CASE_FIXTURE(LoggingFixture, "测试Logging�?) {
 }
 
 std::string GuiTemplate::getQtUiContent() {
-  return R"(<?xml version="1.0" encoding="UTF-8"?>
+    return R"(<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
@@ -2716,7 +2935,7 @@ std::string GuiTemplate::getQtUiContent() {
   </property>
   <property name="windowTitle">
    <string>)" +
-         options_.projectName + R"(</string>
+           options_.projectName + R"(</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -2729,7 +2948,7 @@ std::string GuiTemplate::getQtUiContent() {
       </property>
       <property name="text">
        <string>欢迎使用 )" +
-         options_.projectName + R"(</string>
+           options_.projectName + R"(</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -2787,7 +3006,7 @@ std::string GuiTemplate::getQtUiContent() {
 }
 
 std::string GuiTemplate::getQtResourceContent() {
-  return R"(<!DOCTYPE RCC>
+    return R"(<!DOCTYPE RCC>
 <RCC version="1.0">
     <qresource prefix="/">
         <file>icons/app_icon.png</file>
@@ -2797,20 +3016,20 @@ std::string GuiTemplate::getQtResourceContent() {
 }
 
 std::string GuiTemplate::getWxResourceContent() {
-  return R"(// wxWidgets Resource File
+    return R"(// wxWidgets Resource File
 #include "wx/msw/wx.rc"
 )";
 }
 
 std::string GuiTemplate::getGtkGladeContent() {
-  return R"(<?xml version="1.0" encoding="UTF-8"?>
+    return R"(<?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkWindow" id="main_window">
     <property name="can-focus">False</property>
     <property name="title" translatable="yes">)" +
-         options_.projectName + R"(</property>
+           options_.projectName + R"(</property>
     <property name="default-width">800</property>
     <property name="default-height">600</property>
     <child>
@@ -2874,7 +3093,7 @@ std::string GuiTemplate::getGtkGladeContent() {
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">欢迎使用 )" +
-         options_.projectName + R"(</property>
+           options_.projectName + R"(</property>
             <attributes>
               <attribute name="font-desc" value="Sans 14"/>
             </attributes>
@@ -2910,16 +3129,16 @@ std::string GuiTemplate::getGtkGladeContent() {
 }
 
 bool GuiTemplate::setupDocumentation() {
-  std::string projectPath = options_.projectName;
-  std::string docsPath = FileUtils::combinePath(projectPath, "docs");
+    std::string projectPath = options_.projectName;
+    std::string docsPath = FileUtils::combinePath(projectPath, "docs");
 
-  if (!FileUtils::createDirectory(docsPath)) {
-    std::cout << "Failed to create documentation directory\n";
-    return false;
-  }
+    if (!FileUtils::createDirectory(docsPath)) {
+        std::cout << "Failed to create documentation directory\n";
+        return false;
+    }
 
-  // Create basic documentation files
-  std::string readmeContent = fmt::format(R"(# {} Documentation
+    // Create basic documentation files
+    std::string readmeContent = fmt::format(R"(# {} Documentation
 
 This directory contains the documentation for the {} GUI application.
 
@@ -2936,31 +3155,32 @@ doxygen Doxyfile
 - `api/` - API documentation
 - `user/` - User guide
 - `developer/` - Developer documentation
-)", options_.projectName, options_.projectName);
+)",
+                                            options_.projectName, options_.projectName);
 
-  if (!FileUtils::writeToFile(FileUtils::combinePath(docsPath, "README.md"), readmeContent)) {
-    std::cout << "Failed to create documentation README\n";
-    return false;
-  }
+    if (!FileUtils::writeToFile(FileUtils::combinePath(docsPath, "README.md"), readmeContent)) {
+        std::cout << "Failed to create documentation README\n";
+        return false;
+    }
 
-  // Create subdirectories
-  FileUtils::createDirectory(FileUtils::combinePath(docsPath, "api"));
-  FileUtils::createDirectory(FileUtils::combinePath(docsPath, "user"));
-  FileUtils::createDirectory(FileUtils::combinePath(docsPath, "developer"));
+    // Create subdirectories
+    FileUtils::createDirectory(FileUtils::combinePath(docsPath, "api"));
+    FileUtils::createDirectory(FileUtils::combinePath(docsPath, "user"));
+    FileUtils::createDirectory(FileUtils::combinePath(docsPath, "developer"));
 
-  return true;
+    return true;
 }
 
 // Framework-specific content generators
 std::string GuiTemplate::getFrameworkSpecificHeaderContent() {
-  if (guiFramework_ == "gtk") {
-    return getGTKSpecificContent();
-  } else if (guiFramework_ == "fltk") {
-    return getFLTKSpecificContent();
-  } else if (guiFramework_ == "imgui") {
-    return getImGuiSpecificContent();
-  } else if (guiFramework_ == "wxwidgets") {
-    return R"(#pragma once
+    if (guiFramework_ == "gtk") {
+        return getGTKSpecificContent();
+    } else if (guiFramework_ == "fltk") {
+        return getFLTKSpecificContent();
+    } else if (guiFramework_ == "imgui") {
+        return getImGuiSpecificContent();
+    } else if (guiFramework_ == "wxwidgets") {
+        return R"(#pragma once
 #include <wx/wx.h>
 
 class MyApp : public wxApp {
@@ -2985,14 +3205,14 @@ enum {
     ID_Hello = 1
 };
 )";
-  }
+    }
 
-  return ""; // Default empty content
+    return "";  // Default empty content
 }
 
 std::string GuiTemplate::getFrameworkSpecificSourceContent() {
-  if (guiFramework_ == "gtk") {
-    return R"(#include "app.h"
+    if (guiFramework_ == "gtk") {
+        return R"(#include "app.h"
 #include <gtk/gtk.h>
 
 static void activate(GtkApplication* app, gpointer user_data) {
@@ -3001,7 +3221,8 @@ static void activate(GtkApplication* app, gpointer user_data) {
     GtkWidget *box;
 
     window = gtk_application_window_new(app);
-    gtk_window_set_title(GTK_WINDOW(window), ")" + options_.projectName + R"(");
+    gtk_window_set_title(GTK_WINDOW(window), ")" +
+               options_.projectName + R"(");
     gtk_window_set_default_size(GTK_WINDOW(window), 400, 300);
 
     box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -3009,7 +3230,8 @@ static void activate(GtkApplication* app, gpointer user_data) {
     gtk_widget_set_valign(box, GTK_ALIGN_CENTER);
     gtk_window_set_child(GTK_WINDOW(window), box);
 
-    button = gtk_button_new_with_label("Hello from )" + options_.projectName + R"(!");
+    button = gtk_button_new_with_label("Hello from )" +
+               options_.projectName + R"(!");
     g_signal_connect_swapped(button, "clicked", G_CALLBACK(gtk_window_destroy), window);
     gtk_box_append(GTK_BOX(box), button);
 
@@ -3020,7 +3242,8 @@ int main(int argc, char **argv) {
     GtkApplication *app;
     int status;
 
-    app = gtk_application_new("org.example.)" + options_.projectName + R"(", G_APPLICATION_FLAGS_NONE);
+    app = gtk_application_new("org.example.)" +
+               options_.projectName + R"(", G_APPLICATION_FLAGS_NONE);
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
     status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
@@ -3028,19 +3251,21 @@ int main(int argc, char **argv) {
     return status;
 }
 )";
-  } else if (guiFramework_ == "fltk") {
-    return R"(#include "app.h"
+    } else if (guiFramework_ == "fltk") {
+        return R"(#include "app.h"
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Button.H>
 #include <FL/fl_ask.H>
 
 void button_callback(Fl_Widget* widget, void* data) {
-    fl_message("Hello from )" + options_.projectName + R"(!");
+    fl_message("Hello from )" +
+               options_.projectName + R"(!");
 }
 
 int main(int argc, char **argv) {
-    Fl_Window *window = new Fl_Window(400, 300, ")" + options_.projectName + R"(");
+    Fl_Window *window = new Fl_Window(400, 300, ")" +
+               options_.projectName + R"(");
 
     Fl_Button *button = new Fl_Button(150, 125, 100, 50, "Click Me!");
     button->callback(button_callback);
@@ -3051,13 +3276,14 @@ int main(int argc, char **argv) {
     return Fl::run();
 }
 )";
-  } else if (guiFramework_ == "wxwidgets") {
-    return R"(#include "app.h"
+    } else if (guiFramework_ == "wxwidgets") {
+        return R"(#include "app.h"
 
 wxIMPLEMENT_APP(MyApp);
 
 bool MyApp::OnInit() {
-    MyFrame *frame = new MyFrame(")" + options_.projectName + R"(", wxPoint(50, 50), wxSize(450, 340));
+    MyFrame *frame = new MyFrame(")" +
+               options_.projectName + R"(", wxPoint(50, 50), wxSize(450, 340));
     frame->Show(true);
     return true;
 }
@@ -3086,7 +3312,8 @@ MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
     SetMenuBar(menuBar);
 
     CreateStatusBar();
-    SetStatusText("Welcome to )" + options_.projectName + R"(!");
+    SetStatusText("Welcome to )" +
+               options_.projectName + R"(!");
 }
 
 void MyFrame::OnExit(wxCommandEvent& event) {
@@ -3094,25 +3321,28 @@ void MyFrame::OnExit(wxCommandEvent& event) {
 }
 
 void MyFrame::OnAbout(wxCommandEvent& event) {
-    wxMessageBox("This is a )" + options_.projectName + R"( sample", "About )" + options_.projectName + R"(", wxOK | wxICON_INFORMATION);
+    wxMessageBox("This is a )" +
+               options_.projectName + R"( sample", "About )" + options_.projectName +
+               R"(", wxOK | wxICON_INFORMATION);
 }
 
 void MyFrame::OnHello(wxCommandEvent& event) {
-    wxLogMessage("Hello world from )" + options_.projectName + R"(!");
+    wxLogMessage("Hello world from )" +
+               options_.projectName + R"(!");
 }
 
 void MyFrame::OnClose(wxCloseEvent& event) {
     Destroy();
 }
 )";
-  }
+    }
 
-  return ""; // Default empty content
+    return "";  // Default empty content
 }
 
 // Helper methods for specific frameworks
 std::string GuiTemplate::getGTKSpecificContent() {
-  return R"(#pragma once
+    return R"(#pragma once
 #include <gtk/gtk.h>
 
 // GTK Application class declarations
@@ -3121,7 +3351,7 @@ void activate(GtkApplication* app, gpointer user_data);
 }
 
 std::string GuiTemplate::getFLTKSpecificContent() {
-  return R"(#pragma once
+    return R"(#pragma once
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Button.H>
@@ -3133,7 +3363,7 @@ void button_callback(Fl_Widget* widget, void* data);
 }
 
 std::string GuiTemplate::getImGuiSpecificContent() {
-  return R"(#pragma once
+    return R"(#pragma once
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"

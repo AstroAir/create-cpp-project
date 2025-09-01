@@ -1,13 +1,18 @@
 #include "user_experience.h"
-#include "terminal_utils.h"
-#include "file_utils.h"
-#include "../cli/types/cli_enums.h"
-#include <fmt/format.h>
+
+#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
+
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <nlohmann/json.hpp>
+
+#include "../cli/types/cli_enums.h"
+
+#include "file_utils.h"
+#include "terminal_utils.h"
 
 namespace utils {
 
@@ -64,7 +69,7 @@ CliOptions UserExperienceManager::runGuidedSetup() {
     }
 
     ux_utils::showBanner("Welcome to C++ Project Scaffold!",
-                        "Let's create your perfect C++ project step by step");
+                         "Let's create your perfect C++ project step by step");
 
     CliOptions options;
 
@@ -72,7 +77,8 @@ CliOptions UserExperienceManager::runGuidedSetup() {
     TerminalUtils::showWizardHeader("Project Setup", 1, 5);
     TerminalUtils::showWizardProgress(1, 5, "Project Basics");
 
-    std::cout << "\n" << TerminalUtils::colorize("  📝 Project Information", Color::BrightCyan) << "\n\n";
+    std::cout << "\n"
+              << TerminalUtils::colorize("  📝 Project Information", Color::BrightCyan) << "\n\n";
 
     // Project name with validation and suggestions
     std::string projectName;
@@ -95,7 +101,8 @@ CliOptions UserExperienceManager::runGuidedSetup() {
         }
 
         if (hasInvalidChars) {
-            TerminalUtils::showNpmStyleError("Project name can only contain letters, numbers, hyphens, and underscores");
+            TerminalUtils::showNpmStyleError(
+                    "Project name can only contain letters, numbers, hyphens, and underscores");
             continue;
         }
 
@@ -110,23 +117,25 @@ CliOptions UserExperienceManager::runGuidedSetup() {
     showContextualHelp(GuidanceContext::TemplateSelection);
 
     std::vector<std::pair<std::string, std::string>> templateOptions = {
-        {"console", "Perfect for command-line tools, utilities, and learning C++"},
-        {"lib", "Ideal for creating reusable libraries and components"},
-        {"header-only-lib", "Best for template libraries and header-only code"},
-        {"gui", "Great for desktop applications with graphical interfaces"},
-        {"network", "Excellent for client-server applications and networking"},
-        {"embedded", "Optimized for microcontrollers and resource-constrained systems"},
-        {"webservice", "Perfect for REST APIs and web backends"},
-        {"gameengine", "Comprehensive framework for game development"}
-    };
+            {"console", "Perfect for command-line tools, utilities, and learning C++"},
+            {"lib", "Ideal for creating reusable libraries and components"},
+            {"header-only-lib", "Best for template libraries and header-only code"},
+            {"gui", "Great for desktop applications with graphical interfaces"},
+            {"network", "Excellent for client-server applications and networking"},
+            {"embedded", "Optimized for microcontrollers and resource-constrained systems"},
+            {"webservice", "Perfect for REST APIs and web backends"},
+            {"gameengine", "Comprehensive framework for game development"}};
 
-    std::cout << "\n" << TerminalUtils::colorize("  🎯 Choose Your Project Type", Color::BrightCyan) << "\n\n";
+    std::cout << "\n"
+              << TerminalUtils::colorize("  🎯 Choose Your Project Type", Color::BrightCyan)
+              << "\n\n";
 
     for (size_t i = 0; i < templateOptions.size(); ++i) {
         const auto& [type, description] = templateOptions[i];
-        std::cout << "  " << TerminalUtils::colorize(std::to_string(i + 1) + ".", Color::BrightBlack)
-                  << " " << TerminalUtils::colorize(type, Color::BrightGreen)
-                  << "\n    " << TerminalUtils::colorize(description, Color::BrightWhite) << "\n\n";
+        std::cout << "  "
+                  << TerminalUtils::colorize(std::to_string(i + 1) + ".", Color::BrightBlack) << " "
+                  << TerminalUtils::colorize(type, Color::BrightGreen) << "\n    "
+                  << TerminalUtils::colorize(description, Color::BrightWhite) << "\n\n";
     }
 
     int templateChoice = ux_utils::askChoice("Select template", {}, 0) - 1;
@@ -146,19 +155,21 @@ CliOptions UserExperienceManager::runGuidedSetup() {
     showContextualHelp(GuidanceContext::BuildSystemSetup);
 
     std::vector<std::pair<std::string, std::string>> buildSystemOptions = {
-        {"cmake", "Most popular, excellent cross-platform support, great ecosystem"},
-        {"meson", "Fast, user-friendly, modern Python-based build system"},
-        {"bazel", "Scalable, used by Google, excellent for large projects"},
-        {"xmake", "Lua-based, simple configuration, good for C++ projects"}
-    };
+            {"cmake", "Most popular, excellent cross-platform support, great ecosystem"},
+            {"meson", "Fast, user-friendly, modern Python-based build system"},
+            {"bazel", "Scalable, used by Google, excellent for large projects"},
+            {"xmake", "Lua-based, simple configuration, good for C++ projects"}};
 
-    std::cout << "\n" << TerminalUtils::colorize("  🔧 Build System Selection", Color::BrightCyan) << "\n\n";
+    std::cout << "\n"
+              << TerminalUtils::colorize("  🔧 Build System Selection", Color::BrightCyan)
+              << "\n\n";
 
     for (size_t i = 0; i < buildSystemOptions.size(); ++i) {
         const auto& [system, description] = buildSystemOptions[i];
-        std::cout << "  " << TerminalUtils::colorize(std::to_string(i + 1) + ".", Color::BrightBlack)
-                  << " " << TerminalUtils::colorize(system, Color::BrightBlue)
-                  << "\n    " << TerminalUtils::colorize(description, Color::BrightWhite) << "\n\n";
+        std::cout << "  "
+                  << TerminalUtils::colorize(std::to_string(i + 1) + ".", Color::BrightBlack) << " "
+                  << TerminalUtils::colorize(system, Color::BrightBlue) << "\n    "
+                  << TerminalUtils::colorize(description, Color::BrightWhite) << "\n\n";
     }
 
     int buildChoice = ux_utils::askChoice("Select build system", {}, 1) - 1;
@@ -178,19 +189,20 @@ CliOptions UserExperienceManager::runGuidedSetup() {
     showContextualHelp(GuidanceContext::DependencyManagement);
 
     std::vector<std::pair<std::string, std::string>> packageOptions = {
-        {"vcpkg", "Microsoft's package manager, excellent Windows support, growing ecosystem"},
-        {"conan", "Cross-platform, mature, supports many configurations"},
-        {"none", "Manual dependency management, full control"},
-        {"cpm", "CMake-based, header-only friendly, simple setup"}
-    };
+            {"vcpkg", "Microsoft's package manager, excellent Windows support, growing ecosystem"},
+            {"conan", "Cross-platform, mature, supports many configurations"},
+            {"none", "Manual dependency management, full control"},
+            {"cpm", "CMake-based, header-only friendly, simple setup"}};
 
-    std::cout << "\n" << TerminalUtils::colorize("  📦 Package Management", Color::BrightCyan) << "\n\n";
+    std::cout << "\n"
+              << TerminalUtils::colorize("  📦 Package Management", Color::BrightCyan) << "\n\n";
 
     for (size_t i = 0; i < packageOptions.size(); ++i) {
         const auto& [manager, description] = packageOptions[i];
-        std::cout << "  " << TerminalUtils::colorize(std::to_string(i + 1) + ".", Color::BrightBlack)
-                  << " " << TerminalUtils::colorize(manager, Color::BrightMagenta)
-                  << "\n    " << TerminalUtils::colorize(description, Color::BrightWhite) << "\n\n";
+        std::cout << "  "
+                  << TerminalUtils::colorize(std::to_string(i + 1) + ".", Color::BrightBlack) << " "
+                  << TerminalUtils::colorize(manager, Color::BrightMagenta) << "\n    "
+                  << TerminalUtils::colorize(description, Color::BrightWhite) << "\n\n";
     }
 
     int packageChoice = ux_utils::askChoice("Select package manager", {}, 1) - 1;
@@ -207,44 +219,45 @@ CliOptions UserExperienceManager::runGuidedSetup() {
     TerminalUtils::showWizardHeader("Project Setup", 5, 5);
     TerminalUtils::showWizardProgress(5, 5, "Additional Features");
 
-    std::cout << "\n" << TerminalUtils::colorize("  ✨ Additional Features", Color::BrightCyan) << "\n\n";
+    std::cout << "\n"
+              << TerminalUtils::colorize("  ✨ Additional Features", Color::BrightCyan) << "\n\n";
 
     std::vector<std::string> featureOptions = {
-        "Include testing framework (recommended)",
-        "Include documentation setup",
-        "Include code style tools (clang-format, clang-tidy)",
-        "Initialize Git repository",
-        "Enable verbose output"
-    };
+            "Include testing framework (recommended)", "Include documentation setup",
+            "Include code style tools (clang-format, clang-tidy)", "Initialize Git repository",
+            "Enable verbose output"};
 
     std::vector<bool> defaultFeatures = {true, false, true, true, false};
 
-    auto selectedFeatures = TerminalUtils::showMultiSelectDialog(
-        "Select additional features", featureOptions, defaultFeatures);
+    auto selectedFeatures = TerminalUtils::showMultiSelectDialog("Select additional features",
+                                                                 featureOptions, defaultFeatures);
 
     // Apply feature selections
-    options.includeTests = std::find(selectedFeatures.begin(), selectedFeatures.end(),
-                                   "Include testing framework (recommended)") != selectedFeatures.end();
-    options.includeDocumentation = std::find(selectedFeatures.begin(), selectedFeatures.end(),
-                                            "Include documentation setup") != selectedFeatures.end();
-    options.includeCodeStyleTools = std::find(selectedFeatures.begin(), selectedFeatures.end(),
-                                             "Include code style tools (clang-format, clang-tidy)") != selectedFeatures.end();
+    options.includeTests =
+            std::find(selectedFeatures.begin(), selectedFeatures.end(),
+                      "Include testing framework (recommended)") != selectedFeatures.end();
+    options.includeDocumentation =
+            std::find(selectedFeatures.begin(), selectedFeatures.end(),
+                      "Include documentation setup") != selectedFeatures.end();
+    options.includeCodeStyleTools =
+            std::find(selectedFeatures.begin(), selectedFeatures.end(),
+                      "Include code style tools (clang-format, clang-tidy)") !=
+            selectedFeatures.end();
     options.initGit = std::find(selectedFeatures.begin(), selectedFeatures.end(),
-                               "Initialize Git repository") != selectedFeatures.end();
+                                "Initialize Git repository") != selectedFeatures.end();
     options.verbose = std::find(selectedFeatures.begin(), selectedFeatures.end(),
-                               "Enable verbose output") != selectedFeatures.end();
+                                "Enable verbose output") != selectedFeatures.end();
 
     // Show configuration summary
-    TerminalUtils::showWizardSummary({
-        {"Project Name", options.projectName},
-        {"Template", std::string(cli_enums::to_string(options.templateType))},
-        {"Build System", std::string(cli_enums::to_string(options.buildSystem))},
-        {"Package Manager", std::string(cli_enums::to_string(options.packageManager))},
-        {"Include Tests", options.includeTests ? "Yes" : "No"},
-        {"Include Docs", options.includeDocumentation ? "Yes" : "No"},
-        {"Code Style Tools", options.includeCodeStyleTools ? "Yes" : "No"},
-        {"Initialize Git", options.initGit ? "Yes" : "No"}
-    });
+    TerminalUtils::showWizardSummary(
+            {{"Project Name", options.projectName},
+             {"Template", std::string(cli_enums::to_string(options.templateType))},
+             {"Build System", std::string(cli_enums::to_string(options.buildSystem))},
+             {"Package Manager", std::string(cli_enums::to_string(options.packageManager))},
+             {"Include Tests", options.includeTests ? "Yes" : "No"},
+             {"Include Docs", options.includeDocumentation ? "Yes" : "No"},
+             {"Code Style Tools", options.includeCodeStyleTools ? "Yes" : "No"},
+             {"Initialize Git", options.initGit ? "Yes" : "No"}});
 
     if (ux_utils::askYesNo("Create project with these settings?", true)) {
         TerminalUtils::showNpmStyleSuccess("Configuration confirmed!");
@@ -263,15 +276,21 @@ void UserExperienceManager::showContextualHelp(GuidanceContext context) {
 
     switch (context) {
         case GuidanceContext::TemplateSelection:
-            ux_utils::showTip("💡 Choose a template that matches your project goals. You can always add features later!");
+            ux_utils::showTip(
+                    "💡 Choose a template that matches your project goals. You can always add "
+                    "features later!");
             break;
 
         case GuidanceContext::BuildSystemSetup:
-            ux_utils::showTip("🔧 CMake is recommended for beginners due to its widespread adoption and excellent documentation.");
+            ux_utils::showTip(
+                    "🔧 CMake is recommended for beginners due to its widespread adoption and "
+                    "excellent documentation.");
             break;
 
         case GuidanceContext::DependencyManagement:
-            ux_utils::showTip("📦 vcpkg is great for Windows users, while Conan offers excellent cross-platform support.");
+            ux_utils::showTip(
+                    "📦 vcpkg is great for Windows users, while Conan offers excellent "
+                    "cross-platform support.");
             break;
 
         default:
@@ -314,16 +333,21 @@ std::vector<std::string> UserExperienceManager::getNextSteps(const CliOptions& o
 void UserExperienceManager::showPostCreationGuide(const CliOptions& options) {
     TerminalUtils::showNpmStyleHeader("🎉 Project Created Successfully!");
 
-    std::cout << "\n" << TerminalUtils::colorize("  Your C++ project is ready! Here's what to do next:", Color::BrightWhite) << "\n\n";
+    std::cout << "\n"
+              << TerminalUtils::colorize("  Your C++ project is ready! Here's what to do next:",
+                                         Color::BrightWhite)
+              << "\n\n";
 
     auto nextSteps = getNextSteps(options);
 
     for (size_t i = 0; i < nextSteps.size(); ++i) {
-        std::cout << "  " << TerminalUtils::colorize(std::to_string(i + 1) + ".", Color::BrightGreen)
-                  << " " << nextSteps[i] << "\n";
+        std::cout << "  "
+                  << TerminalUtils::colorize(std::to_string(i + 1) + ".", Color::BrightGreen) << " "
+                  << nextSteps[i] << "\n";
     }
 
-    std::cout << "\n" << TerminalUtils::colorize("  📚 Helpful Resources:", Color::BrightCyan) << "\n";
+    std::cout << "\n"
+              << TerminalUtils::colorize("  📚 Helpful Resources:", Color::BrightCyan) << "\n";
     std::cout << "    • Project documentation: docs/README.md\n";
     std::cout << "    • Build system guide: docs/building.md\n";
     std::cout << "    • Contributing guidelines: CONTRIBUTING.md\n";
@@ -339,8 +363,10 @@ void UserExperienceManager::showPostCreationGuide(const CliOptions& options) {
     std::cout << "    cpp-scaffold validate   # Validate your project structure\n";
     std::cout << "    cpp-scaffold examples   # Browse example projects\n\n";
 
-    if (ux_utils::askYesNo("Would you like to see a quick tutorial for your project type?", false)) {
-        std::string tutorialName = "basic-" + std::string(cli_enums::to_string(options.templateType));
+    if (ux_utils::askYesNo("Would you like to see a quick tutorial for your project type?",
+                           false)) {
+        std::string tutorialName =
+                "basic-" + std::string(cli_enums::to_string(options.templateType));
         runTutorial(tutorialName);
     }
 }
@@ -357,22 +383,12 @@ void UserExperienceManager::initializeTutorials() {
     TutorialStep step1;
     step1.title = "Build Your Project";
     step1.description = "Compile your console application";
-    step1.instructions = {
-        "Navigate to your project directory",
-        "Create a build directory: mkdir build && cd build",
-        "Configure with CMake: cmake ..",
-        "Build the project: cmake --build ."
-    };
-    step1.examples = {
-        "cd my-project",
-        "mkdir build && cd build",
-        "cmake ..",
-        "cmake --build ."
-    };
-    step1.tips = {
-        "Always build in a separate directory to keep source clean",
-        "Use cmake --build . for cross-platform building"
-    };
+    step1.instructions = {"Navigate to your project directory",
+                          "Create a build directory: mkdir build && cd build",
+                          "Configure with CMake: cmake ..", "Build the project: cmake --build ."};
+    step1.examples = {"cd my-project", "mkdir build && cd build", "cmake ..", "cmake --build ."};
+    step1.tips = {"Always build in a separate directory to keep source clean",
+                  "Use cmake --build . for cross-platform building"};
 
     consoleTutorial.steps.push_back(step1);
     tutorials_[consoleTutorial.name] = consoleTutorial;
@@ -383,13 +399,13 @@ void UserExperienceManager::initializeHelpEntries() {
     HelpEntry templateHelp;
     templateHelp.topic = "template-selection";
     templateHelp.shortDescription = "Choosing the right project template";
-    templateHelp.detailedDescription = "Project templates provide a starting point with appropriate structure and configuration for different types of C++ projects.";
+    templateHelp.detailedDescription =
+            "Project templates provide a starting point with appropriate structure and "
+            "configuration for different types of C++ projects.";
     templateHelp.context = GuidanceContext::TemplateSelection;
-    templateHelp.examples = {
-        "console - For command-line tools and utilities",
-        "lib - For reusable libraries and components",
-        "gui - For desktop applications with graphical interfaces"
-    };
+    templateHelp.examples = {"console - For command-line tools and utilities",
+                             "lib - For reusable libraries and components",
+                             "gui - For desktop applications with graphical interfaces"};
     templateHelp.relatedTopics = {"build-systems", "project-structure"};
     helpEntries_[templateHelp.topic] = templateHelp;
 }
@@ -397,12 +413,11 @@ void UserExperienceManager::initializeHelpEntries() {
 void UserExperienceManager::initializeCompletionData() {
     // Command completions
     std::vector<CompletionSuggestion> commandCompletions = {
-        {"create", "Create a new C++ project", "commands", 10, true, {}},
-        {"list", "List available templates and options", "commands", 8, true, {}},
-        {"validate", "Validate project structure", "commands", 6, true, {}},
-        {"config", "Configure default settings", "commands", 7, true, {}},
-        {"help", "Show help information", "commands", 9, true, {}}
-    };
+            {"create", "Create a new C++ project", "commands", 10, true, {}},
+            {"list", "List available templates and options", "commands", 8, true, {}},
+            {"validate", "Validate project structure", "commands", 6, true, {}},
+            {"config", "Configure default settings", "commands", 7, true, {}},
+            {"help", "Show help information", "commands", 9, true, {}}};
 
     completionData_["commands"] = commandCompletions;
 }
@@ -425,10 +440,9 @@ bool UserExperienceManager::shouldShowGuidance(GuidanceContext context) {
 
 bool UserExperienceManager::hasExistingProjects() {
     // Check for common C++ project indicators in current and parent directories
-    std::vector<std::string> projectIndicators = {
-        "CMakeLists.txt", "meson.build", "Makefile", "BUILD", "WORKSPACE",
-        "conanfile.txt", "vcpkg.json", ".git"
-    };
+    std::vector<std::string> projectIndicators = {"CMakeLists.txt", "meson.build", "Makefile",
+                                                  "BUILD",          "WORKSPACE",   "conanfile.txt",
+                                                  "vcpkg.json",     ".git"};
 
     std::filesystem::path currentPath = std::filesystem::current_path();
 
@@ -441,7 +455,8 @@ bool UserExperienceManager::hasExistingProjects() {
         }
 
         auto parentPath = currentPath.parent_path();
-        if (parentPath == currentPath) break; // Reached root
+        if (parentPath == currentPath)
+            break;  // Reached root
         currentPath = parentPath;
     }
 
@@ -450,9 +465,8 @@ bool UserExperienceManager::hasExistingProjects() {
 
 bool UserExperienceManager::hasAdvancedToolsInstalled() {
     // Check for advanced development tools
-    std::vector<std::string> advancedTools = {
-        "clang-tidy", "clang-format", "cppcheck", "valgrind", "gdb", "lldb"
-    };
+    std::vector<std::string> advancedTools = {"clang-tidy", "clang-format", "cppcheck",
+                                              "valgrind",   "gdb",          "lldb"};
 
     int toolsFound = 0;
     for (const auto& tool : advancedTools) {
@@ -462,7 +476,7 @@ bool UserExperienceManager::hasAdvancedToolsInstalled() {
         }
     }
 
-    return toolsFound >= 3; // Consider advanced if 3+ tools are available
+    return toolsFound >= 3;  // Consider advanced if 3+ tools are available
 }
 
 int UserExperienceManager::estimateExperienceFromHistory() {
@@ -470,7 +484,9 @@ int UserExperienceManager::estimateExperienceFromHistory() {
     int score = 0;
 
     // Check for .cpp-scaffold directory (previous usage)
-    std::filesystem::path configDir = std::filesystem::path(std::getenv("HOME") ? std::getenv("HOME") : ".") / ".cpp-scaffold";
+    std::filesystem::path configDir =
+            std::filesystem::path(std::getenv("HOME") ? std::getenv("HOME") : ".") /
+            ".cpp-scaffold";
     if (std::filesystem::exists(configDir)) {
         score += 2;
     }
@@ -485,7 +501,7 @@ int UserExperienceManager::estimateExperienceFromHistory() {
         }
     }
 
-    return std::min(score, 5); // Cap at 5 points
+    return std::min(score, 5);  // Cap at 5 points
 }
 
 void UserExperienceManager::trackProgress(const std::string& action, const CliOptions& options) {
@@ -517,7 +533,9 @@ bool UserExperienceManager::hasCompletedAction(const std::string& action) {
 
 void UserExperienceManager::loadUserPreferences() {
     // Load user preferences from config file
-    std::filesystem::path configFile = std::filesystem::path(std::getenv("HOME") ? std::getenv("HOME") : ".") / ".cpp-scaffold" / "user_experience.json";
+    std::filesystem::path configFile =
+            std::filesystem::path(std::getenv("HOME") ? std::getenv("HOME") : ".") /
+            ".cpp-scaffold" / "user_experience.json";
 
     if (std::filesystem::exists(configFile)) {
         try {
@@ -546,7 +564,9 @@ void UserExperienceManager::loadUserPreferences() {
 }
 
 void UserExperienceManager::saveUserPreferences() {
-    std::filesystem::path configDir = std::filesystem::path(std::getenv("HOME") ? std::getenv("HOME") : ".") / ".cpp-scaffold";
+    std::filesystem::path configDir =
+            std::filesystem::path(std::getenv("HOME") ? std::getenv("HOME") : ".") /
+            ".cpp-scaffold";
     std::filesystem::path configFile = configDir / "user_experience.json";
 
     try {
@@ -571,19 +591,28 @@ namespace ux_utils {
 
 std::string toString(ExperienceLevel level) {
     switch (level) {
-        case ExperienceLevel::Beginner: return "beginner";
-        case ExperienceLevel::Intermediate: return "intermediate";
-        case ExperienceLevel::Advanced: return "advanced";
-        case ExperienceLevel::Expert: return "expert";
-        default: return "unknown";
+        case ExperienceLevel::Beginner:
+            return "beginner";
+        case ExperienceLevel::Intermediate:
+            return "intermediate";
+        case ExperienceLevel::Advanced:
+            return "advanced";
+        case ExperienceLevel::Expert:
+            return "expert";
+        default:
+            return "unknown";
     }
 }
 
 ExperienceLevel parseExperienceLevel(const std::string& str) {
-    if (str == "beginner") return ExperienceLevel::Beginner;
-    if (str == "intermediate") return ExperienceLevel::Intermediate;
-    if (str == "advanced") return ExperienceLevel::Advanced;
-    if (str == "expert") return ExperienceLevel::Expert;
+    if (str == "beginner")
+        return ExperienceLevel::Beginner;
+    if (str == "intermediate")
+        return ExperienceLevel::Intermediate;
+    if (str == "advanced")
+        return ExperienceLevel::Advanced;
+    if (str == "expert")
+        return ExperienceLevel::Expert;
     return ExperienceLevel::Beginner;
 }
 
@@ -602,7 +631,8 @@ bool askYesNo(const std::string& question, bool defaultValue) {
     return first == 'y';
 }
 
-int askChoice(const std::string& question, const std::vector<std::string>& options, int defaultChoice) {
+int askChoice(const std::string& question, const std::vector<std::string>& options,
+              int defaultChoice) {
     std::cout << TerminalUtils::colorize(question, Color::BrightCyan) << "\n";
 
     if (!options.empty()) {
@@ -650,17 +680,20 @@ std::string askInput(const std::string& prompt, const std::string& defaultValue)
 }
 
 void showTip(const std::string& tip) {
-    std::cout << "\n" << TerminalUtils::colorize("  💡 Tip: ", Color::BrightYellow)
+    std::cout << "\n"
+              << TerminalUtils::colorize("  💡 Tip: ", Color::BrightYellow)
               << TerminalUtils::colorize(tip, Color::BrightWhite) << "\n\n";
 }
 
 void showWarning(const std::string& warning) {
-    std::cout << "\n" << TerminalUtils::colorize("  ⚠️  Warning: ", Color::BrightYellow)
+    std::cout << "\n"
+              << TerminalUtils::colorize("  ⚠️  Warning: ", Color::BrightYellow)
               << TerminalUtils::colorize(warning, Color::BrightWhite) << "\n\n";
 }
 
 void showNote(const std::string& note) {
-    std::cout << "\n" << TerminalUtils::colorize("  📝 Note: ", Color::BrightBlue)
+    std::cout << "\n"
+              << TerminalUtils::colorize("  📝 Note: ", Color::BrightBlue)
               << TerminalUtils::colorize(note, Color::BrightWhite) << "\n\n";
 }
 
@@ -673,6 +706,6 @@ void showBanner(const std::string& title, const std::string& subtitle) {
     std::cout << "\n";
 }
 
-} // namespace ux_utils
+}  // namespace ux_utils
 
-} // namespace utils
+}  // namespace utils

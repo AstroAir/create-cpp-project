@@ -1,13 +1,16 @@
 #include "git_utils.h"
-#include "file_utils.h"
-#include "string_utils.h"
+
+#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
-#include <fmt/format.h>
-#include <cstdlib>
-#include <sstream>
+
 #include <algorithm>
 #include <chrono>
+#include <cstdlib>
 #include <ctime>
+#include <sstream>
+
+#include "file_utils.h"
+#include "string_utils.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -56,9 +59,8 @@ bool GitUtils::hasGitInstalled() {
 }
 
 bool GitUtils::createGitignore(const std::filesystem::path& projectPath,
-                              const std::string& templateType,
-                              const std::string& buildSystem,
-                              const std::string& packageManager) {
+                               const std::string& templateType, const std::string& buildSystem,
+                               const std::string& packageManager) {
     try {
         std::ostringstream gitignoreContent;
 
@@ -145,8 +147,7 @@ bool GitUtils::createGitignore(const std::filesystem::path& projectPath,
 }
 
 bool GitUtils::configureRepository(const std::filesystem::path& projectPath,
-                                  const std::string& userName,
-                                  const std::string& userEmail) {
+                                   const std::string& userName, const std::string& userEmail) {
     try {
         if (!userName.empty()) {
             if (!executeGitCommand(projectPath, {"config", "user.name", userName})) {
@@ -172,7 +173,7 @@ bool GitUtils::configureRepository(const std::filesystem::path& projectPath,
 }
 
 bool GitUtils::createInitialCommit(const std::filesystem::path& projectPath,
-                                  const std::string& message) {
+                                   const std::string& message) {
     try {
         // Add all files
         if (!executeGitCommand(projectPath, {"add", "."})) {
@@ -215,10 +216,9 @@ bool GitUtils::createGitAttributes(const std::filesystem::path& projectPath) {
 }
 
 bool GitUtils::executeGitCommand(const std::filesystem::path& workingDir,
-                                const std::vector<std::string>& args,
-                                std::string* output) {
+                                 const std::vector<std::string>& args, std::string* output) {
     try {
-        (void)workingDir; // TODO: Implement working directory support
+        (void)workingDir;  // TODO: Implement working directory support
         std::ostringstream command;
         command << "git";
         for (const auto& arg : args) {
@@ -231,7 +231,8 @@ bool GitUtils::executeGitCommand(const std::filesystem::path& workingDir,
         if (output) {
             fullCommand += " 2>&1";
             FILE* pipe = _popen(fullCommand.c_str(), "r");
-            if (!pipe) return false;
+            if (!pipe)
+                return false;
 
             char buffer[128];
             std::ostringstream result;
@@ -538,7 +539,7 @@ makefile text
 
 // Code Quality Tools Implementation
 bool CodeQualityTools::createClangFormatConfig(const std::filesystem::path& projectPath,
-                                              const std::string& style) {
+                                               const std::string& style) {
     try {
         auto configPath = projectPath / ".clang-format";
         std::string content = getClangFormatTemplate(style);
@@ -558,7 +559,7 @@ bool CodeQualityTools::createClangFormatConfig(const std::filesystem::path& proj
 }
 
 bool CodeQualityTools::createClangTidyConfig(const std::filesystem::path& projectPath,
-                                            const std::vector<std::string>& checks) {
+                                             const std::vector<std::string>& checks) {
     try {
         auto configPath = projectPath / ".clang-tidy";
         std::string content = getClangTidyTemplate(checks);
@@ -720,10 +721,12 @@ std::string CodeQualityTools::getClangTidyTemplate(const std::vector<std::string
 
     if (checks.empty()) {
         // Default checks
-        config << "clang-diagnostic-*,clang-analyzer-*,cppcoreguidelines-*,modernize-*,performance-*,readability-*";
+        config << "clang-diagnostic-*,clang-analyzer-*,cppcoreguidelines-*,modernize-*,performance-"
+                  "*,readability-*";
     } else {
         for (size_t i = 0; i < checks.size(); ++i) {
-            if (i > 0) config << ",";
+            if (i > 0)
+                config << ",";
             config << checks[i];
         }
     }
@@ -807,7 +810,8 @@ indent_size = 2)";
 }
 
 // Enhanced Git workflow support
-bool GitUtils::setupGitWorkflow(const std::filesystem::path& projectPath, const std::string& workflowType) {
+bool GitUtils::setupGitWorkflow(const std::filesystem::path& projectPath,
+                                const std::string& workflowType) {
     if (workflowType == "gitflow") {
         return setupGitFlow(projectPath);
     } else if (workflowType == "github-flow") {
@@ -815,7 +819,7 @@ bool GitUtils::setupGitWorkflow(const std::filesystem::path& projectPath, const 
     } else if (workflowType == "gitlab-flow") {
         return setupGitLabFlow(projectPath);
     }
-    return true; // For "none" or "custom"
+    return true;  // For "none" or "custom"
 }
 
 bool GitUtils::setupGitFlow(const std::filesystem::path& projectPath) {
@@ -901,8 +905,8 @@ bool GitUtils::setupGitLabFlow(const std::filesystem::path& projectPath) {
 }
 
 bool GitUtils::createBranchesFromStrategy(const std::filesystem::path& projectPath,
-                                        const std::string& strategy,
-                                        const std::vector<std::string>& additionalBranches) {
+                                          const std::string& strategy,
+                                          const std::vector<std::string>& additionalBranches) {
     try {
         if (strategy == "gitflow") {
             if (!createBranch(projectPath, "develop")) {
@@ -933,11 +937,9 @@ bool GitUtils::createBranchesFromStrategy(const std::filesystem::path& projectPa
 
 // License management
 bool GitUtils::createLicenseFile(const std::filesystem::path& projectPath,
-                                const std::string& licenseType,
-                                const std::string& projectName,
-                                const std::string& author,
-                                const std::string& year) {
-    (void)projectName; // TODO: Use project name in license templates
+                                 const std::string& licenseType, const std::string& projectName,
+                                 const std::string& author, const std::string& year) {
+    (void)projectName;  // TODO: Use project name in license templates
     try {
         std::string licenseContent;
         std::string currentYear = year.empty() ? "2024" : year;
@@ -956,7 +958,7 @@ bool GitUtils::createLicenseFile(const std::filesystem::path& projectPath,
         } else if (licenseType == "unlicense") {
             licenseContent = getUnlicenseTemplate();
         } else if (licenseType == "none") {
-            return true; // No license file needed
+            return true;  // No license file needed
         } else {
             spdlog::warn("Unknown license type: {}", licenseType);
             return false;
@@ -979,10 +981,9 @@ bool GitUtils::createLicenseFile(const std::filesystem::path& projectPath,
 
 // Enhanced repository configuration
 bool GitUtils::configureRepositoryAdvanced(const std::filesystem::path& projectPath,
-                                          const std::string& userName,
-                                          const std::string& userEmail,
-                                          const std::string& remoteUrl,
-                                          bool setupHooks) {
+                                           const std::string& userName,
+                                           const std::string& userEmail,
+                                           const std::string& remoteUrl, bool setupHooks) {
     try {
         // Configure user name and email if provided
         if (!userName.empty()) {
@@ -1037,10 +1038,11 @@ bool GitUtils::createPreCommitHook(const std::filesystem::path& projectPath) {
 
         // Make the hook executable on Unix systems
 #ifndef _WIN32
-        std::filesystem::permissions(hookFile, std::filesystem::perms::owner_exec |
-                                              std::filesystem::perms::group_exec |
-                                              std::filesystem::perms::others_exec,
-                                              std::filesystem::perm_options::add);
+        std::filesystem::permissions(hookFile,
+                                     std::filesystem::perms::owner_exec |
+                                             std::filesystem::perms::group_exec |
+                                             std::filesystem::perms::others_exec,
+                                     std::filesystem::perm_options::add);
 #endif
 
         spdlog::info("Pre-commit hook created");
@@ -1069,10 +1071,11 @@ bool GitUtils::createPrePushHook(const std::filesystem::path& projectPath) {
 
         // Make the hook executable on Unix systems
 #ifndef _WIN32
-        std::filesystem::permissions(hookFile, std::filesystem::perms::owner_exec |
-                                              std::filesystem::perms::group_exec |
-                                              std::filesystem::perms::others_exec,
-                                              std::filesystem::perm_options::add);
+        std::filesystem::permissions(hookFile,
+                                     std::filesystem::perms::owner_exec |
+                                             std::filesystem::perms::group_exec |
+                                             std::filesystem::perms::others_exec,
+                                     std::filesystem::perm_options::add);
 #endif
 
         spdlog::info("Pre-push hook created");
@@ -1101,10 +1104,11 @@ bool GitUtils::createCommitMsgHook(const std::filesystem::path& projectPath) {
 
         // Make the hook executable on Unix systems
 #ifndef _WIN32
-        std::filesystem::permissions(hookFile, std::filesystem::perms::owner_exec |
-                                              std::filesystem::perms::group_exec |
-                                              std::filesystem::perms::others_exec,
-                                              std::filesystem::perm_options::add);
+        std::filesystem::permissions(hookFile,
+                                     std::filesystem::perms::owner_exec |
+                                             std::filesystem::perms::group_exec |
+                                             std::filesystem::perms::others_exec,
+                                     std::filesystem::perm_options::add);
 #endif
 
         spdlog::info("Commit-msg hook created");
@@ -1138,10 +1142,12 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.)", year, author);
+SOFTWARE.)",
+                       year, author);
 }
 
-std::string GitUtils::getApache2LicenseTemplate(const std::string& author, const std::string& year) {
+std::string GitUtils::getApache2LicenseTemplate(const std::string& author,
+                                                const std::string& year) {
     return fmt::format(R"(Apache License
 Version 2.0, January 2004
 http://www.apache.org/licenses/
@@ -1158,7 +1164,8 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
-limitations under the License.)", year, author);
+limitations under the License.)",
+                       year, author);
 }
 
 std::string GitUtils::getGPL3LicenseTemplate(const std::string& author, const std::string& year) {
@@ -1178,7 +1185,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.)", year, author);
+along with this program.  If not, see <https://www.gnu.org/licenses/>.)",
+                       year, author);
 }
 
 std::string GitUtils::getBSD3LicenseTemplate(const std::string& author, const std::string& year) {
@@ -1210,7 +1218,8 @@ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
 SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)", year, author);
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)",
+                       year, author);
 }
 
 std::string GitUtils::getBSD2LicenseTemplate(const std::string& author, const std::string& year) {
@@ -1238,7 +1247,8 @@ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
 SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)", year, author);
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)",
+                       year, author);
 }
 
 std::string GitUtils::getUnlicenseTemplate() {
@@ -1844,7 +1854,8 @@ Temporary Items
 }
 
 // Branch management implementations
-bool GitUtils::createBranch(const std::filesystem::path& projectPath, const std::string& branchName) {
+bool GitUtils::createBranch(const std::filesystem::path& projectPath,
+                            const std::string& branchName) {
     try {
         if (!executeGitCommand(projectPath, {"checkout", "-b", branchName})) {
             spdlog::error("Failed to create branch: {}", branchName);
@@ -1858,7 +1869,8 @@ bool GitUtils::createBranch(const std::filesystem::path& projectPath, const std:
     }
 }
 
-bool GitUtils::switchBranch(const std::filesystem::path& projectPath, const std::string& branchName) {
+bool GitUtils::switchBranch(const std::filesystem::path& projectPath,
+                            const std::string& branchName) {
     try {
         if (!executeGitCommand(projectPath, {"checkout", branchName})) {
             spdlog::error("Failed to switch to branch: {}", branchName);
@@ -1873,9 +1885,8 @@ bool GitUtils::switchBranch(const std::filesystem::path& projectPath, const std:
 }
 
 // Remote management implementation
-bool GitUtils::addRemote(const std::filesystem::path& projectPath,
-                        const std::string& remoteName,
-                        const std::string& remoteUrl) {
+bool GitUtils::addRemote(const std::filesystem::path& projectPath, const std::string& remoteName,
+                         const std::string& remoteUrl) {
     try {
         if (!executeGitCommand(projectPath, {"remote", "add", remoteName, remoteUrl})) {
             spdlog::error("Failed to add remote {} -> {}", remoteName, remoteUrl);
@@ -1978,11 +1989,10 @@ exit 0
 
 // Repository cloning and remote source management implementation
 bool GitUtils::cloneRepository(const std::string& repositoryUrl,
-                              const std::filesystem::path& targetPath,
-                              bool shallow,
-                              const std::optional<std::string>& branch,
-                              const std::optional<std::string>& tag,
-                              const std::optional<std::string>& commit) {
+                               const std::filesystem::path& targetPath, bool shallow,
+                               const std::optional<std::string>& branch,
+                               const std::optional<std::string>& tag,
+                               const std::optional<std::string>& commit) {
     try {
         if (!hasGitInstalled()) {
             spdlog::error("Git is not installed or not found in PATH");
@@ -2038,21 +2048,20 @@ bool GitUtils::cloneRepository(const std::string& repositoryUrl,
 }
 
 bool GitUtils::cloneRepositoryWithAuth(const std::string& repositoryUrl,
-                                      const std::filesystem::path& targetPath,
-                                      const std::optional<std::string>& username,
-                                      const std::optional<std::string>& password,
-                                      const std::optional<std::string>& sshKeyPath,
-                                      bool shallow,
-                                      const std::optional<std::string>& branch,
-                                      const std::optional<std::string>& tag,
-                                      const std::optional<std::string>& commit) {
+                                       const std::filesystem::path& targetPath,
+                                       const std::optional<std::string>& username,
+                                       const std::optional<std::string>& password,
+                                       const std::optional<std::string>& sshKeyPath, bool shallow,
+                                       const std::optional<std::string>& branch,
+                                       const std::optional<std::string>& tag,
+                                       const std::optional<std::string>& commit) {
     try {
         // For SSH URLs, set up SSH key if provided
         if (repositoryUrl.substr(0, 4) == "git@" && sshKeyPath) {
             // Set SSH command to use specific key
             std::string sshCommand = "ssh -i " + *sshKeyPath + " -o StrictHostKeyChecking=no";
             if (!executeGitCommand(std::filesystem::current_path(),
-                                 {"config", "--global", "core.sshCommand", sshCommand})) {
+                                   {"config", "--global", "core.sshCommand", sshCommand})) {
                 spdlog::warn("Failed to set SSH command for authentication");
             }
         }
@@ -2061,11 +2070,9 @@ bool GitUtils::cloneRepositoryWithAuth(const std::string& repositoryUrl,
         std::string authUrl = repositoryUrl;
         if (username && password &&
             (repositoryUrl.substr(0, 8) == "https://" || repositoryUrl.substr(0, 7) == "http://")) {
-
             size_t protocolEnd = repositoryUrl.find("://") + 3;
-            authUrl = repositoryUrl.substr(0, protocolEnd) +
-                     *username + ":" + *password + "@" +
-                     repositoryUrl.substr(protocolEnd);
+            authUrl = repositoryUrl.substr(0, protocolEnd) + *username + ":" + *password + "@" +
+                      repositoryUrl.substr(protocolEnd);
         }
 
         // Use the regular clone function with the modified URL
@@ -2077,7 +2084,8 @@ bool GitUtils::cloneRepositoryWithAuth(const std::string& repositoryUrl,
     }
 }
 
-bool GitUtils::checkoutBranch(const std::filesystem::path& repositoryPath, const std::string& branchName) {
+bool GitUtils::checkoutBranch(const std::filesystem::path& repositoryPath,
+                              const std::string& branchName) {
     try {
         if (!executeGitCommand(repositoryPath, {"checkout", branchName})) {
             // Try to create and checkout new branch
@@ -2094,7 +2102,8 @@ bool GitUtils::checkoutBranch(const std::filesystem::path& repositoryPath, const
     }
 }
 
-bool GitUtils::checkoutTag(const std::filesystem::path& repositoryPath, const std::string& tagName) {
+bool GitUtils::checkoutTag(const std::filesystem::path& repositoryPath,
+                           const std::string& tagName) {
     try {
         if (!executeGitCommand(repositoryPath, {"checkout", "tags/" + tagName})) {
             spdlog::error("Failed to checkout tag: {}", tagName);
@@ -2108,7 +2117,8 @@ bool GitUtils::checkoutTag(const std::filesystem::path& repositoryPath, const st
     }
 }
 
-bool GitUtils::checkoutCommit(const std::filesystem::path& repositoryPath, const std::string& commitHash) {
+bool GitUtils::checkoutCommit(const std::filesystem::path& repositoryPath,
+                              const std::string& commitHash) {
     try {
         if (!executeGitCommand(repositoryPath, {"checkout", commitHash})) {
             spdlog::error("Failed to checkout commit: {}", commitHash);
@@ -2130,7 +2140,7 @@ bool GitUtils::removeGitDirectory(const std::filesystem::path& repositoryPath) {
             spdlog::info("Removed .git directory from {}", repositoryPath.string());
             return true;
         }
-        return true; // Already removed or doesn't exist
+        return true;  // Already removed or doesn't exist
     } catch (const std::exception& e) {
         spdlog::error("Error removing .git directory: {}", e.what());
         return false;
@@ -2139,7 +2149,8 @@ bool GitUtils::removeGitDirectory(const std::filesystem::path& repositoryPath) {
 
 bool GitUtils::isValidGitUrl(const std::string& url) {
     // Basic validation for common Git URL patterns
-    if (url.empty()) return false;
+    if (url.empty())
+        return false;
 
     // HTTPS/HTTP URLs
     if (url.substr(0, 8) == "https://" || url.substr(0, 7) == "http://") {
@@ -2198,4 +2209,4 @@ std::string GitUtils::extractRepositoryName(const std::string& repositoryUrl) {
     }
 }
 
-} // namespace utils
+}  // namespace utils

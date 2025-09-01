@@ -1,14 +1,18 @@
 #include "interactive_dependency_manager.h"
-#include "terminal_utils.h"
+
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/spdlog.h>
+
+#include <algorithm>
+#include <iostream>
+#include <nlohmann/json.hpp>
+#include <sstream>
+
 #include "../cli/input/user_input.h"
 #include "../cli/types/cli_enums.h"
+
 #include "file_utils.h"
-#include <iostream>
-#include <algorithm>
-#include <sstream>
-#include <fmt/format.h>
-#include <spdlog/spdlog.h>
-#include <nlohmann/json.hpp>
+#include "terminal_utils.h"
 
 using namespace utils;
 using json = nlohmann::json;
@@ -17,13 +21,13 @@ namespace utils {
 
 // Static member initialization
 std::vector<InteractiveDependency> InteractiveDependencyManager::s_dependencyDatabase;
-std::unordered_map<std::string, std::vector<std::string>> InteractiveDependencyManager::s_categoryMap;
+std::unordered_map<std::string, std::vector<std::string>>
+        InteractiveDependencyManager::s_categoryMap;
 std::unordered_map<std::string, std::vector<std::string>> InteractiveDependencyManager::s_tagMap;
 bool InteractiveDependencyManager::s_databaseLoaded = false;
 
 DependencySelection InteractiveDependencyManager::runInteractiveDependencySelection(
-    const CliOptions& options) {
-
+        const CliOptions& options) {
     TerminalUtils::showInfo("📦 Interactive Dependency Management");
     TerminalUtils::showSectionSeparator();
 
@@ -36,24 +40,22 @@ DependencySelection InteractiveDependencyManager::runInteractiveDependencySelect
 
     // Show main menu
     std::vector<std::string> mainMenuOptions = {
-        "Browse by Category",
-        "Search Dependencies",
-        "View Recommended Dependencies",
-        "View Popular Dependencies",
-        "Import Dependency List",
-        "Configure Package Manager",
-        "Finish Selection"
-    };
+            "Browse by Category",        "Search Dependencies",    "View Recommended Dependencies",
+            "View Popular Dependencies", "Import Dependency List", "Configure Package Manager",
+            "Finish Selection"};
 
     std::vector<InteractiveDependency> selectedDependencies;
 
     while (true) {
-        std::cout << "\n" << TerminalUtils::colorize("📦 Dependency Management Menu:", Color::BrightCyan) << "\n";
+        std::cout << "\n"
+                  << TerminalUtils::colorize("📦 Dependency Management Menu:", Color::BrightCyan)
+                  << "\n";
 
         if (!selectedDependencies.empty()) {
             std::cout << TerminalUtils::colorize("Currently selected: ", Color::BrightGreen);
             for (size_t i = 0; i < selectedDependencies.size(); ++i) {
-                if (i > 0) std::cout << ", ";
+                if (i > 0)
+                    std::cout << ", ";
                 std::cout << selectedDependencies[i].base.name;
             }
             std::cout << "\n\n";
@@ -62,31 +64,32 @@ DependencySelection InteractiveDependencyManager::runInteractiveDependencySelect
         int choice = TerminalUtils::showInteractiveMenu(mainMenuOptions, "Select an option", 0);
 
         switch (choice) {
-            case 0: { // Browse by Category
+            case 0: {  // Browse by Category
                 std::vector<std::string> categories = getAvailableCategories();
                 std::vector<std::string_view> categoryViews;
                 for (const auto& cat : categories) {
                     categoryViews.push_back(cat);
                 }
                 std::string selectedCategory = UserInput::readChoiceWithStyle(
-                    "Select category", categoryViews, categories[0], Color::BrightMagenta);
+                        "Select category", categoryViews, categories[0], Color::BrightMagenta);
 
                 auto categoryDeps = browseDependenciesByCategory(selectedCategory);
-                auto newSelections = selectDependenciesInteractively(categoryDeps, selectedDependencies);
+                auto newSelections =
+                        selectDependenciesInteractively(categoryDeps, selectedDependencies);
 
                 // Merge selections
                 for (const auto& dep : newSelections) {
                     if (std::find_if(selectedDependencies.begin(), selectedDependencies.end(),
-                                   [&dep](const InteractiveDependency& existing) {
-                                       return existing.base.name == dep.base.name;
-                                   }) == selectedDependencies.end()) {
+                                     [&dep](const InteractiveDependency& existing) {
+                                         return existing.base.name == dep.base.name;
+                                     }) == selectedDependencies.end()) {
                         selectedDependencies.push_back(dep);
                     }
                 }
                 break;
             }
 
-            case 1: { // Search Dependencies
+            case 1: {  // Search Dependencies
                 showSearchInterface();
                 DependencySearchCriteria criteria;
                 std::cout << "Enter search query: ";
@@ -95,37 +98,42 @@ DependencySelection InteractiveDependencyManager::runInteractiveDependencySelect
                 if (!criteria.query.empty()) {
                     auto searchResults = searchDependencies(criteria);
                     if (!searchResults.empty()) {
-                        auto newSelections = selectDependenciesInteractively(searchResults, selectedDependencies);
+                        auto newSelections = selectDependenciesInteractively(searchResults,
+                                                                             selectedDependencies);
 
                         // Merge selections
                         for (const auto& dep : newSelections) {
-                            if (std::find_if(selectedDependencies.begin(), selectedDependencies.end(),
-                                           [&dep](const InteractiveDependency& existing) {
-                                               return existing.base.name == dep.base.name;
-                                           }) == selectedDependencies.end()) {
+                            if (std::find_if(selectedDependencies.begin(),
+                                             selectedDependencies.end(),
+                                             [&dep](const InteractiveDependency& existing) {
+                                                 return existing.base.name == dep.base.name;
+                                             }) == selectedDependencies.end()) {
                                 selectedDependencies.push_back(dep);
                             }
                         }
                     } else {
-                        TerminalUtils::showNpmStyleWarning("No results found", "Try a different search term");
+                        TerminalUtils::showNpmStyleWarning("No results found",
+                                                           "Try a different search term");
                     }
                 }
                 break;
             }
 
-            case 2: { // View Recommended Dependencies
+            case 2: {  // View Recommended Dependencies
                 auto recommended = getRecommendedDependencies(options.templateType);
                 if (!recommended.empty()) {
-                    TerminalUtils::showInfo("Recommended dependencies for " +
-                                          std::string(cli_enums::to_string(options.templateType)) + " projects:");
-                    auto newSelections = selectDependenciesInteractively(recommended, selectedDependencies);
+                    TerminalUtils::showInfo(
+                            "Recommended dependencies for " +
+                            std::string(cli_enums::to_string(options.templateType)) + " projects:");
+                    auto newSelections =
+                            selectDependenciesInteractively(recommended, selectedDependencies);
 
                     // Merge selections
                     for (const auto& dep : newSelections) {
                         if (std::find_if(selectedDependencies.begin(), selectedDependencies.end(),
-                                       [&dep](const InteractiveDependency& existing) {
-                                           return existing.base.name == dep.base.name;
-                                       }) == selectedDependencies.end()) {
+                                         [&dep](const InteractiveDependency& existing) {
+                                             return existing.base.name == dep.base.name;
+                                         }) == selectedDependencies.end()) {
                             selectedDependencies.push_back(dep);
                         }
                     }
@@ -133,7 +141,7 @@ DependencySelection InteractiveDependencyManager::runInteractiveDependencySelect
                 break;
             }
 
-            case 3: { // View Popular Dependencies
+            case 3: {  // View Popular Dependencies
                 auto popular = getPopularDependencies(15);
                 TerminalUtils::showInfo("Most popular C++ libraries:");
                 auto newSelections = selectDependenciesInteractively(popular, selectedDependencies);
@@ -141,16 +149,16 @@ DependencySelection InteractiveDependencyManager::runInteractiveDependencySelect
                 // Merge selections
                 for (const auto& dep : newSelections) {
                     if (std::find_if(selectedDependencies.begin(), selectedDependencies.end(),
-                                   [&dep](const InteractiveDependency& existing) {
-                                       return existing.base.name == dep.base.name;
-                                   }) == selectedDependencies.end()) {
+                                     [&dep](const InteractiveDependency& existing) {
+                                         return existing.base.name == dep.base.name;
+                                     }) == selectedDependencies.end()) {
                         selectedDependencies.push_back(dep);
                     }
                 }
                 break;
             }
 
-            case 4: { // Import Dependency List
+            case 4: {  // Import Dependency List
                 std::string filePath;
                 std::cout << "Enter path to dependency file: ";
                 std::getline(std::cin, filePath);
@@ -159,8 +167,11 @@ DependencySelection InteractiveDependencyManager::runInteractiveDependencySelect
                     try {
                         auto imported = importDependencyList(filePath);
                         if (!imported.empty()) {
-                            TerminalUtils::showNpmStyleSuccess("Imported " + std::to_string(imported.size()) + " dependencies");
-                            selectedDependencies.insert(selectedDependencies.end(), imported.begin(), imported.end());
+                            TerminalUtils::showNpmStyleSuccess("Imported " +
+                                                               std::to_string(imported.size()) +
+                                                               " dependencies");
+                            selectedDependencies.insert(selectedDependencies.end(),
+                                                        imported.begin(), imported.end());
                         }
                     } catch (const std::exception& e) {
                         TerminalUtils::showNpmStyleError("Import failed", e.what());
@@ -169,16 +180,18 @@ DependencySelection InteractiveDependencyManager::runInteractiveDependencySelect
                 break;
             }
 
-            case 5: { // Configure Package Manager
+            case 5: {  // Configure Package Manager
                 auto availablePMs = getAvailablePackageManagers();
-                PackageManager selectedPM = selectPackageManagerInteractively(availablePMs, options.templateType);
+                PackageManager selectedPM =
+                        selectPackageManagerInteractively(availablePMs, options.templateType);
                 configurePackageManagerInteractively(selectedPM, options);
                 break;
             }
 
-            case 6: { // Finish Selection
+            case 6: {  // Finish Selection
                 if (selectedDependencies.empty()) {
-                    if (!UserInput::readConfirmation("No dependencies selected. Continue anyway?", false)) {
+                    if (!UserInput::readConfirmation("No dependencies selected. Continue anyway?",
+                                                     false)) {
                         continue;
                     }
                 }
@@ -187,7 +200,8 @@ DependencySelection InteractiveDependencyManager::runInteractiveDependencySelect
                 selection = validateAndResolveDependencies(selectedDependencies, options);
 
                 if (!selection.success) {
-                    TerminalUtils::showNpmStyleError("Dependency validation failed", "Please resolve conflicts");
+                    TerminalUtils::showNpmStyleError("Dependency validation failed",
+                                                     "Please resolve conflicts");
                     for (const auto& conflict : selection.conflicts) {
                         TerminalUtils::showNpmStyleError("Conflict", conflict);
                     }
@@ -216,8 +230,7 @@ DependencySelection InteractiveDependencyManager::runInteractiveDependencySelect
 }
 
 std::vector<InteractiveDependency> InteractiveDependencyManager::searchDependencies(
-    const DependencySearchCriteria& criteria) {
-
+        const DependencySearchCriteria& criteria) {
     if (!s_databaseLoaded) {
         loadDependencyDatabase();
     }
@@ -240,8 +253,7 @@ std::vector<InteractiveDependency> InteractiveDependencyManager::searchDependenc
 }
 
 std::vector<InteractiveDependency> InteractiveDependencyManager::browseDependenciesByCategory(
-    const std::string& category) {
-
+        const std::string& category) {
     if (!s_databaseLoaded) {
         loadDependencyDatabase();
     }
@@ -264,8 +276,7 @@ std::vector<InteractiveDependency> InteractiveDependencyManager::browseDependenc
 }
 
 std::vector<InteractiveDependency> InteractiveDependencyManager::getRecommendedDependencies(
-    TemplateType templateType) {
-
+        TemplateType templateType) {
     if (!s_databaseLoaded) {
         loadDependencyDatabase();
     }
@@ -303,8 +314,8 @@ std::vector<InteractiveDependency> InteractiveDependencyManager::getRecommendedD
 
         case TemplateType::Gui:
             for (const auto& dep : s_dependencyDatabase) {
-                if (dep.base.name == "qt6" || dep.base.name == "imgui" ||
-                    dep.base.name == "gtk" || dep.base.name == "wxwidgets") {
+                if (dep.base.name == "qt6" || dep.base.name == "imgui" || dep.base.name == "gtk" ||
+                    dep.base.name == "wxwidgets") {
                     recommended.push_back(dep);
                 }
             }
@@ -362,13 +373,12 @@ bool InteractiveDependencyManager::loadDependencyDatabase() {
     }
 }
 
-void InteractiveDependencyManager::showDependencySelectionSummary(const DependencySelection& selection) {
+void InteractiveDependencyManager::showDependencySelectionSummary(
+        const DependencySelection& selection) {
     TerminalUtils::clearScreen();
 
-    std::vector<std::string> summaryLines = {
-        "📦 Dependency Selection Summary",
-        "Review your selected dependencies"
-    };
+    std::vector<std::string> summaryLines = {"📦 Dependency Selection Summary",
+                                             "Review your selected dependencies"};
     TerminalUtils::showBox(summaryLines, BorderStyle::Double, Color::BrightGreen, Color::White, "");
 
     std::cout << "\n";
@@ -379,7 +389,8 @@ void InteractiveDependencyManager::showDependencySelectionSummary(const Dependen
         if (!dep.base.version.empty()) {
             std::cout << " " << TerminalUtils::colorize("v" + dep.base.version, Color::BrightBlack);
         }
-        std::cout << " - " << TerminalUtils::colorize(dep.base.description, Color::BrightBlack) << "\n";
+        std::cout << " - " << TerminalUtils::colorize(dep.base.description, Color::BrightBlack)
+                  << "\n";
     }
 
     if (!selection.warnings.empty()) {
@@ -543,10 +554,8 @@ void InteractiveDependencyManager::loadCustomDependencies() {
     spdlog::debug("Loading custom dependencies from user configuration");
 }
 
-bool InteractiveDependencyManager::matchesSearchCriteria(
-    const InteractiveDependency& dependency,
-    const DependencySearchCriteria& criteria) {
-
+bool InteractiveDependencyManager::matchesSearchCriteria(const InteractiveDependency& dependency,
+                                                         const DependencySearchCriteria& criteria) {
     // Check query match
     if (!criteria.query.empty()) {
         std::string query = criteria.query;
@@ -558,8 +567,7 @@ bool InteractiveDependencyManager::matchesSearchCriteria(
         std::string description = dependency.base.description;
         std::transform(description.begin(), description.end(), description.begin(), ::tolower);
 
-        if (name.find(query) == std::string::npos &&
-            description.find(query) == std::string::npos) {
+        if (name.find(query) == std::string::npos && description.find(query) == std::string::npos) {
             return false;
         }
     }
@@ -567,7 +575,7 @@ bool InteractiveDependencyManager::matchesSearchCriteria(
     // Check category filter
     if (!criteria.categories.empty()) {
         if (std::find(criteria.categories.begin(), criteria.categories.end(),
-                     dependency.category) == criteria.categories.end()) {
+                      dependency.category) == criteria.categories.end()) {
             return false;
         }
     }
@@ -576,7 +584,8 @@ bool InteractiveDependencyManager::matchesSearchCriteria(
     if (!criteria.tags.empty()) {
         bool hasMatchingTag = false;
         for (const auto& tag : criteria.tags) {
-            if (std::find(dependency.tags.begin(), dependency.tags.end(), tag) != dependency.tags.end()) {
+            if (std::find(dependency.tags.begin(), dependency.tags.end(), tag) !=
+                dependency.tags.end()) {
                 hasMatchingTag = true;
                 break;
             }
@@ -629,22 +638,30 @@ void InteractiveDependencyManager::showSearchInterface() {
 }
 
 std::vector<InteractiveDependency> InteractiveDependencyManager::selectDependenciesInteractively(
-    const std::vector<InteractiveDependency>& available,
-    const std::vector<InteractiveDependency>& preselected) {
-
-    (void)preselected; // Suppress unused parameter warning for now
+        const std::vector<InteractiveDependency>& available,
+        const std::vector<InteractiveDependency>& preselected) {
+    (void)preselected;  // Suppress unused parameter warning for now
 
     std::vector<InteractiveDependency> selected;
 
     if (available.empty()) {
-        TerminalUtils::showNpmStyleWarning("No dependencies available", "Try a different search or category");
+        TerminalUtils::showNpmStyleWarning("No dependencies available",
+                                           "Try a different search or category");
         return selected;
     }
 
     showDependencyList(available, false);
 
-    std::cout << "\n" << TerminalUtils::colorize("Select dependencies (enter numbers separated by spaces, or 'done' to finish):", Color::BrightCyan) << "\n";
-    std::cout << TerminalUtils::colorize("You can also enter 'info <number>' to see details about a dependency", Color::BrightBlack) << "\n";
+    std::cout << "\n"
+              << TerminalUtils::colorize(
+                         "Select dependencies (enter numbers separated by spaces, or 'done' to "
+                         "finish):",
+                         Color::BrightCyan)
+              << "\n";
+    std::cout << TerminalUtils::colorize(
+                         "You can also enter 'info <number>' to see details about a dependency",
+                         Color::BrightBlack)
+              << "\n";
 
     std::string input;
     while (true) {
@@ -661,7 +678,8 @@ std::vector<InteractiveDependency> InteractiveDependencyManager::selectDependenc
                 if (index >= 0 && index < static_cast<int>(available.size())) {
                     showDependencyDetails(available[index]);
                 } else {
-                    TerminalUtils::showNpmStyleError("Invalid index", "Please enter a valid number");
+                    TerminalUtils::showNpmStyleError("Invalid index",
+                                                     "Please enter a valid number");
                 }
             } catch (const std::exception&) {
                 TerminalUtils::showNpmStyleError("Invalid format", "Use 'info <number>'");
@@ -678,13 +696,14 @@ std::vector<InteractiveDependency> InteractiveDependencyManager::selectDependenc
                 if (index >= 0 && index < static_cast<int>(available.size())) {
                     // Check if already selected
                     if (std::find_if(selected.begin(), selected.end(),
-                                   [&available, index](const InteractiveDependency& dep) {
-                                       return dep.base.name == available[index].base.name;
-                                   }) == selected.end()) {
+                                     [&available, index](const InteractiveDependency& dep) {
+                                         return dep.base.name == available[index].base.name;
+                                     }) == selected.end()) {
                         selected.push_back(available[index]);
                         TerminalUtils::showNpmStyleSuccess("Added: " + available[index].base.name);
                     } else {
-                        TerminalUtils::showNpmStyleWarning("Already selected", available[index].base.name);
+                        TerminalUtils::showNpmStyleWarning("Already selected",
+                                                           available[index].base.name);
                     }
                 } else {
                     TerminalUtils::showNpmStyleError("Invalid index", token);
@@ -699,15 +718,15 @@ std::vector<InteractiveDependency> InteractiveDependencyManager::selectDependenc
 }
 
 void InteractiveDependencyManager::showDependencyList(
-    const std::vector<InteractiveDependency>& dependencies,
-    bool showDetails) {
-
-    std::cout << "\n" << TerminalUtils::colorize("Available Dependencies:", Color::BrightMagenta) << "\n";
+        const std::vector<InteractiveDependency>& dependencies, bool showDetails) {
+    std::cout << "\n"
+              << TerminalUtils::colorize("Available Dependencies:", Color::BrightMagenta) << "\n";
 
     for (size_t i = 0; i < dependencies.size(); ++i) {
         const auto& dep = dependencies[i];
 
-        std::cout << "  " << TerminalUtils::colorize(std::to_string(i + 1) + ".", Color::BrightYellow);
+        std::cout << "  "
+                  << TerminalUtils::colorize(std::to_string(i + 1) + ".", Color::BrightYellow);
         std::cout << " " << TerminalUtils::colorize(dep.base.name, Color::BrightWhite);
 
         if (!dep.base.version.empty()) {
@@ -727,12 +746,17 @@ void InteractiveDependencyManager::showDependencyList(
         std::cout << "\n";
 
         if (showDetails) {
-            std::cout << "    " << TerminalUtils::colorize("Category: " + dep.category, Color::BrightBlack) << "\n";
-            std::cout << "    " << TerminalUtils::colorize("License: " + dep.base.license, Color::BrightBlack) << "\n";
+            std::cout << "    "
+                      << TerminalUtils::colorize("Category: " + dep.category, Color::BrightBlack)
+                      << "\n";
+            std::cout << "    "
+                      << TerminalUtils::colorize("License: " + dep.base.license, Color::BrightBlack)
+                      << "\n";
             if (!dep.tags.empty()) {
                 std::cout << "    " << TerminalUtils::colorize("Tags: ", Color::BrightBlack);
                 for (size_t j = 0; j < dep.tags.size(); ++j) {
-                    if (j > 0) std::cout << ", ";
+                    if (j > 0)
+                        std::cout << ", ";
                     std::cout << dep.tags[j];
                 }
                 std::cout << "\n";
@@ -744,10 +768,8 @@ void InteractiveDependencyManager::showDependencyList(
 void InteractiveDependencyManager::showDependencyDetails(const InteractiveDependency& dependency) {
     TerminalUtils::clearScreen();
 
-    std::vector<std::string> detailLines = {
-        "📦 " + dependency.base.name,
-        dependency.base.description
-    };
+    std::vector<std::string> detailLines = {"📦 " + dependency.base.name,
+                                            dependency.base.description};
     TerminalUtils::showBox(detailLines, BorderStyle::Double, Color::BrightCyan, Color::White, "");
 
     std::cout << "\n";
@@ -758,9 +780,13 @@ void InteractiveDependencyManager::showDependencyDetails(const InteractiveDepend
     std::cout << TerminalUtils::colorize("Category: ", Color::BrightYellow)
               << TerminalUtils::colorize(dependency.category, Color::BrightWhite) << "\n";
     std::cout << TerminalUtils::colorize("Type: ", Color::BrightYellow)
-              << TerminalUtils::colorize(dependency.base.headerOnly ? "Header-only" : "Compiled", Color::BrightWhite) << "\n";
+              << TerminalUtils::colorize(dependency.base.headerOnly ? "Header-only" : "Compiled",
+                                         Color::BrightWhite)
+              << "\n";
     std::cout << TerminalUtils::colorize("Popularity: ", Color::BrightYellow)
-              << TerminalUtils::colorize(std::to_string(dependency.popularity) + "/100", Color::BrightWhite) << "\n";
+              << TerminalUtils::colorize(std::to_string(dependency.popularity) + "/100",
+                                         Color::BrightWhite)
+              << "\n";
 
     if (!dependency.homepage.empty()) {
         std::cout << TerminalUtils::colorize("Homepage: ", Color::BrightYellow)
@@ -770,14 +796,16 @@ void InteractiveDependencyManager::showDependencyDetails(const InteractiveDepend
     if (!dependency.tags.empty()) {
         std::cout << TerminalUtils::colorize("Tags: ", Color::BrightYellow);
         for (size_t i = 0; i < dependency.tags.size(); ++i) {
-            if (i > 0) std::cout << ", ";
+            if (i > 0)
+                std::cout << ", ";
             std::cout << TerminalUtils::colorize(dependency.tags[i], Color::BrightGreen);
         }
         std::cout << "\n";
     }
 
     if (!dependency.useCases.empty()) {
-        std::cout << "\n" << TerminalUtils::colorize("Common Use Cases:", Color::BrightMagenta) << "\n";
+        std::cout << "\n"
+                  << TerminalUtils::colorize("Common Use Cases:", Color::BrightMagenta) << "\n";
         for (const auto& useCase : dependency.useCases) {
             std::cout << "  • " << TerminalUtils::colorize(useCase, Color::BrightWhite) << "\n";
         }
@@ -788,10 +816,8 @@ void InteractiveDependencyManager::showDependencyDetails(const InteractiveDepend
 }
 
 DependencySelection InteractiveDependencyManager::validateAndResolveDependencies(
-    const std::vector<InteractiveDependency>& selected,
-    const CliOptions& options) {
-
-    (void)options; // Suppress unused parameter warning for now
+        const std::vector<InteractiveDependency>& selected, const CliOptions& options) {
+    (void)options;  // Suppress unused parameter warning for now
 
     DependencySelection selection;
     selection.selected = selected;
@@ -814,8 +840,7 @@ DependencySelection InteractiveDependencyManager::validateAndResolveDependencies
 }
 
 std::vector<std::string> InteractiveDependencyManager::checkDependencyConflicts(
-    const std::vector<InteractiveDependency>& dependencies) {
-
+        const std::vector<InteractiveDependency>& dependencies) {
     std::vector<std::string> conflicts;
 
     // Check for known conflicts (simplified example)
@@ -839,21 +864,13 @@ std::vector<std::string> InteractiveDependencyManager::checkDependencyConflicts(
 }
 
 std::vector<PackageManager> InteractiveDependencyManager::getAvailablePackageManagers() {
-    return {
-        PackageManager::Vcpkg,
-        PackageManager::Conan,
-        PackageManager::CPM,
-        PackageManager::FetchContent,
-        PackageManager::Spack,
-        PackageManager::Hunter
-    };
+    return {PackageManager::Vcpkg,        PackageManager::Conan, PackageManager::CPM,
+            PackageManager::FetchContent, PackageManager::Spack, PackageManager::Hunter};
 }
 
 PackageManager InteractiveDependencyManager::selectPackageManagerInteractively(
-    const std::vector<PackageManager>& available,
-    TemplateType templateType) {
-
-    (void)templateType; // Suppress unused parameter warning for now
+        const std::vector<PackageManager>& available, TemplateType templateType) {
+    (void)templateType;  // Suppress unused parameter warning for now
 
     std::vector<std::string_view> pmNames;
     for (const auto& pm : available) {
@@ -861,32 +878,24 @@ PackageManager InteractiveDependencyManager::selectPackageManagerInteractively(
     }
 
     std::string selected = UserInput::readChoiceWithStyle(
-        "Select package manager",
-        pmNames,
-        std::string(pmNames[0]),
-        Color::BrightCyan
-    );
+            "Select package manager", pmNames, std::string(pmNames[0]), Color::BrightCyan);
 
     auto selectedPM = cli_enums::to_package_manager(selected);
     return selectedPM ? *selectedPM : PackageManager::Vcpkg;
 }
 
 bool InteractiveDependencyManager::configurePackageManagerInteractively(
-    PackageManager packageManager,
-    const CliOptions& options) {
-
-    (void)packageManager; // Suppress unused parameter warning
-    (void)options; // Suppress unused parameter warning
+        PackageManager packageManager, const CliOptions& options) {
+    (void)packageManager;  // Suppress unused parameter warning
+    (void)options;         // Suppress unused parameter warning
 
     TerminalUtils::showInfo("Package manager configuration completed");
     return true;
 }
 
 std::vector<InteractiveDependency> InteractiveDependencyManager::importDependencyList(
-    const std::string& filePath,
-    const std::string& format) {
-
-    (void)format; // Suppress unused parameter warning for now
+        const std::string& filePath, const std::string& format) {
+    (void)format;  // Suppress unused parameter warning for now
 
     std::vector<InteractiveDependency> imported;
 
@@ -920,4 +929,4 @@ std::vector<InteractiveDependency> InteractiveDependencyManager::importDependenc
     return imported;
 }
 
-} // namespace utils
+}  // namespace utils

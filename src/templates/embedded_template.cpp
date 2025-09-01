@@ -1,164 +1,173 @@
 #include "embedded_template.h"
-#include "../utils/file_utils.h"
+
+#include <spdlog/fmt/fmt.h>
+
 #include <iostream>
-#include <fmt/format.h>
+
+#include "../utils/file_utils.h"
 
 using namespace utils;
 
-EmbeddedTemplate::EmbeddedTemplate(const CliOptions &options) : TemplateBase(options) {}
+EmbeddedTemplate::EmbeddedTemplate(const CliOptions& options) : TemplateBase(options) {}
 
 bool EmbeddedTemplate::create() {
-  std::cout << "🔧 Creating Embedded project: " << options_.projectName << "\n";
+    std::cout << "🔧 Creating Embedded project: " << options_.projectName << "\n";
 
-  if (!createProjectStructure()) {
-    std::cerr << "❌ Failed to create project structure\n";
-    return false;
-  }
+    if (!createProjectStructure()) {
+        std::cerr << "❌ Failed to create project structure\n";
+        return false;
+    }
 
-  if (!createBuildSystem()) {
-    std::cerr << "❌ Failed to create build system\n";
-    return false;
-  }
+    if (!createBuildSystem()) {
+        std::cerr << "❌ Failed to create build system\n";
+        return false;
+    }
 
-  if (!setupPackageManager()) {
-    std::cerr << "❌ Failed to setup package manager\n";
-    return false;
-  }
+    if (!setupPackageManager()) {
+        std::cerr << "❌ Failed to setup package manager\n";
+        return false;
+    }
 
-  if (!setupHardwareAbstraction()) {
-    std::cerr << "❌ Failed to setup hardware abstraction layer\n";
-    return false;
-  }
+    if (!setupHardwareAbstraction()) {
+        std::cerr << "❌ Failed to setup hardware abstraction layer\n";
+        return false;
+    }
 
-  if (!setupTestFramework()) {
-    std::cerr << "❌ Failed to setup test framework\n";
-    return false;
-  }
+    if (!setupTestFramework()) {
+        std::cerr << "❌ Failed to setup test framework\n";
+        return false;
+    }
 
-  if (!setupDebugging()) {
-    std::cerr << "❌ Failed to setup debugging configuration\n";
-    return false;
-  }
+    if (!setupDebugging()) {
+        std::cerr << "❌ Failed to setup debugging configuration\n";
+        return false;
+    }
 
-  if (!initializeGit(options_.projectName)) {
-    std::cerr << "❌ Failed to initialize Git repository\n";
-    return false;
-  }
+    if (!initializeGit(options_.projectName)) {
+        std::cerr << "❌ Failed to initialize Git repository\n";
+        return false;
+    }
 
-  std::cout << "✅ Embedded project created successfully!\n";
-  printUsageGuide();
-  return true;
+    std::cout << "✅ Embedded project created successfully!\n";
+    printUsageGuide();
+    return true;
 }
 
 bool EmbeddedTemplate::createProjectStructure() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // Create main directories
-  std::vector<std::string> directories = {
-    projectPath,
-    FileUtils::combinePath(projectPath, "src"),
-    FileUtils::combinePath(projectPath, "src/hal"),
-    FileUtils::combinePath(projectPath, "src/drivers"),
-    FileUtils::combinePath(projectPath, "src/tasks"),
-    FileUtils::combinePath(projectPath, "src/utils"),
-    FileUtils::combinePath(projectPath, "include"),
-    FileUtils::combinePath(projectPath, "include/hal"),
-    FileUtils::combinePath(projectPath, "include/drivers"),
-    FileUtils::combinePath(projectPath, "include/tasks"),
-    FileUtils::combinePath(projectPath, "include/utils"),
-    FileUtils::combinePath(projectPath, "tests"),
-    FileUtils::combinePath(projectPath, "tests/unit"),
-    FileUtils::combinePath(projectPath, "tests/hardware"),
-    FileUtils::combinePath(projectPath, "docs"),
-    FileUtils::combinePath(projectPath, "scripts"),
-    FileUtils::combinePath(projectPath, "config"),
-    FileUtils::combinePath(projectPath, "linker"),
-    FileUtils::combinePath(projectPath, "startup")
-  };
+    // Create main directories
+    std::vector<std::string> directories = {projectPath,
+                                            FileUtils::combinePath(projectPath, "src"),
+                                            FileUtils::combinePath(projectPath, "src/hal"),
+                                            FileUtils::combinePath(projectPath, "src/drivers"),
+                                            FileUtils::combinePath(projectPath, "src/tasks"),
+                                            FileUtils::combinePath(projectPath, "src/utils"),
+                                            FileUtils::combinePath(projectPath, "include"),
+                                            FileUtils::combinePath(projectPath, "include/hal"),
+                                            FileUtils::combinePath(projectPath, "include/drivers"),
+                                            FileUtils::combinePath(projectPath, "include/tasks"),
+                                            FileUtils::combinePath(projectPath, "include/utils"),
+                                            FileUtils::combinePath(projectPath, "tests"),
+                                            FileUtils::combinePath(projectPath, "tests/unit"),
+                                            FileUtils::combinePath(projectPath, "tests/hardware"),
+                                            FileUtils::combinePath(projectPath, "docs"),
+                                            FileUtils::combinePath(projectPath, "scripts"),
+                                            FileUtils::combinePath(projectPath, "config"),
+                                            FileUtils::combinePath(projectPath, "linker"),
+                                            FileUtils::combinePath(projectPath, "startup")};
 
-  for (const auto &dir : directories) {
-    if (!FileUtils::createDirectory(dir)) {
-      std::cerr << "❌ Failed to create directory: " << dir << "\n";
-      return false;
+    for (const auto& dir : directories) {
+        if (!FileUtils::createDirectory(dir)) {
+            std::cerr << "❌ Failed to create directory: " << dir << "\n";
+            return false;
+        }
     }
-  }
 
-  // Create main application files
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "src/main.cpp"), getMainCppContent())) {
-    return false;
-  }
+    // Create main application files
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "src/main.cpp"),
+                                getMainCppContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "include/main.h"), getMainHeaderContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "include/main.h"),
+                                getMainHeaderContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "README.md"), getReadmeContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "README.md"),
+                                getReadmeContent())) {
+        return false;
+    }
 
-  std::cout << "📁 Project structure created\n";
-  return true;
+    std::cout << "📁 Project structure created\n";
+    return true;
 }
 
 bool EmbeddedTemplate::createBuildSystem() {
-  std::string projectPath = options_.projectName;
-  std::string buildContent;
+    std::string projectPath = options_.projectName;
+    std::string buildContent;
 
-  if (usePlatformIO()) {
-    // Create PlatformIO configuration
-    buildContent = getPlatformIOContent();
-    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "platformio.ini"), buildContent)) {
-      return false;
-    }
-  } else if (useArduino()) {
-    // Create Arduino sketch structure
-    std::string sketchDir = FileUtils::combinePath(projectPath, options_.projectName);
-    if (!FileUtils::createDirectory(sketchDir)) {
-      return false;
-    }
-    buildContent = getArduinoContent();
-    if (!FileUtils::writeToFile(FileUtils::combinePath(sketchDir, options_.projectName + ".ino"), buildContent)) {
-      return false;
-    }
-  } else {
-    // Use traditional Makefile or CMake
-    switch (options_.buildSystem) {
-      case BuildSystem::CMake:
-        buildContent = getCMakeContent();
-        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "CMakeLists.txt"), buildContent)) {
-          return false;
+    if (usePlatformIO()) {
+        // Create PlatformIO configuration
+        buildContent = getPlatformIOContent();
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "platformio.ini"),
+                                    buildContent)) {
+            return false;
         }
-        break;
-      case BuildSystem::Make:
-      default:
-        buildContent = getMakefileContent();
-        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "Makefile"), buildContent)) {
-          return false;
+    } else if (useArduino()) {
+        // Create Arduino sketch structure
+        std::string sketchDir = FileUtils::combinePath(projectPath, options_.projectName);
+        if (!FileUtils::createDirectory(sketchDir)) {
+            return false;
         }
-        break;
+        buildContent = getArduinoContent();
+        if (!FileUtils::writeToFile(
+                    FileUtils::combinePath(sketchDir, options_.projectName + ".ino"),
+                    buildContent)) {
+            return false;
+        }
+    } else {
+        // Use traditional Makefile or CMake
+        switch (options_.buildSystem) {
+            case BuildSystem::CMake:
+                buildContent = getCMakeContent();
+                if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "CMakeLists.txt"),
+                                            buildContent)) {
+                    return false;
+                }
+                break;
+            case BuildSystem::Make:
+            default:
+                buildContent = getMakefileContent();
+                if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "Makefile"),
+                                            buildContent)) {
+                    return false;
+                }
+                break;
+        }
     }
-  }
 
-  std::cout << "🔧 Build system configured\n";
-  return true;
+    std::cout << "🔧 Build system configured\n";
+    return true;
 }
 
 bool EmbeddedTemplate::setupPackageManager() {
-  // Embedded projects typically don't use traditional package managers
-  // But we can setup PlatformIO library management or Git submodules
-  std::string projectPath = options_.projectName;
+    // Embedded projects typically don't use traditional package managers
+    // But we can setup PlatformIO library management or Git submodules
+    std::string projectPath = options_.projectName;
 
-  if (usePlatformIO()) {
-    // PlatformIO handles dependencies via platformio.ini
-    std::cout << "📦 PlatformIO will manage dependencies\n";
-  } else {
-    // Create a libs directory for manual library management
-    if (!FileUtils::createDirectory(FileUtils::combinePath(projectPath, "libs"))) {
-      return false;
-    }
+    if (usePlatformIO()) {
+        // PlatformIO handles dependencies via platformio.ini
+        std::cout << "📦 PlatformIO will manage dependencies\n";
+    } else {
+        // Create a libs directory for manual library management
+        if (!FileUtils::createDirectory(FileUtils::combinePath(projectPath, "libs"))) {
+            return false;
+        }
 
-    // Create a simple library management script
-    std::string libScript = R"(#!/bin/bash
+        // Create a simple library management script
+        std::string libScript = R"(#!/bin/bash
 # Library management script for embedded project
 # Add your libraries as git submodules or download them here
 
@@ -166,114 +175,122 @@ echo "Setting up embedded libraries..."
 # Example: git submodule add https://github.com/FreeRTOS/FreeRTOS.git libs/FreeRTOS
 )";
 
-    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "scripts/setup_libs.sh"), libScript)) {
-      return false;
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "scripts/setup_libs.sh"),
+                                    libScript)) {
+            return false;
+        }
     }
-  }
 
-  std::cout << "📦 Package management configured\n";
-  return true;
+    std::cout << "📦 Package management configured\n";
+    return true;
 }
 
 bool EmbeddedTemplate::setupHardwareAbstraction() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // Create HAL files
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "include/hal/hal.h"), getHalHeaderContent())) {
-    return false;
-  }
+    // Create HAL files
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "include/hal/hal.h"),
+                                getHalHeaderContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "src/hal/hal.cpp"), getHalCppContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "src/hal/hal.cpp"),
+                                getHalCppContent())) {
+        return false;
+    }
 
-  // Create GPIO abstraction
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "include/hal/gpio.h"), getGpioHeaderContent())) {
-    return false;
-  }
+    // Create GPIO abstraction
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "include/hal/gpio.h"),
+                                getGpioHeaderContent())) {
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "src/hal/gpio.cpp"), getGpioCppContent())) {
-    return false;
-  }
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "src/hal/gpio.cpp"),
+                                getGpioCppContent())) {
+        return false;
+    }
 
-  std::cout << "🔌 Hardware abstraction layer created\n";
-  return true;
+    std::cout << "🔌 Hardware abstraction layer created\n";
+    return true;
 }
 
 bool EmbeddedTemplate::setupTestFramework() {
-  if (!options_.includeTests) {
+    if (!options_.includeTests) {
+        return true;
+    }
+
+    std::string projectPath = options_.projectName;
+    std::string testsPath = FileUtils::combinePath(projectPath, "tests");
+
+    // For embedded, we typically use Unity test framework
+    std::string testContent = getUnityTestContent();
+    if (!FileUtils::writeToFile(FileUtils::combinePath(testsPath, "unit/test_main.cpp"),
+                                testContent)) {
+        return false;
+    }
+
+    // Hardware-in-the-loop tests
+    std::string hwTestContent = getHardwareTestContent();
+    if (!FileUtils::writeToFile(FileUtils::combinePath(testsPath, "hardware/test_gpio.cpp"),
+                                hwTestContent)) {
+        return false;
+    }
+
+    std::cout << "🧪 Test framework configured\n";
     return true;
-  }
-
-  std::string projectPath = options_.projectName;
-  std::string testsPath = FileUtils::combinePath(projectPath, "tests");
-
-  // For embedded, we typically use Unity test framework
-  std::string testContent = getUnityTestContent();
-  if (!FileUtils::writeToFile(FileUtils::combinePath(testsPath, "unit/test_main.cpp"), testContent)) {
-    return false;
-  }
-
-  // Hardware-in-the-loop tests
-  std::string hwTestContent = getHardwareTestContent();
-  if (!FileUtils::writeToFile(FileUtils::combinePath(testsPath, "hardware/test_gpio.cpp"), hwTestContent)) {
-    return false;
-  }
-
-  std::cout << "🧪 Test framework configured\n";
-  return true;
 }
 
 bool EmbeddedTemplate::setupDebugging() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // Create OpenOCD configuration
-  std::string openocdConfig = getOpenOCDConfigContent();
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "config/openocd.cfg"), openocdConfig)) {
-    return false;
-  }
+    // Create OpenOCD configuration
+    std::string openocdConfig = getOpenOCDConfigContent();
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "config/openocd.cfg"),
+                                openocdConfig)) {
+        return false;
+    }
 
-  // Create GDB initialization script
-  std::string gdbInit = getGdbInitContent();
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "config/gdbinit"), gdbInit)) {
-    return false;
-  }
+    // Create GDB initialization script
+    std::string gdbInit = getGdbInitContent();
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "config/gdbinit"), gdbInit)) {
+        return false;
+    }
 
-  std::cout << "🐛 Debugging configuration created\n";
-  return true;
+    std::cout << "🐛 Debugging configuration created\n";
+    return true;
 }
 
 // Helper methods
 std::string EmbeddedTemplate::getTargetMCU() const {
-  return "STM32F4"; // Default, can be made configurable
+    return "STM32F4";  // Default, can be made configurable
 }
 
 std::string EmbeddedTemplate::getTargetBoard() const {
-  return "STM32F4-Discovery"; // Default, can be made configurable
+    return "STM32F4-Discovery";  // Default, can be made configurable
 }
 
 std::string EmbeddedTemplate::getRTOSType() const {
-  return "FreeRTOS"; // Default, can be made configurable
+    return "FreeRTOS";  // Default, can be made configurable
 }
 
 bool EmbeddedTemplate::useHAL() const {
-  return true; // Default to using HAL
+    return true;  // Default to using HAL
 }
 
 bool EmbeddedTemplate::useFreeRTOS() const {
-  return true; // Default to using FreeRTOS
+    return true;  // Default to using FreeRTOS
 }
 
 bool EmbeddedTemplate::useArduino() const {
-  return false; // Default to not using Arduino framework
+    return false;  // Default to not using Arduino framework
 }
 
 bool EmbeddedTemplate::usePlatformIO() const {
-  return false; // Default to not using PlatformIO
+    return false;  // Default to not using PlatformIO
 }
 
 std::string EmbeddedTemplate::getMainCppContent() {
-  return fmt::format(R"(#include "main.h"
+    return fmt::format(R"(#include "main.h"
 #include "hal/hal.h"
 #include "hal/gpio.h"
 #include "utils/logger.h"
@@ -411,11 +428,12 @@ extern "C" void SysTick_Handler(void) {{
     }}
 #endif
 }}
-)", options_.projectName);
+)",
+                       options_.projectName);
 }
 
 std::string EmbeddedTemplate::getMainHeaderContent() {
-  return R"(#ifndef MAIN_H
+    return R"(#ifndef MAIN_H
 #define MAIN_H
 
 #ifdef __cplusplus
@@ -451,7 +469,7 @@ extern volatile uint32_t g_systemTick;
 }
 
 std::string EmbeddedTemplate::getReadmeContent() {
-  return fmt::format(R"(# {}
+    return fmt::format(R"(# {}
 
 An embedded C++ project for microcontrollers.
 
@@ -535,13 +553,14 @@ Edit the following files to configure your project:
 ## License
 
 MIT License
-)", options_.projectName, getTargetMCU(), getTargetBoard(),
-   options_.projectName, options_.projectName, options_.projectName);
+)",
+                       options_.projectName, getTargetMCU(), getTargetBoard(), options_.projectName,
+                       options_.projectName, options_.projectName);
 }
 
 // Add placeholder implementations for missing methods
 std::string EmbeddedTemplate::getPlatformIOContent() {
-  return fmt::format(R"([env:{}]
+    return fmt::format(R"([env:{}]
 platform = ststm32
 board = nucleo_f401re
 framework = arduino
@@ -555,11 +574,12 @@ build_flags =
 
 lib_deps =
     # Add your library dependencies here
-)", getTargetBoard());
+)",
+                       getTargetBoard());
 }
 
 std::string EmbeddedTemplate::getArduinoContent() {
-  return fmt::format(R"(// {} Arduino Sketch
+    return fmt::format(R"(// {} Arduino Sketch
 // Generated by CPP-Scaffold
 
 void setup() {{
@@ -581,11 +601,12 @@ void loop() {{
 
   Serial.println("Application running...");
 }}
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string EmbeddedTemplate::getCMakeContent() {
-  return fmt::format(R"(cmake_minimum_required(VERSION 3.15)
+    return fmt::format(R"(cmake_minimum_required(VERSION 3.15)
 
 # Set the toolchain file
 set(CMAKE_TOOLCHAIN_FILE "${{CMAKE_CURRENT_SOURCE_DIR}}/cmake/arm-none-eabi.cmake")
@@ -632,12 +653,14 @@ add_custom_command(TARGET {}.elf POST_BUILD
     COMMAND ${{CMAKE_SIZE}} ${}.elf
     COMMENT "Generating HEX and BIN files"
 )
-)", options_.projectName, options_.projectName, options_.projectName,
-   options_.projectName, options_.projectName, options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName);
 }
 
 std::string EmbeddedTemplate::getMakefileContent() {
-  return fmt::format(R"(# Makefile for {} embedded project
+    return fmt::format(R"(# Makefile for {} embedded project
 
 # Target configuration
 TARGET = {}
@@ -732,12 +755,13 @@ debug: $(BUILDDIR)/$(TARGET).elf
 	$(PREFIX)gdb $< -ex "target remote localhost:3333"
 
 .PHONY: all clean flash debug
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 // Add remaining missing method implementations
 std::string EmbeddedTemplate::getHalHeaderContent() {
-  return R"(#ifndef HAL_H
+    return R"(#ifndef HAL_H
 #define HAL_H
 
 #ifdef __cplusplus
@@ -806,7 +830,7 @@ uint32_t HAL_GetTick(void);
 }
 
 std::string EmbeddedTemplate::getHalCppContent() {
-  return R"(#include "hal/hal.h"
+    return R"(#include "hal/hal.h"
 #include "main.h"
 
 HAL_StatusTypeDef HAL_Init(void) {
@@ -834,7 +858,7 @@ uint32_t HAL_GetTick(void) {
 }
 
 std::string EmbeddedTemplate::getGpioHeaderContent() {
-  return R"(#ifndef GPIO_H
+    return R"(#ifndef GPIO_H
 #define GPIO_H
 
 #ifdef __cplusplus
@@ -873,7 +897,7 @@ uint32_t HAL_GPIO_ReadPin(void* GPIOx, uint16_t GPIO_Pin);
 }
 
 std::string EmbeddedTemplate::getGpioCppContent() {
-  return R"(#include "hal/gpio.h"
+    return R"(#include "hal/gpio.h"
 
 void HAL_GPIO_Init(void* GPIOx, GPIO_InitTypeDef* GPIO_Init) {
     // GPIO initialization implementation
@@ -905,7 +929,7 @@ uint32_t HAL_GPIO_ReadPin(void* GPIOx, uint16_t GPIO_Pin) {
 }
 
 std::string EmbeddedTemplate::getUnityTestContent() {
-  return R"(#include "unity.h"
+    return R"(#include "unity.h"
 #include "main.h"
 
 void setUp(void) {
@@ -938,7 +962,7 @@ int main(void) {
 }
 
 std::string EmbeddedTemplate::getHardwareTestContent() {
-  return R"(#include "unity.h"
+    return R"(#include "unity.h"
 #include "hal/gpio.h"
 #include "main.h"
 
@@ -979,7 +1003,7 @@ int main(void) {
 }
 
 std::string EmbeddedTemplate::getOpenOCDConfigContent() {
-  return R"(# OpenOCD configuration for STM32F4 Discovery
+    return R"(# OpenOCD configuration for STM32F4 Discovery
 source [find interface/stlink.cfg]
 source [find target/stm32f4x.cfg]
 
@@ -1003,7 +1027,7 @@ tcl_port 6666
 }
 
 std::string EmbeddedTemplate::getGdbInitContent() {
-  return R"(# GDB initialization script
+    return R"(# GDB initialization script
 target remote localhost:3333
 
 # Load symbols

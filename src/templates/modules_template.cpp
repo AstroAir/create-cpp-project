@@ -1,215 +1,229 @@
 #include "modules_template.h"
-#include "../utils/file_utils.h"
-#include "../utils/terminal_utils.h"
-#include "../config/ci_config.h"
-#include <fmt/format.h>
+
+#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
+
 #include <filesystem>
 
-ModulesTemplate::ModulesTemplate(const CliOptions &options) : TemplateBase(options) {
-  spdlog::info("Creating C++20/C++23 modules project: {}", options.projectName);
+#include "../config/ci_config.h"
+#include "../utils/file_utils.h"
+#include "../utils/terminal_utils.h"
+
+ModulesTemplate::ModulesTemplate(const CliOptions& options) : TemplateBase(options) {
+    spdlog::info("Creating C++20/C++23 modules project: {}", options.projectName);
 }
 
 bool ModulesTemplate::create() {
-  try {
-    spdlog::info("Creating modules-based project structure");
+    try {
+        spdlog::info("Creating modules-based project structure");
 
-    if (!createProjectStructure()) {
-      spdlog::error("Failed to create project structure");
-      return false;
+        if (!createProjectStructure()) {
+            spdlog::error("Failed to create project structure");
+            return false;
+        }
+
+        if (!createBuildSystem()) {
+            spdlog::error("Failed to create build system");
+            return false;
+        }
+
+        if (!setupPackageManager()) {
+            spdlog::error("Failed to setup package manager");
+            return false;
+        }
+
+        if (!setupTestFramework()) {
+            spdlog::error("Failed to setup test framework");
+            return false;
+        }
+
+        if (!createModuleFiles()) {
+            spdlog::error("Failed to create module files");
+            return false;
+        }
+
+        if (options_.includeTests && !createTestModules()) {
+            spdlog::error("Failed to create test modules");
+            return false;
+        }
+
+        // Setup additional configurations
+        setupCICD(options_.projectName);
+        setupEditorConfig(options_.projectName);
+        setupCodeStyleConfig(options_.projectName);
+        setupDocConfig(options_.projectName);
+
+        if (options_.initGit) {
+            initializeGit(options_.projectName);
+        }
+
+        executePostCreationActions();
+        printUsageGuide();
+
+        spdlog::info("Successfully created C++20/C++23 modules project: {}", options_.projectName);
+        return true;
+
+    } catch (const std::exception& e) {
+        spdlog::error("Error creating modules project: {}", e.what());
+        return false;
     }
-
-    if (!createBuildSystem()) {
-      spdlog::error("Failed to create build system");
-      return false;
-    }
-
-    if (!setupPackageManager()) {
-      spdlog::error("Failed to setup package manager");
-      return false;
-    }
-
-    if (!setupTestFramework()) {
-      spdlog::error("Failed to setup test framework");
-      return false;
-    }
-
-    if (!createModuleFiles()) {
-      spdlog::error("Failed to create module files");
-      return false;
-    }
-
-    if (options_.includeTests && !createTestModules()) {
-      spdlog::error("Failed to create test modules");
-      return false;
-    }
-
-    // Setup additional configurations
-    setupCICD(options_.projectName);
-    setupEditorConfig(options_.projectName);
-    setupCodeStyleConfig(options_.projectName);
-    setupDocConfig(options_.projectName);
-
-    if (options_.initGit) {
-      initializeGit(options_.projectName);
-    }
-
-    executePostCreationActions();
-    printUsageGuide();
-
-    spdlog::info("Successfully created C++20/C++23 modules project: {}", options_.projectName);
-    return true;
-
-  } catch (const std::exception &e) {
-    spdlog::error("Error creating modules project: {}", e.what());
-    return false;
-  }
 }
 
 bool ModulesTemplate::createProjectStructure() {
-  try {
-    std::filesystem::create_directories(options_.projectName);
-    std::filesystem::create_directories(options_.projectName + "/src");
-    std::filesystem::create_directories(options_.projectName + "/modules");
-    std::filesystem::create_directories(options_.projectName + "/include");
+    try {
+        std::filesystem::create_directories(options_.projectName);
+        std::filesystem::create_directories(options_.projectName + "/src");
+        std::filesystem::create_directories(options_.projectName + "/modules");
+        std::filesystem::create_directories(options_.projectName + "/include");
 
-    if (options_.includeTests) {
-      std::filesystem::create_directories(options_.projectName + "/tests");
+        if (options_.includeTests) {
+            std::filesystem::create_directories(options_.projectName + "/tests");
+        }
+
+        if (options_.includeDocumentation) {
+            std::filesystem::create_directories(options_.projectName + "/docs");
+        }
+
+        if (options_.includeCodeExamples) {
+            std::filesystem::create_directories(options_.projectName + "/examples");
+        }
+
+        // Create README
+        utils::FileUtils::writeToFile(options_.projectName + "/README.md", getReadmeContent());
+
+        // Create main.cpp
+        utils::FileUtils::writeToFile(options_.projectName + "/src/main.cpp", getMainCppContent());
+
+        return true;
+    } catch (const std::exception& e) {
+        spdlog::error("Failed to create project structure: {}", e.what());
+        return false;
     }
-
-    if (options_.includeDocumentation) {
-      std::filesystem::create_directories(options_.projectName + "/docs");
-    }
-
-    if (options_.includeCodeExamples) {
-      std::filesystem::create_directories(options_.projectName + "/examples");
-    }
-
-    // Create README
-    utils::FileUtils::writeToFile(options_.projectName + "/README.md", getReadmeContent());
-
-    // Create main.cpp
-    utils::FileUtils::writeToFile(options_.projectName + "/src/main.cpp", getMainCppContent());
-
-    return true;
-  } catch (const std::exception &e) {
-    spdlog::error("Failed to create project structure: {}", e.what());
-    return false;
-  }
 }
 
 bool ModulesTemplate::createBuildSystem() {
-  try {
-    std::string buildContent;
-    std::string filename;
+    try {
+        std::string buildContent;
+        std::string filename;
 
-    if (to_string(options_.buildSystem) == "cmake") {
-      buildContent = getCMakeModulesContent();
-      filename = "CMakeLists.txt";
-    } else if (to_string(options_.buildSystem) == "meson") {
-      buildContent = getMesonModulesContent();
-      filename = "meson.build";
-    } else if (to_string(options_.buildSystem) == "bazel") {
-      buildContent = getBazelModulesContent();
-      filename = "BUILD.bazel";
-    } else {
-      spdlog::warn("Build system {} not fully supported for modules, using CMake",
-                   to_string(options_.buildSystem));
-      buildContent = getCMakeModulesContent();
-      filename = "CMakeLists.txt";
+        if (to_string(options_.buildSystem) == "cmake") {
+            buildContent = getCMakeModulesContent();
+            filename = "CMakeLists.txt";
+        } else if (to_string(options_.buildSystem) == "meson") {
+            buildContent = getMesonModulesContent();
+            filename = "meson.build";
+        } else if (to_string(options_.buildSystem) == "bazel") {
+            buildContent = getBazelModulesContent();
+            filename = "BUILD.bazel";
+        } else if (to_string(options_.buildSystem) == "xmake") {
+            buildContent = getXMakeModulesContent();
+            filename = "xmake.lua";
+        } else if (to_string(options_.buildSystem) == "premake") {
+            buildContent = getPremakeModulesContent();
+            filename = "premake5.lua";
+        } else {
+            spdlog::warn("Build system {} not fully supported for modules, using CMake",
+                         to_string(options_.buildSystem));
+            buildContent = getCMakeModulesContent();
+            filename = "CMakeLists.txt";
+        }
+
+        utils::FileUtils::writeToFile(options_.projectName + "/" + filename, buildContent);
+        return true;
+    } catch (const std::exception& e) {
+        spdlog::error("Failed to create build system: {}", e.what());
+        return false;
     }
-
-    utils::FileUtils::writeToFile(options_.projectName + "/" + filename, buildContent);
-    return true;
-  } catch (const std::exception &e) {
-    spdlog::error("Failed to create build system: {}", e.what());
-    return false;
-  }
 }
 
 bool ModulesTemplate::setupPackageManager() {
-  try {
-    if (to_string(options_.packageManager) == "vcpkg") {
-      utils::FileUtils::writeToFile(options_.projectName + "/vcpkg.json", getVcpkgJsonContent());
-    } else if (to_string(options_.packageManager) == "conan") {
-      utils::FileUtils::writeToFile(options_.projectName + "/conanfile.txt", getConanfileContent());
+    try {
+        if (to_string(options_.packageManager) == "vcpkg") {
+            utils::FileUtils::writeToFile(options_.projectName + "/vcpkg.json",
+                                          getVcpkgJsonContent());
+        } else if (to_string(options_.packageManager) == "conan") {
+            utils::FileUtils::writeToFile(options_.projectName + "/conanfile.txt",
+                                          getConanfileContent());
+        }
+        return true;
+    } catch (const std::exception& e) {
+        spdlog::error("Failed to setup package manager: {}", e.what());
+        return false;
     }
-    return true;
-  } catch (const std::exception &e) {
-    spdlog::error("Failed to setup package manager: {}", e.what());
-    return false;
-  }
 }
 
 bool ModulesTemplate::setupTestFramework() {
-  if (!options_.includeTests) {
-    return true;
-  }
-
-  try {
-    std::string testContent;
-
-    if (to_string(options_.testFramework) == "gtest") {
-      testContent = getGTestModulesContent();
-    } else if (to_string(options_.testFramework) == "catch2") {
-      testContent = getCatch2ModulesContent();
-    } else if (to_string(options_.testFramework) == "doctest") {
-      testContent = getDocTestModulesContent();
+    if (!options_.includeTests) {
+        return true;
     }
 
-    if (!testContent.empty()) {
-      utils::FileUtils::writeToFile(options_.projectName + "/tests/test_" + getModuleName() + ".cpp", testContent);
-    }
+    try {
+        std::string testContent;
 
-    return true;
-  } catch (const std::exception &e) {
-    spdlog::error("Failed to setup test framework: {}", e.what());
-    return false;
-  }
+        if (to_string(options_.testFramework) == "gtest") {
+            testContent = getGTestModulesContent();
+        } else if (to_string(options_.testFramework) == "catch2") {
+            testContent = getCatch2ModulesContent();
+        } else if (to_string(options_.testFramework) == "doctest") {
+            testContent = getDocTestModulesContent();
+        }
+
+        if (!testContent.empty()) {
+            utils::FileUtils::writeToFile(
+                    options_.projectName + "/tests/test_" + getModuleName() + ".cpp", testContent);
+        }
+
+        return true;
+    } catch (const std::exception& e) {
+        spdlog::error("Failed to setup test framework: {}", e.what());
+        return false;
+    }
 }
 
 std::string ModulesTemplate::getModuleName() const {
-  return options_.projectName;
+    return options_.projectName;
 }
 
 std::string ModulesTemplate::getCppStandardFlag() const {
-  // C++20 minimum for modules support
-  using namespace cli_enums;
-  if (options_.cppStandard == CppStandard::Cpp23) {
-    return "23";
-  } else if (options_.cppStandard == CppStandard::Cpp20) {
-    return "20";
-  } else {
-    // Force C++20 minimum for modules
-    spdlog::warn("C++ modules require C++20 or later, using C++20");
-    return "20";
-  }
+    // C++20 minimum for modules support
+    using namespace cli_enums;
+    if (options_.cppStandard == CppStandard::Cpp23) {
+        return "23";
+    } else if (options_.cppStandard == CppStandard::Cpp20) {
+        return "20";
+    } else {
+        // Force C++20 minimum for modules
+        spdlog::warn("C++ modules require C++20 or later, using C++20");
+        return "20";
+    }
 }
 
 bool ModulesTemplate::createModuleFiles() {
-  try {
-    // Create module interface file
-    std::string moduleInterface = getModuleInterfaceContent();
-    utils::FileUtils::writeToFile(options_.projectName + "/modules/" + getModuleName() + ".cppm", moduleInterface);
+    try {
+        // Create module interface file
+        std::string moduleInterface = getModuleInterfaceContent();
+        utils::FileUtils::writeToFile(
+                options_.projectName + "/modules/" + getModuleName() + ".cppm", moduleInterface);
 
-    // Create module implementation file
-    std::string moduleImpl = getModuleImplementationContent();
-    utils::FileUtils::writeToFile(options_.projectName + "/src/" + getModuleName() + ".cpp", moduleImpl);
+        // Create module implementation file
+        std::string moduleImpl = getModuleImplementationContent();
+        utils::FileUtils::writeToFile(options_.projectName + "/src/" + getModuleName() + ".cpp",
+                                      moduleImpl);
 
-    return true;
-  } catch (const std::exception &e) {
-    spdlog::error("Failed to create module files: {}", e.what());
-    return false;
-  }
+        return true;
+    } catch (const std::exception& e) {
+        spdlog::error("Failed to create module files: {}", e.what());
+        return false;
+    }
 }
 
 bool ModulesTemplate::createTestModules() {
-  // Test modules will be created by setupTestFramework
-  return true;
+    // Test modules will be created by setupTestFramework
+    return true;
 }
 
 std::string ModulesTemplate::getModuleInterfaceContent() {
-  return fmt::format(R"(// {0} - C++20 Module Interface
+    return fmt::format(R"(// {0} - C++20 Module Interface
 // Generated by CPP-Scaffold
 
 export module {0};
@@ -234,11 +248,12 @@ export namespace {0} {{
     // Version information
     std::string getVersion();
 }}
-)", getModuleName());
+)",
+                       getModuleName());
 }
 
 std::string ModulesTemplate::getModuleImplementationContent() {
-  return fmt::format(R"(// {0} - C++20 Module Implementation
+    return fmt::format(R"(// {0} - C++20 Module Implementation
 // Generated by CPP-Scaffold
 
 module {0};
@@ -262,11 +277,12 @@ namespace {0} {{
         return "1.0.0";
     }}
 }}
-)", getModuleName());
+)",
+                       getModuleName());
 }
 
 std::string ModulesTemplate::getMainCppContent() {
-  return fmt::format(R"(// {0} - Main Application
+    return fmt::format(R"(// {0} - Main Application
 // Generated by CPP-Scaffold
 
 import {0};
@@ -292,11 +308,13 @@ int main() {{
 
     return 0;
 }}
-)", getModuleName());
+)",
+                       getModuleName());
 }
 
 std::string ModulesTemplate::getReadmeContent() {
-  return fmt::format(R"(# {0}
+    return fmt::format(
+            R"(# {0}
 
 A C++20/C++23 modules-based project created with CPP-Scaffold.
 
@@ -343,33 +361,42 @@ int main() {{
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 )",
-    options_.projectName,
-    to_string(options_.buildSystem),
-    to_string(options_.packageManager),
-    options_.includeTests ? std::string("- Testing with ") + std::string(to_string(options_.testFramework)) : "",
-    to_string(options_.packageManager) != "none" ? std::string("- ") + std::string(to_string(options_.packageManager)) + " package manager" : "",
-    getBuildInstructions(),
-    options_.includeTests ? getTestInstructions() : "");
+            options_.projectName, to_string(options_.buildSystem),
+            to_string(options_.packageManager),
+            options_.includeTests ? std::string("- Testing with ") +
+                                            std::string(to_string(options_.testFramework))
+                                  : "",
+            to_string(options_.packageManager) != "none"
+                    ? std::string("- ") + std::string(to_string(options_.packageManager)) +
+                              " package manager"
+                    : "",
+            getBuildInstructions(), options_.includeTests ? getTestInstructions() : "");
 }
 
 std::string ModulesTemplate::getBuildInstructions() {
-  if (to_string(options_.buildSystem) == "cmake") {
-    return R"(mkdir build && cd build
+    if (to_string(options_.buildSystem) == "cmake") {
+        return R"(mkdir build && cd build
 cmake .. -DCMAKE_CXX_STANDARD=20
 cmake --build .)";
-  } else if (to_string(options_.buildSystem) == "meson") {
-    return R"(meson setup build
+    } else if (to_string(options_.buildSystem) == "meson") {
+        return R"(meson setup build
 cd build && meson compile)";
-  } else if (to_string(options_.buildSystem) == "bazel") {
-    return "bazel build //...";
-  }
-  return std::string("# Build instructions for ") + std::string(to_string(options_.buildSystem));
+    } else if (to_string(options_.buildSystem) == "bazel") {
+        return "bazel build //...";
+    } else if (to_string(options_.buildSystem) == "xmake") {
+        return "xmake";
+    } else if (to_string(options_.buildSystem) == "premake") {
+        return R"(premake5 gmake2
+make config=release)";
+    }
+    return std::string("# Build instructions for ") + std::string(to_string(options_.buildSystem));
 }
 
 std::string ModulesTemplate::getTestInstructions() {
-  if (!options_.includeTests) return "";
+    if (!options_.includeTests)
+        return "";
 
-  return fmt::format(R"(
+    return fmt::format(R"(
 ## Testing
 
 Run tests with:
@@ -377,25 +404,30 @@ Run tests with:
 ```bash
 {0}
 ```
-)", getTestRunCommand());
+)",
+                       getTestRunCommand());
 }
 
 std::string ModulesTemplate::getTestRunCommand() {
-  if (to_string(options_.buildSystem) == "cmake") {
-    return "cd build && ctest";
-  } else if (to_string(options_.buildSystem) == "meson") {
-    return "cd build && meson test";
-  } else if (to_string(options_.buildSystem) == "bazel") {
-    return "bazel test //...";
-  }
-  return std::string("# Test command for ") + std::string(to_string(options_.buildSystem));
+    if (to_string(options_.buildSystem) == "cmake") {
+        return "cd build && ctest";
+    } else if (to_string(options_.buildSystem) == "meson") {
+        return "cd build && meson test";
+    } else if (to_string(options_.buildSystem) == "bazel") {
+        return "bazel test //...";
+    } else if (to_string(options_.buildSystem) == "xmake") {
+        return "xmake test";
+    } else if (to_string(options_.buildSystem) == "premake") {
+        return fmt::format("bin/Release/{}_tests", getModuleName());
+    }
+    return std::string("# Test command for ") + std::string(to_string(options_.buildSystem));
 }
 
 std::string ModulesTemplate::getCMakeModulesContent() {
-  std::string testSection;
-  if (options_.includeTests) {
-    std::string testFramework = std::string(to_string(options_.testFramework));
-    testSection = fmt::format(R"(
+    std::string testSection;
+    if (options_.includeTests) {
+        std::string testFramework = std::string(to_string(options_.testFramework));
+        testSection = fmt::format(R"(
 # Testing
 enable_testing()
 find_package({0} REQUIRED)
@@ -411,11 +443,14 @@ target_link_libraries(test_{1}
 )
 
 add_test(NAME {1}_tests COMMAND test_{1})
-)", testFramework == "gtest" ? "GTest" :
-   testFramework == "catch2" ? "Catch2" : "doctest", getModuleName());
-  }
+)",
+                                  testFramework == "gtest"    ? "GTest"
+                                  : testFramework == "catch2" ? "Catch2"
+                                                              : "doctest",
+                                  getModuleName());
+    }
 
-  return fmt::format(R"(cmake_minimum_required(VERSION 3.28)
+    return fmt::format(R"(cmake_minimum_required(VERSION 3.28)
 project({0} LANGUAGES CXX)
 
 # C++{2} for modules support
@@ -447,14 +482,15 @@ target_link_libraries({0}
 )
 
 {1}
-)", getModuleName(), testSection, getCppStandardFlag());
+)",
+                       getModuleName(), testSection, getCppStandardFlag());
 }
 
 std::string ModulesTemplate::getMesonModulesContent() {
-  std::string testSection;
-  if (options_.includeTests) {
-    std::string testFramework = std::string(to_string(options_.testFramework));
-    testSection = fmt::format(R"(
+    std::string testSection;
+    if (options_.includeTests) {
+        std::string testFramework = std::string(to_string(options_.testFramework));
+        testSection = fmt::format(R"(
 # Testing
 {0}_dep = dependency('{0}')
 
@@ -465,10 +501,11 @@ test_exe = executable('test_{1}',
 )
 
 test('{1}_tests', test_exe)
-)", testFramework, getModuleName());
-  }
+)",
+                                  testFramework, getModuleName());
+    }
 
-  return fmt::format(R"(project('{0}', 'cpp',
+    return fmt::format(R"(project('{0}', 'cpp',
     version: '1.0.0',
     default_options: [
         'cpp_std=c++20',
@@ -492,14 +529,15 @@ executable('{0}',
 )
 
 {1}
-)", getModuleName(), testSection);
+)",
+                       getModuleName(), testSection);
 }
 
 std::string ModulesTemplate::getBazelModulesContent() {
-  std::string testSection;
-  if (options_.includeTests) {
-    std::string testFramework = std::string(to_string(options_.testFramework));
-    testSection = fmt::format(R"(
+    std::string testSection;
+    if (options_.includeTests) {
+        std::string testFramework = std::string(to_string(options_.testFramework));
+        testSection = fmt::format(R"(
 cc_test(
     name = "{0}_test",
     srcs = ["tests/test_{0}.cpp"],
@@ -508,10 +546,11 @@ cc_test(
         "@{1}//:main",
     ],
 )
-)", getModuleName(), testFramework);
-  }
+)",
+                                  getModuleName(), testFramework);
+    }
 
-  return fmt::format(R"(load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+    return fmt::format(R"(load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
 cc_library(
     name = "{0}_module",
@@ -531,11 +570,165 @@ cc_binary(
 )
 
 {1}
-)", getModuleName(), testSection);
+)",
+                       getModuleName(), testSection);
+}
+
+std::string ModulesTemplate::getXMakeModulesContent() {
+    std::string testSection;
+    if (options_.includeTests) {
+        std::string testFramework = std::string(to_string(options_.testFramework));
+        testSection = fmt::format(R"(
+add_requires("{0}")
+
+target("{1}_tests")
+    set_kind("binary")
+    add_files("tests/test_{1}.cpp")
+    add_packages("{0}")
+    add_deps("{1}")
+    set_targetdir("tests/bin")
+    set_languages("c++20")
+)",
+                                  testFramework, getModuleName());
+    }
+
+    return fmt::format(R"(set_project("{0}")
+set_version("1.0.0")
+
+-- Set C++20 standard for modules support
+set_languages("c++20")
+
+-- Add build modes
+add_rules("mode.debug", "mode.release")
+
+-- Module library
+target("{1}")
+    set_kind("static")
+    add_files("modules/{1}.cppm", "src/{1}.cpp")
+    add_headerfiles("include/{1}/*.h")
+    add_includedirs("include", {{public = true}})
+
+    -- Enable C++20 modules
+    set_languages("c++20")
+    add_cxxflags("/experimental:module", {{tools = "cl"}})
+    add_cxxflags("-fmodules-ts", {{tools = "gcc", "clang"}})
+
+    -- Set output directory
+    set_targetdir("lib")
+
+    -- Add compile flags
+    if is_mode("debug") then
+        add_defines("DEBUG")
+        set_symbols("debug")
+        set_optimize("none")
+    elseif is_mode("release") then
+        add_defines("NDEBUG")
+        set_symbols("hidden")
+        set_optimize("fastest")
+    end
+
+-- Main executable
+target("{2}_app")
+    set_kind("binary")
+    add_files("src/main.cpp")
+    add_deps("{3}")
+    set_targetdir("bin")
+    set_languages("c++20")
+    add_cxxflags("/experimental:module", {{tools = "cl"}})
+    add_cxxflags("-fmodules-ts", {{tools = "gcc", "clang"}})
+{4})",
+                       options_.projectName, getModuleName(), options_.projectName, getModuleName(),
+                       testSection);
+}
+
+std::string ModulesTemplate::getPremakeModulesContent() {
+    std::string testSection;
+    if (options_.includeTests) {
+        testSection = fmt::format(R"(
+project "{0}_tests"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++20"
+    targetdir "bin/%{{cfg.buildcfg}}"
+
+    files {{
+        "tests/test_{0}.cpp"
+    }}
+
+    includedirs {{
+        "include"
+    }}
+
+    links {{
+        "{0}"
+    }}
+
+    -- Enable C++20 modules support
+    buildoptions {{ "/experimental:module" }}
+)",
+                                  getModuleName());
+    }
+
+    return fmt::format(R"(workspace "{0}"
+    configurations {{ "Debug", "Release" }}
+    platforms {{ "x64" }}
+
+project "{1}"
+    kind "StaticLib"
+    language "C++"
+    cppdialect "C++20"
+    targetdir "lib/%{{cfg.buildcfg}}"
+
+    files {{
+        "modules/{1}.cppm",
+        "src/{1}.cpp",
+        "include/{1}/*.h"
+    }}
+
+    includedirs {{
+        "include"
+    }}
+
+    -- Enable C++20 modules support
+    buildoptions {{ "/experimental:module" }}
+
+    filter "configurations:Debug"
+        defines {{ "DEBUG" }}
+        symbols "On"
+        optimize "Off"
+
+    filter "configurations:Release"
+        defines {{ "NDEBUG" }}
+        symbols "Off"
+        optimize "Speed"
+
+project "{2}_app"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++20"
+    targetdir "bin/%{{cfg.buildcfg}}"
+
+    files {{
+        "src/main.cpp"
+    }}
+
+    includedirs {{
+        "include"
+    }}
+
+    links {{
+        "{3}"
+    }}
+
+    -- Enable C++20 modules support
+    buildoptions {{ "/experimental:module" }}
+{4})",
+                       options_.projectName, getModuleName(), options_.projectName, getModuleName(),
+                       testSection);
 }
 
 std::string ModulesTemplate::getVcpkgJsonContent() {
-  return fmt::format(R"({{
+    return fmt::format(R"({{
   "name": "{0}",
   "version": "1.0.0",
   "description": "A C++20 modules project",
@@ -543,11 +736,12 @@ std::string ModulesTemplate::getVcpkgJsonContent() {
     "fmt"
   ]
 }}
-)", getModuleName());
+)",
+                       getModuleName());
 }
 
 std::string ModulesTemplate::getConanfileContent() {
-  return R"([requires]
+    return R"([requires]
 fmt/[>=8.0.0]
 
 [generators]
@@ -561,7 +755,7 @@ CMakeToolchain
 }
 
 std::string ModulesTemplate::getGTestModulesContent() {
-  return fmt::format(R"(// Test file for {0} module
+    return fmt::format(R"(// Test file for {0} module
 // Generated by CPP-Scaffold
 
 import {0};
@@ -605,11 +799,12 @@ int main(int argc, char **argv) {{
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }}
-)", getModuleName());
+)",
+                       getModuleName());
 }
 
 std::string ModulesTemplate::getCatch2ModulesContent() {
-  return fmt::format(R"(// Test file for {0} module
+    return fmt::format(R"(// Test file for {0} module
 // Generated by CPP-Scaffold
 
 import {0};
@@ -642,11 +837,12 @@ TEST_CASE("{0} utility functions", "[utilities]") {{
         REQUIRE(version == "1.0.0");
     }}
 }}
-)", getModuleName());
+)",
+                       getModuleName());
 }
 
 std::string ModulesTemplate::getDocTestModulesContent() {
-  return fmt::format(R"(// Test file for {0} module
+    return fmt::format(R"(// Test file for {0} module
 // Generated by CPP-Scaffold
 
 import {0};
@@ -680,5 +876,6 @@ TEST_CASE("testing {0} utility functions") {{
         CHECK(version == "1.0.0");
     }}
 }}
-)", getModuleName());
+)",
+                       getModuleName());
 }

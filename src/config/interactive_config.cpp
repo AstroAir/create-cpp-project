@@ -1,9 +1,13 @@
 ﻿#include "interactive_config.h"
-#include "../utils/terminal_utils.h"
+
 #include <spdlog/spdlog.h>
+
+#include <algorithm>
 #include <iostream>
 #include <limits>
-#include <algorithm>
+#include <sstream>
+
+#include "../utils/terminal_utils.h"
 
 using namespace utils;
 using namespace cli_enums;
@@ -20,16 +24,14 @@ bool InteractiveConfigWizard::runConfigurationWizard() {
     try {
         showWelcomeMessage();
 
-        std::vector<std::string> mainMenuOptions = {
-            "Configure General Settings",
-            "Configure Default Options",
-            "Manage Profiles",
-            "Manage Custom Templates",
-            "Configure Advanced Settings",
-            "View Current Configuration",
-            "Export/Import Configuration",
-            "Exit"
-        };
+        std::vector<std::string> mainMenuOptions = {"Configure General Settings",
+                                                    "Configure Default Options",
+                                                    "Manage Profiles",
+                                                    "Manage Custom Templates",
+                                                    "Configure Advanced Settings",
+                                                    "View Current Configuration",
+                                                    "Export/Import Configuration",
+                                                    "Exit"};
 
         while (s_wizardRunning) {
             int choice = showMenu("Configuration Wizard", mainMenuOptions);
@@ -133,21 +135,28 @@ bool InteractiveConfigWizard::configureDefaultOptions() {
 
     try {
         // Default template type
-        std::vector<std::string> templates = {"console", "lib", "header-only-lib", "multi-executable", "gui", "network"};
-        std::string currentTemplate = prefs.getPreference<std::string>("default.template_type", "console");
-        std::string newTemplate = promptForChoice("Select default template type:", templates, currentTemplate);
+        std::vector<std::string> templates = {"console",          "lib", "header-only-lib",
+                                              "multi-executable", "gui", "network"};
+        std::string currentTemplate =
+                prefs.getPreference<std::string>("default.template_type", "console");
+        std::string newTemplate =
+                promptForChoice("Select default template type:", templates, currentTemplate);
         prefs.setPreference("default.template_type", newTemplate);
 
         // Default build system
         std::vector<std::string> buildSystems = {"cmake", "meson", "bazel", "xmake", "premake"};
-        std::string currentBuild = prefs.getPreference<std::string>("default.build_system", "cmake");
-        std::string newBuild = promptForChoice("Select default build system:", buildSystems, currentBuild);
+        std::string currentBuild =
+                prefs.getPreference<std::string>("default.build_system", "cmake");
+        std::string newBuild =
+                promptForChoice("Select default build system:", buildSystems, currentBuild);
         prefs.setPreference("default.build_system", newBuild);
 
         // Default package manager
         std::vector<std::string> packageManagers = {"vcpkg", "conan", "none"};
-        std::string currentPackage = prefs.getPreference<std::string>("default.package_manager", "vcpkg");
-        std::string newPackage = promptForChoice("Select default package manager:", packageManagers, currentPackage);
+        std::string currentPackage =
+                prefs.getPreference<std::string>("default.package_manager", "vcpkg");
+        std::string newPackage =
+                promptForChoice("Select default package manager:", packageManagers, currentPackage);
         prefs.setPreference("default.package_manager", newPackage);
 
         // Include tests by default
@@ -158,8 +167,10 @@ bool InteractiveConfigWizard::configureDefaultOptions() {
         if (includeTests) {
             // Default test framework
             std::vector<std::string> testFrameworks = {"gtest", "catch2", "doctest", "boost"};
-            std::string currentTest = prefs.getPreference<std::string>("default.test_framework", "gtest");
-            std::string newTest = promptForChoice("Select default test framework:", testFrameworks, currentTest);
+            std::string currentTest =
+                    prefs.getPreference<std::string>("default.test_framework", "gtest");
+            std::string newTest =
+                    promptForChoice("Select default test framework:", testFrameworks, currentTest);
             prefs.setPreference("default.test_framework", newTest);
         }
 
@@ -169,7 +180,8 @@ bool InteractiveConfigWizard::configureDefaultOptions() {
         prefs.setPreference("default.include_documentation", includeDocs);
 
         // Include code style tools by default
-        bool includeCodeStyle = prefs.getPreference<bool>("default.include_code_style_tools", false);
+        bool includeCodeStyle =
+                prefs.getPreference<bool>("default.include_code_style_tools", false);
         includeCodeStyle = promptForBool("Include code style tools by default?", includeCodeStyle);
         prefs.setPreference("default.include_code_style_tools", includeCodeStyle);
 
@@ -193,14 +205,8 @@ bool InteractiveConfigWizard::manageProfiles() {
     showSectionHeader("Profile Management");
 
     std::vector<std::string> profileMenuOptions = {
-        "Create New Profile",
-        "Edit Existing Profile",
-        "Delete Profile",
-        "List All Profiles",
-        "Export Profile",
-        "Import Profile",
-        "Back to Main Menu"
-    };
+            "Create New Profile", "Edit Existing Profile", "Delete Profile",   "List All Profiles",
+            "Export Profile",     "Import Profile",        "Back to Main Menu"};
 
     while (true) {
         int choice = showMenu("Profile Management", profileMenuOptions);
@@ -257,13 +263,16 @@ bool InteractiveConfigWizard::createNewProfile() {
                 continue;
             }
             if (!utils::isValidProfileName(profileName)) {
-                showError("Invalid profile name. Use only alphanumeric characters, underscores, and hyphens.");
+                showError(
+                        "Invalid profile name. Use only alphanumeric characters, underscores, and "
+                        "hyphens.");
                 continue;
             }
 
             // Check if profile already exists
             auto existingProfiles = configManager.listProfiles();
-            if (std::find(existingProfiles.begin(), existingProfiles.end(), profileName) != existingProfiles.end()) {
+            if (std::find(existingProfiles.begin(), existingProfiles.end(), profileName) !=
+                existingProfiles.end()) {
                 showError("Profile '" + profileName + "' already exists.");
                 continue;
             }
@@ -280,7 +289,8 @@ bool InteractiveConfigWizard::createNewProfile() {
         showInfo("Configuring profile '" + profileName + "'...");
 
         // Template type
-        std::vector<std::string> templates = {"console", "lib", "header-only-lib", "multi-executable", "gui", "network"};
+        std::vector<std::string> templates = {"console",          "lib", "header-only-lib",
+                                              "multi-executable", "gui", "network"};
         std::string templateStr = std::string(to_string(options.templateType));
         templateStr = promptForChoice("Template type:", templates, templateStr);
         auto templateType = to_template_type(templateStr);
@@ -319,10 +329,12 @@ bool InteractiveConfigWizard::createNewProfile() {
         }
 
         // Documentation
-        options.includeDocumentation = promptForBool("Include documentation?", options.includeDocumentation);
+        options.includeDocumentation =
+                promptForBool("Include documentation?", options.includeDocumentation);
 
         // Code style tools
-        options.includeCodeStyleTools = promptForBool("Include code style tools?", options.includeCodeStyleTools);
+        options.includeCodeStyleTools =
+                promptForBool("Include code style tools?", options.includeCodeStyleTools);
 
         // Git initialization
         options.initGit = promptForBool("Initialize Git repository?", options.initGit);
@@ -383,8 +395,10 @@ bool InteractiveConfigWizard::editExistingProfile() {
 
         // For brevity, I'll just show a simple example
         options.includeTests = promptForBool("Include tests?", options.includeTests);
-        options.includeDocumentation = promptForBool("Include documentation?", options.includeDocumentation);
-        options.includeCodeStyleTools = promptForBool("Include code style tools?", options.includeCodeStyleTools);
+        options.includeDocumentation =
+                promptForBool("Include documentation?", options.includeDocumentation);
+        options.includeCodeStyleTools =
+                promptForBool("Include code style tools?", options.includeCodeStyleTools);
 
         // Save the updated profile
         if (configManager.saveProfile(profileName, options)) {
@@ -405,7 +419,8 @@ bool InteractiveConfigWizard::editExistingProfile() {
 }
 
 // Helper method implementations
-std::string InteractiveConfigWizard::promptForString(const std::string& prompt, const std::string& defaultValue) {
+std::string InteractiveConfigWizard::promptForString(const std::string& prompt,
+                                                     const std::string& defaultValue) {
     std::cout << prompt;
     if (!defaultValue.empty()) {
         std::cout << " [" << defaultValue << "]";
@@ -437,7 +452,8 @@ bool InteractiveConfigWizard::promptForBool(const std::string& prompt, bool defa
     return (input == "y" || input == "yes" || input == "true" || input == "1");
 }
 
-int InteractiveConfigWizard::promptForInt(const std::string& prompt, int defaultValue, int minValue, int maxValue) {
+int InteractiveConfigWizard::promptForInt(const std::string& prompt, int defaultValue, int minValue,
+                                          int maxValue) {
     while (true) {
         std::cout << prompt;
         if (defaultValue != 0) {
@@ -457,7 +473,8 @@ int InteractiveConfigWizard::promptForInt(const std::string& prompt, int default
             if (value >= minValue && value <= maxValue) {
                 return value;
             } else {
-                showError("Value must be between " + std::to_string(minValue) + " and " + std::to_string(maxValue));
+                showError("Value must be between " + std::to_string(minValue) + " and " +
+                          std::to_string(maxValue));
             }
         } catch (...) {
             showError("Please enter a valid integer.");
@@ -465,7 +482,9 @@ int InteractiveConfigWizard::promptForInt(const std::string& prompt, int default
     }
 }
 
-std::string InteractiveConfigWizard::promptForChoice(const std::string& prompt, const std::vector<std::string>& choices, const std::string& defaultChoice) {
+std::string InteractiveConfigWizard::promptForChoice(const std::string& prompt,
+                                                     const std::vector<std::string>& choices,
+                                                     const std::string& defaultChoice) {
     std::cout << prompt << std::endl;
 
     for (size_t i = 0; i < choices.size(); ++i) {
@@ -503,7 +522,8 @@ std::string InteractiveConfigWizard::promptForChoice(const std::string& prompt, 
     }
 }
 
-std::vector<std::string> InteractiveConfigWizard::promptForMultiChoice(const std::string& prompt, const std::vector<std::string>& choices) {
+std::vector<std::string> InteractiveConfigWizard::promptForMultiChoice(
+        const std::string& prompt, const std::vector<std::string>& choices) {
     std::cout << prompt << std::endl;
     std::cout << "Enter multiple choices separated by commas (e.g., 1,3,5):" << std::endl;
 
@@ -554,14 +574,38 @@ std::vector<std::string> InteractiveConfigWizard::promptForMultiChoice(const std
 
 void InteractiveConfigWizard::showWelcomeMessage() {
     clearScreen();
-    std::cout << TerminalUtils::colorize("╔══════════════════════════════════════════════════════════════╗", Color::BrightCyan) << std::endl;
-    std::cout << TerminalUtils::colorize("║                                                              ║", Color::BrightCyan) << std::endl;
-    std::cout << TerminalUtils::colorize("║              CPP-Scaffold Configuration Wizard              ║", Color::BrightCyan) << std::endl;
-    std::cout << TerminalUtils::colorize("║                                                              ║", Color::BrightCyan) << std::endl;
-    std::cout << TerminalUtils::colorize("║  Welcome! This wizard will help you configure CPP-Scaffold  ║", Color::BrightCyan) << std::endl;
-    std::cout << TerminalUtils::colorize("║  to match your preferences and development workflow.        ║", Color::BrightCyan) << std::endl;
-    std::cout << TerminalUtils::colorize("║                                                              ║", Color::BrightCyan) << std::endl;
-    std::cout << TerminalUtils::colorize("╚══════════════════════════════════════════════════════════════╝", Color::BrightCyan) << std::endl;
+    std::cout << TerminalUtils::colorize(
+                         "╔══════════════════════════════════════════════════════════════╗",
+                         Color::BrightCyan)
+              << std::endl;
+    std::cout << TerminalUtils::colorize(
+                         "║                                                              ║",
+                         Color::BrightCyan)
+              << std::endl;
+    std::cout << TerminalUtils::colorize(
+                         "║              CPP-Scaffold Configuration Wizard              ║",
+                         Color::BrightCyan)
+              << std::endl;
+    std::cout << TerminalUtils::colorize(
+                         "║                                                              ║",
+                         Color::BrightCyan)
+              << std::endl;
+    std::cout << TerminalUtils::colorize(
+                         "║  Welcome! This wizard will help you configure CPP-Scaffold  ║",
+                         Color::BrightCyan)
+              << std::endl;
+    std::cout << TerminalUtils::colorize(
+                         "║  to match your preferences and development workflow.        ║",
+                         Color::BrightCyan)
+              << std::endl;
+    std::cout << TerminalUtils::colorize(
+                         "║                                                              ║",
+                         Color::BrightCyan)
+              << std::endl;
+    std::cout << TerminalUtils::colorize(
+                         "╚══════════════════════════════════════════════════════════════╝",
+                         Color::BrightCyan)
+              << std::endl;
     std::cout << std::endl;
 }
 
@@ -572,25 +616,49 @@ void InteractiveConfigWizard::showConfigurationSummary() {
     auto& configManager = ConfigManager::getInstance();
 
     std::cout << TerminalUtils::colorize("General Settings:", Color::BrightYellow) << std::endl;
-    std::cout << "  Auto Save: " << (prefs.getPreference<bool>("general.auto_save", true) ? "Enabled" : "Disabled") << std::endl;
-    std::cout << "  Verbose Logging: " << (prefs.getPreference<bool>("general.verbose_logging", false) ? "Enabled" : "Disabled") << std::endl;
-    std::cout << "  Check Updates: " << (prefs.getPreference<bool>("general.check_for_updates", true) ? "Enabled" : "Disabled") << std::endl;
-    std::cout << "  Default Language: " << prefs.getPreference<std::string>("default.language", "en") << std::endl;
+    std::cout << "  Auto Save: "
+              << (prefs.getPreference<bool>("general.auto_save", true) ? "Enabled" : "Disabled")
+              << std::endl;
+    std::cout << "  Verbose Logging: "
+              << (prefs.getPreference<bool>("general.verbose_logging", false) ? "Enabled"
+                                                                              : "Disabled")
+              << std::endl;
+    std::cout << "  Check Updates: "
+              << (prefs.getPreference<bool>("general.check_for_updates", true) ? "Enabled"
+                                                                               : "Disabled")
+              << std::endl;
+    std::cout << "  Default Language: "
+              << prefs.getPreference<std::string>("default.language", "en") << std::endl;
     std::cout << std::endl;
 
-    std::cout << TerminalUtils::colorize("Default Project Options:", Color::BrightYellow) << std::endl;
-    std::cout << "  Template Type: " << prefs.getPreference<std::string>("default.template_type", "console") << std::endl;
-    std::cout << "  Build System: " << prefs.getPreference<std::string>("default.build_system", "cmake") << std::endl;
-    std::cout << "  Package Manager: " << prefs.getPreference<std::string>("default.package_manager", "vcpkg") << std::endl;
-    std::cout << "  Include Tests: " << (prefs.getPreference<bool>("default.include_tests", false) ? "Yes" : "No") << std::endl;
-    std::cout << "  Test Framework: " << prefs.getPreference<std::string>("default.test_framework", "gtest") << std::endl;
-    std::cout << "  Include Documentation: " << (prefs.getPreference<bool>("default.include_documentation", false) ? "Yes" : "No") << std::endl;
-    std::cout << "  Include Code Style Tools: " << (prefs.getPreference<bool>("default.include_code_style_tools", false) ? "Yes" : "No") << std::endl;
-    std::cout << "  Initialize Git: " << (prefs.getPreference<bool>("default.init_git", true) ? "Yes" : "No") << std::endl;
+    std::cout << TerminalUtils::colorize("Default Project Options:", Color::BrightYellow)
+              << std::endl;
+    std::cout << "  Template Type: "
+              << prefs.getPreference<std::string>("default.template_type", "console") << std::endl;
+    std::cout << "  Build System: "
+              << prefs.getPreference<std::string>("default.build_system", "cmake") << std::endl;
+    std::cout << "  Package Manager: "
+              << prefs.getPreference<std::string>("default.package_manager", "vcpkg") << std::endl;
+    std::cout << "  Include Tests: "
+              << (prefs.getPreference<bool>("default.include_tests", false) ? "Yes" : "No")
+              << std::endl;
+    std::cout << "  Test Framework: "
+              << prefs.getPreference<std::string>("default.test_framework", "gtest") << std::endl;
+    std::cout << "  Include Documentation: "
+              << (prefs.getPreference<bool>("default.include_documentation", false) ? "Yes" : "No")
+              << std::endl;
+    std::cout << "  Include Code Style Tools: "
+              << (prefs.getPreference<bool>("default.include_code_style_tools", false) ? "Yes"
+                                                                                       : "No")
+              << std::endl;
+    std::cout << "  Initialize Git: "
+              << (prefs.getPreference<bool>("default.init_git", true) ? "Yes" : "No") << std::endl;
     std::cout << std::endl;
 
     auto profiles = configManager.listProfiles();
-    std::cout << TerminalUtils::colorize("Profiles (" + std::to_string(profiles.size()) + "):", Color::BrightYellow) << std::endl;
+    std::cout << TerminalUtils::colorize("Profiles (" + std::to_string(profiles.size()) + "):",
+                                         Color::BrightYellow)
+              << std::endl;
     for (const auto& profile : profiles) {
         std::cout << "  - " << profile << std::endl;
     }
@@ -614,22 +682,30 @@ void InteractiveConfigWizard::showProfilesSummary() {
         if (optionsOpt) {
             const auto& options = *optionsOpt;
             std::cout << std::endl;
-            std::cout << TerminalUtils::colorize("Profile: " + profileName, Color::BrightCyan) << std::endl;
-            std::cout << "  Template: " << std::string(to_string(options.templateType)) << std::endl;
-            std::cout << "  Build System: " << std::string(to_string(options.buildSystem)) << std::endl;
-            std::cout << "  Package Manager: " << std::string(to_string(options.packageManager)) << std::endl;
+            std::cout << TerminalUtils::colorize("Profile: " + profileName, Color::BrightCyan)
+                      << std::endl;
+            std::cout << "  Template: " << std::string(to_string(options.templateType))
+                      << std::endl;
+            std::cout << "  Build System: " << std::string(to_string(options.buildSystem))
+                      << std::endl;
+            std::cout << "  Package Manager: " << std::string(to_string(options.packageManager))
+                      << std::endl;
             std::cout << "  Tests: " << (options.includeTests ? "Yes" : "No") << std::endl;
             if (options.includeTests) {
-                std::cout << "  Test Framework: " << std::string(to_string(options.testFramework)) << std::endl;
+                std::cout << "  Test Framework: " << std::string(to_string(options.testFramework))
+                          << std::endl;
             }
-            std::cout << "  Documentation: " << (options.includeDocumentation ? "Yes" : "No") << std::endl;
-            std::cout << "  Code Style Tools: " << (options.includeCodeStyleTools ? "Yes" : "No") << std::endl;
+            std::cout << "  Documentation: " << (options.includeDocumentation ? "Yes" : "No")
+                      << std::endl;
+            std::cout << "  Code Style Tools: " << (options.includeCodeStyleTools ? "Yes" : "No")
+                      << std::endl;
             std::cout << "  Git Init: " << (options.initGit ? "Yes" : "No") << std::endl;
         }
     }
 }
 
-int InteractiveConfigWizard::showMenu(const std::string& title, const std::vector<std::string>& options) {
+int InteractiveConfigWizard::showMenu(const std::string& title,
+                                      const std::vector<std::string>& options) {
     std::cout << std::endl;
     std::cout << TerminalUtils::colorize("=== " + title + " ===", Color::BrightCyan) << std::endl;
     std::cout << std::endl;
@@ -662,13 +738,17 @@ int InteractiveConfigWizard::showMenu(const std::string& title, const std::vecto
 void InteractiveConfigWizard::showSectionHeader(const std::string& title) {
     s_currentSection = title;
     std::cout << std::endl;
-    std::cout << TerminalUtils::colorize("+- " + title + " " + std::string(50 - title.length(), '-') + "+", Color::BrightGreen) << std::endl;
+    std::cout << TerminalUtils::colorize(
+                         "+- " + title + " " + std::string(50 - title.length(), '-') + "+",
+                         Color::BrightGreen)
+              << std::endl;
     std::cout << std::endl;
 }
 
 void InteractiveConfigWizard::showSectionFooter() {
     std::cout << std::endl;
-    std::cout << TerminalUtils::colorize("+" + std::string(52, '-') + "+", Color::BrightGreen) << std::endl;
+    std::cout << TerminalUtils::colorize("+" + std::string(52, '-') + "+", Color::BrightGreen)
+              << std::endl;
     s_currentSection = "";
 }
 
@@ -724,12 +804,8 @@ bool InteractiveConfigWizard::manageCustomTemplates() {
     showSectionHeader("Custom Template Management");
 
     std::vector<std::string> templateMenuOptions = {
-        "Create New Custom Template",
-        "Import Custom Template",
-        "List Custom Templates",
-        "Delete Custom Template",
-        "Back to Main Menu"
-    };
+            "Create New Custom Template", "Import Custom Template", "List Custom Templates",
+            "Delete Custom Template", "Back to Main Menu"};
 
     while (true) {
         int choice = showMenu("Custom Template Management", templateMenuOptions);
@@ -777,4 +853,4 @@ bool InteractiveConfigWizard::configureAdvancedSettings() {
     return true;
 }
 
-} // namespace config
+}  // namespace config

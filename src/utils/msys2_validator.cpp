@@ -7,6 +7,13 @@
 #include <regex>
 #include <sstream>
 
+#ifdef _WIN32
+#include <io.h>
+#include <windows.h>
+#define popen _popen
+#define pclose _pclose
+#endif
+
 #include "file_utils.h"
 #include "terminal_utils.h"
 

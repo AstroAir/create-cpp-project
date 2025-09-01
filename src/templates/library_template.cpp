@@ -1,327 +1,325 @@
 ﻿#include "library_template.h"
 
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/spdlog.h>
+
+#include <iostream>
+
 #include "../utils/file_utils.h"
 #include "../utils/string_utils.h"
-
-#include <fmt/core.h>
-#include <iostream>
-#include <spdlog/spdlog.h>
 
 using namespace utils;
 using namespace cli_enums;
 
-LibraryTemplate::LibraryTemplate(const CliOptions &options)
-    : TemplateBase(options) {}
+LibraryTemplate::LibraryTemplate(const CliOptions& options) : TemplateBase(options) {}
 
 bool LibraryTemplate::create() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // 检查项目目录是否已存在
-  if (FileUtils::directoryExists(projectPath)) {
-    spdlog::error("Directory '{}' already exists.", projectPath);
-    return false;
-  }
-
-  spdlog::info("🚀 Creating library project...");
-
-  // 创建基本结构
-  if (!createProjectStructure()) {
-    spdlog::error("Failed to create project structure");
-    return false;
-  }
-  spdlog::info("✅ Project structure created");
-
-  // 创建构建系统
-  if (!createBuildSystem()) {
-    spdlog::error("Failed to configure build system");
-    return false;
-  }
-  spdlog::info("✅ Build system configured");
-
-  // 设置包管理器
-  if (!setupPackageManager()) {
-    spdlog::error("Failed to setup package manager");
-    return false;
-  }
-  spdlog::info("✅ Package manager setup");
-
-  // 设置测试框架
-  if (options_.includeTests) {
-    if (!setupTestFramework()) {
-      spdlog::error("Failed to setup test framework");
-      return false;
+    // 检查项目目录是否已存在
+    if (FileUtils::directoryExists(projectPath)) {
+        spdlog::error("Directory '{}' already exists.", projectPath);
+        return false;
     }
-    spdlog::info("✅ Test framework configured");
-  }
 
-  // 设置文档
-  if (setupDocumentation()) {
-    spdlog::info("✅ Documentation setup");
-  }
+    spdlog::info("🚀 Creating library project...");
 
-  // 设置CI/CD
-  if (setupContinuousIntegration()) {
-    spdlog::info("✅ CI/CD configuration setup");
-  }
-
-  // 设置代码格式化
-  if (setupCodeFormatting()) {
-    spdlog::info("✅ Code formatting setup");
-  }
-
-  // 设置基准测试
-  if (setupBenchmarking()) {
-    spdlog::info("✅ Benchmarking setup");
-  }
-
-  // 设置版本控制
-  if (setupVersionControl()) {
-    spdlog::info("✅ Version control setup");
-  }
-
-  // 初始化Git
-  if (options_.initGit) {
-    if (!initializeGit(projectPath)) {
-      spdlog::error("Failed to initialize Git repository");
-      return false;
+    // 创建基本结构
+    if (!createProjectStructure()) {
+        spdlog::error("Failed to create project structure");
+        return false;
     }
-    spdlog::info("✅ Git repository initialized");
-  }
+    spdlog::info("✅ Project structure created");
 
-  spdlog::info("\nYour library project is ready!\n");
+    // 创建构建系统
+    if (!createBuildSystem()) {
+        spdlog::error("Failed to configure build system");
+        return false;
+    }
+    spdlog::info("✅ Build system configured");
 
-  // 打印使用说明
-  std::cout << fmt::format("cd {}\n", options_.projectName);
+    // 设置包管理器
+    if (!setupPackageManager()) {
+        spdlog::error("Failed to setup package manager");
+        return false;
+    }
+    spdlog::info("✅ Package manager setup");
 
-  if (to_string(options_.buildSystem) == "cmake") {
-    std::cout << "mkdir build && cd build\n";
-    std::cout << "cmake ..\n";
-    std::cout << "make\n";
-  } else if (to_string(options_.buildSystem) == "meson") {
-    std::cout << "meson setup build\n";
-    std::cout << "cd build\n";
-    std::cout << "meson compile\n";
-  } else if (to_string(options_.buildSystem) == "bazel") {
-    std::cout << "bazel build //...\n";
-  }
+    // 设置测试框架
+    if (options_.includeTests) {
+        if (!setupTestFramework()) {
+            spdlog::error("Failed to setup test framework");
+            return false;
+        }
+        spdlog::info("✅ Test framework configured");
+    }
 
-  std::cout << "\nHappy coding! 🎉\n";
+    // 设置文档
+    if (setupDocumentation()) {
+        spdlog::info("✅ Documentation setup");
+    }
 
-  return true;
+    // 设置CI/CD
+    if (setupContinuousIntegration()) {
+        spdlog::info("✅ CI/CD configuration setup");
+    }
+
+    // 设置代码格式化
+    if (setupCodeFormatting()) {
+        spdlog::info("✅ Code formatting setup");
+    }
+
+    // 设置基准测试
+    if (setupBenchmarking()) {
+        spdlog::info("✅ Benchmarking setup");
+    }
+
+    // 设置版本控制
+    if (setupVersionControl()) {
+        spdlog::info("✅ Version control setup");
+    }
+
+    // 初始化Git
+    if (options_.initGit) {
+        if (!initializeGit(projectPath)) {
+            spdlog::error("Failed to initialize Git repository");
+            return false;
+        }
+        spdlog::info("✅ Git repository initialized");
+    }
+
+    spdlog::info("\nYour library project is ready!\n");
+
+    // 打印使用说明
+    std::cout << fmt::format("cd {}\n", options_.projectName);
+
+    if (to_string(options_.buildSystem) == "cmake") {
+        std::cout << "mkdir build && cd build\n";
+        std::cout << "cmake ..\n";
+        std::cout << "make\n";
+    } else if (to_string(options_.buildSystem) == "meson") {
+        std::cout << "meson setup build\n";
+        std::cout << "cd build\n";
+        std::cout << "meson compile\n";
+    } else if (to_string(options_.buildSystem) == "bazel") {
+        std::cout << "bazel build //...\n";
+    }
+
+    std::cout << "\nHappy coding! 🎉\n";
+
+    return true;
 }
 
 bool LibraryTemplate::createProjectStructure() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // 创建主目录
-  if (!FileUtils::createDirectory(projectPath)) {
-    return false;
-  }
+    // 创建主目录
+    if (!FileUtils::createDirectory(projectPath)) {
+        return false;
+    }
 
-  // 创建src目录
-  std::string srcPath = FileUtils::combinePath(projectPath, "src");
-  if (!FileUtils::createDirectory(srcPath)) {
-    return false;
-  }
+    // 创建src目录
+    std::string srcPath = FileUtils::combinePath(projectPath, "src");
+    if (!FileUtils::createDirectory(srcPath)) {
+        return false;
+    }
 
-  // 创建include目录
-  std::string includePath = FileUtils::combinePath(projectPath, "include");
-  if (!FileUtils::createDirectory(includePath)) {
-    return false;
-  }
+    // 创建include目录
+    std::string includePath = FileUtils::combinePath(projectPath, "include");
+    if (!FileUtils::createDirectory(includePath)) {
+        return false;
+    }
 
-  // 创建include/project目录
-  std::string includeProjectPath =
-      FileUtils::combinePath(includePath, options_.projectName);
-  if (!FileUtils::createDirectory(includeProjectPath)) {
-    return false;
-  }
+    // 创建include/project目录
+    std::string includeProjectPath = FileUtils::combinePath(includePath, options_.projectName);
+    if (!FileUtils::createDirectory(includeProjectPath)) {
+        return false;
+    }
 
-  // 创建example目录
-  std::string examplePath = FileUtils::combinePath(projectPath, "example");
-  if (!FileUtils::createDirectory(examplePath)) {
-    return false;
-  }
+    // 创建example目录
+    std::string examplePath = FileUtils::combinePath(projectPath, "example");
+    if (!FileUtils::createDirectory(examplePath)) {
+        return false;
+    }
 
-  // 写入源文件
-  if (!FileUtils::writeToFile(
-          FileUtils::combinePath(srcPath,
-                                 fmt::format("{}.cpp", options_.projectName)),
-          getLibraryCppContent())) {
-    return false;
-  }
+    // 写入源文件
+    if (!FileUtils::writeToFile(
+                FileUtils::combinePath(srcPath, fmt::format("{}.cpp", options_.projectName)),
+                getLibraryCppContent())) {
+        return false;
+    }
 
-  // 写入版本头文件
-  if (!FileUtils::writeToFile(
-          FileUtils::combinePath(includeProjectPath, "version.h"),
-          getVersionHeaderContent())) {
-    return false;
-  }
+    // 写入版本头文件
+    if (!FileUtils::writeToFile(FileUtils::combinePath(includeProjectPath, "version.h"),
+                                getVersionHeaderContent())) {
+        return false;
+    }
 
-  // 写入头文件
-  if (!FileUtils::writeToFile(
-          FileUtils::combinePath(includeProjectPath,
-                                 fmt::format("{}.h", options_.projectName)),
-          getLibraryHeaderContent())) {
-    return false;
-  }
+    // 写入头文件
+    if (!FileUtils::writeToFile(FileUtils::combinePath(includeProjectPath,
+                                                       fmt::format("{}.h", options_.projectName)),
+                                getLibraryHeaderContent())) {
+        return false;
+    }
 
-  // 写入示例文件
-  if (!FileUtils::writeToFile(
-          FileUtils::combinePath(examplePath, "example.cpp"),
-          getExampleContent())) {
-    return false;
-  }
+    // 写入示例文件
+    if (!FileUtils::writeToFile(FileUtils::combinePath(examplePath, "example.cpp"),
+                                getExampleContent())) {
+        return false;
+    }
 
-  // 创建README.md
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "README.md"),
-                              getReadmeContent())) {
-    return false;
-  }
+    // 创建README.md
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "README.md"),
+                                getReadmeContent())) {
+        return false;
+    }
 
-  // 创建LICENSE
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "LICENSE"),
-                              getLicenseContent("MIT"))) {
-    return false;
-  }
+    // 创建LICENSE
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "LICENSE"),
+                                getLicenseContent("MIT"))) {
+        return false;
+    }
 
-  // 创建安装脚本
-  std::string installScriptPath =
-      FileUtils::combinePath(projectPath, "install.sh");
-  if (!FileUtils::writeToFile(installScriptPath, getInstallScriptContent())) {
-    return false;
-  }
+    // 创建安装脚本
+    std::string installScriptPath = FileUtils::combinePath(projectPath, "install.sh");
+    if (!FileUtils::writeToFile(installScriptPath, getInstallScriptContent())) {
+        return false;
+    }
 
 // 使安装脚本可执行
 #ifndef _WIN32
-  std::string chmodCmd = fmt::format("chmod +x {}", installScriptPath);
-  std::system(chmodCmd.c_str());
+    std::string chmodCmd = fmt::format("chmod +x {}", installScriptPath);
+    std::system(chmodCmd.c_str());
 #endif
 
-  return true;
+    return true;
 }
 
 bool LibraryTemplate::createBuildSystem() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  if (to_string(options_.buildSystem) == "cmake") {
-    // 创建CMakeLists.txt
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "CMakeLists.txt"),
-            getCMakeContent())) {
-      return false;
-    }
+    if (to_string(options_.buildSystem) == "cmake") {
+        // 创建CMakeLists.txt
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "CMakeLists.txt"),
+                                    getCMakeContent())) {
+            return false;
+        }
 
-    // 创建cmake目录用于config文件
-    std::string cmakePath = FileUtils::combinePath(projectPath, "cmake");
-    if (!FileUtils::createDirectory(cmakePath)) {
-      return false;
-    }
+        // 创建cmake目录用于config文件
+        std::string cmakePath = FileUtils::combinePath(projectPath, "cmake");
+        if (!FileUtils::createDirectory(cmakePath)) {
+            return false;
+        }
 
-    // 创建config模板
-    std::string configTemplate =
-        fmt::format(R"(
+        // 创建config模板
+        std::string configTemplate = fmt::format(R"(
 @PACKAGE_INIT@
 
 include("${{CMAKE_CURRENT_LIST_DIR}}/{}Targets.cmake")
 
 check_required_components({})
 )",
-                    options_.projectName, options_.projectName);
+                                                 options_.projectName, options_.projectName);
 
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(
-                cmakePath,
-                fmt::format("{}Config.cmake.in", options_.projectName)),
-            configTemplate)) {
-      return false;
+        if (!FileUtils::writeToFile(
+                    FileUtils::combinePath(cmakePath,
+                                           fmt::format("{}Config.cmake.in", options_.projectName)),
+                    configTemplate)) {
+            return false;
+        }
+
+    } else if (to_string(options_.buildSystem) == "meson") {
+        // 创建meson.build
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "meson.build"),
+                                    getMesonContent())) {
+            return false;
+        }
+    } else if (to_string(options_.buildSystem) == "bazel") {
+        // 创建WORKSPACE和BUILD文件
+        if (!FileUtils::writeToFile(
+                    FileUtils::combinePath(projectPath, "WORKSPACE"),
+                    fmt::format("workspace(name = \"{}\")\n", options_.projectName))) {
+            return false;
+        }
+
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "BUILD"),
+                                    getBazelContent())) {
+            return false;
+        }
+    } else if (to_string(options_.buildSystem) == "xmake") {
+        // 创建xmake.lua
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "xmake.lua"),
+                                    getXMakeContent())) {
+            return false;
+        }
+    } else if (to_string(options_.buildSystem) == "premake") {
+        // 创建premake5.lua
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "premake5.lua"),
+                                    getPremakeContent())) {
+            return false;
+        }
     }
 
-  } else if (to_string(options_.buildSystem) == "meson") {
-    // 创建meson.build
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "meson.build"),
-            getMesonContent())) {
-      return false;
-    }
-  } else if (to_string(options_.buildSystem) == "bazel") {
-    // 创建WORKSPACE和BUILD文件
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "WORKSPACE"),
-            fmt::format("workspace(name = \"{}\")\n", options_.projectName))) {
-      return false;
-    }
-
-    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "BUILD"),
-                                getBazelContent())) {
-      return false;
-    }
-  }
-
-  return true;
+    return true;
 }
 
 bool LibraryTemplate::setupPackageManager() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  if (to_string(options_.packageManager) == "vcpkg") {
-    // 创建vcpkg.json
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "vcpkg.json"),
-            getVcpkgJsonContent())) {
-      return false;
+    if (to_string(options_.packageManager) == "vcpkg") {
+        // 创建vcpkg.json
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "vcpkg.json"),
+                                    getVcpkgJsonContent())) {
+            return false;
+        }
+    } else if (to_string(options_.packageManager) == "conan") {
+        // 创建conanfile.txt
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "conanfile.txt"),
+                                    getConanfileContent())) {
+            return false;
+        }
+    } else if (to_string(options_.packageManager) == "msys2") {
+        // 创建PKGBUILD
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "PKGBUILD"),
+                                    getMSYS2PKGBUILDContent())) {
+            return false;
+        }
     }
-  } else if (to_string(options_.packageManager) == "conan") {
-    // 创建conanfile.txt
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "conanfile.txt"),
-            getConanfileContent())) {
-      return false;
-    }
-  } else if (to_string(options_.packageManager) == "msys2") {
-    // 创建PKGBUILD
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "PKGBUILD"),
-            getMSYS2PKGBUILDContent())) {
-      return false;
-    }
-  }
 
-  return true;
+    return true;
 }
 
 bool LibraryTemplate::setupTestFramework() {
-  if (!options_.includeTests) {
-    return true;
-  }
+    if (!options_.includeTests) {
+        return true;
+    }
 
-  std::string projectPath = options_.projectName;
-  std::string testsPath = FileUtils::combinePath(projectPath, "tests");
+    std::string projectPath = options_.projectName;
+    std::string testsPath = FileUtils::combinePath(projectPath, "tests");
 
-  if (!FileUtils::createDirectory(testsPath)) {
-    return false;
-  }
+    if (!FileUtils::createDirectory(testsPath)) {
+        return false;
+    }
 
-  std::string testContent;
-  if (to_string(options_.testFramework) == "gtest") {
-    testContent = getGTestContent();
-  } else if (to_string(options_.testFramework) == "catch2") {
-    testContent = getCatch2Content();
-  } else if (to_string(options_.testFramework) == "doctest") {
-    testContent = getDocTestContent();
-  }
-
-  std::string testFileName = fmt::format("test_{}.cpp", options_.projectName);
-  if (!FileUtils::writeToFile(FileUtils::combinePath(testsPath, testFileName),
-                              testContent)) {
-    return false;
-  }
-
-  // 更新构建系统以包含测试
-  if (to_string(options_.buildSystem) == "cmake") {
-    std::string testCmakeContent;
+    std::string testContent;
     if (to_string(options_.testFramework) == "gtest") {
-      testCmakeContent = fmt::format(R"(
+        testContent = getGTestContent();
+    } else if (to_string(options_.testFramework) == "catch2") {
+        testContent = getCatch2Content();
+    } else if (to_string(options_.testFramework) == "doctest") {
+        testContent = getDocTestContent();
+    }
+
+    std::string testFileName = fmt::format("test_{}.cpp", options_.projectName);
+    if (!FileUtils::writeToFile(FileUtils::combinePath(testsPath, testFileName), testContent)) {
+        return false;
+    }
+
+    // 更新构建系统以包含测试
+    if (to_string(options_.buildSystem) == "cmake") {
+        std::string testCmakeContent;
+        if (to_string(options_.testFramework) == "gtest") {
+            testCmakeContent = fmt::format(R"(
 find_package(GTest REQUIRED)
 add_executable(${{PROJECT_NAME}}_tests {})
 target_link_libraries(${{PROJECT_NAME}}_tests PRIVATE
@@ -331,9 +329,9 @@ target_link_libraries(${{PROJECT_NAME}}_tests PRIVATE
 )
 add_test(NAME ${{PROJECT_NAME}}_tests COMMAND ${{PROJECT_NAME}}_tests)
 )",
-                                     testFileName);
-    } else if (to_string(options_.testFramework) == "catch2") {
-      testCmakeContent = fmt::format(R"(
+                                           testFileName);
+        } else if (to_string(options_.testFramework) == "catch2") {
+            testCmakeContent = fmt::format(R"(
 find_package(Catch2 REQUIRED)
 add_executable(${{PROJECT_NAME}}_tests {})
 target_link_libraries(${{PROJECT_NAME}}_tests PRIVATE
@@ -342,9 +340,9 @@ target_link_libraries(${{PROJECT_NAME}}_tests PRIVATE
 )
 add_test(NAME ${{PROJECT_NAME}}_tests COMMAND ${{PROJECT_NAME}}_tests)
 )",
-                                     testFileName);
-    } else if (to_string(options_.testFramework) == "doctest") {
-      testCmakeContent = fmt::format(R"(
+                                           testFileName);
+        } else if (to_string(options_.testFramework) == "doctest") {
+            testCmakeContent = fmt::format(R"(
 find_package(doctest REQUIRED)
 add_executable(${{PROJECT_NAME}}_tests {})
 target_link_libraries(${{PROJECT_NAME}}_tests PRIVATE
@@ -353,51 +351,50 @@ target_link_libraries(${{PROJECT_NAME}}_tests PRIVATE
 )
 add_test(NAME ${{PROJECT_NAME}}_tests COMMAND ${{PROJECT_NAME}}_tests)
 )",
-                                     testFileName);
+                                           testFileName);
+        }
+
+        if (!FileUtils::writeToFile(FileUtils::combinePath(testsPath, "CMakeLists.txt"),
+                                    testCmakeContent)) {
+            return false;
+        }
     }
 
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(testsPath, "CMakeLists.txt"),
-            testCmakeContent)) {
-      return false;
-    }
-  }
-
-  return true;
+    return true;
 }
 
 bool LibraryTemplate::setupDocumentation() {
-  std::string projectPath = options_.projectName;
-  std::string docsPath = FileUtils::combinePath(projectPath, "docs");
+    std::string projectPath = options_.projectName;
+    std::string docsPath = FileUtils::combinePath(projectPath, "docs");
 
-  if (!FileUtils::createDirectory(docsPath)) {
-    spdlog::warn("Failed to create documentation directory");
-    return false;
-  }
+    if (!FileUtils::createDirectory(docsPath)) {
+        spdlog::warn("Failed to create documentation directory");
+        return false;
+    }
 
-  // 创建Doxygen配置文件
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "Doxyfile"),
-                              getDoxyfileContent())) {
-    spdlog::warn("Failed to create Doxyfile");
-    return false;
-  }
+    // 创建Doxygen配置文件
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "Doxyfile"),
+                                getDoxyfileContent())) {
+        spdlog::warn("Failed to create Doxyfile");
+        return false;
+    }
 
-  // 创建Sphinx文档
-  std::string sphinxPath = FileUtils::combinePath(docsPath, "sphinx");
-  if (!FileUtils::createDirectory(sphinxPath)) {
-    spdlog::warn("Failed to create Sphinx directory");
-    return false;
-  }
+    // 创建Sphinx文档
+    std::string sphinxPath = FileUtils::combinePath(docsPath, "sphinx");
+    if (!FileUtils::createDirectory(sphinxPath)) {
+        spdlog::warn("Failed to create Sphinx directory");
+        return false;
+    }
 
-  if (!FileUtils::writeToFile(FileUtils::combinePath(sphinxPath, "conf.py"),
-                              getSphinxConfigContent())) {
-    spdlog::warn("Failed to create Sphinx config");
-    return false;
-  }
+    if (!FileUtils::writeToFile(FileUtils::combinePath(sphinxPath, "conf.py"),
+                                getSphinxConfigContent())) {
+        spdlog::warn("Failed to create Sphinx config");
+        return false;
+    }
 
-  // 创建索引文件
-  std::string indexContent =
-      fmt::format(R"(
+    // 创建索引文件
+    std::string indexContent =
+            fmt::format(R"(
 {0} Documentation
 {1}
 
@@ -417,31 +414,29 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`search`
 )",
-                  options_.projectName,
-                  std::string(options_.projectName.length() + 14, '='));
+                        options_.projectName, std::string(options_.projectName.length() + 14, '='));
 
-  if (!FileUtils::writeToFile(FileUtils::combinePath(sphinxPath, "index.rst"),
-                              indexContent)) {
-    spdlog::warn("Failed to create Sphinx index file");
-    return false;
-  }
+    if (!FileUtils::writeToFile(FileUtils::combinePath(sphinxPath, "index.rst"), indexContent)) {
+        spdlog::warn("Failed to create Sphinx index file");
+        return false;
+    }
 
-  // 创建MkDocs配置
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "mkdocs.yml"),
-                              getMkDocsContent())) {
-    spdlog::warn("Failed to create MkDocs config");
-    return false;
-  }
+    // 创建MkDocs配置
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "mkdocs.yml"),
+                                getMkDocsContent())) {
+        spdlog::warn("Failed to create MkDocs config");
+        return false;
+    }
 
-  // 创建markdown文档目录
-  std::string mdPath = FileUtils::combinePath(docsPath, "md");
-  if (!FileUtils::createDirectory(mdPath)) {
-    spdlog::warn("Failed to create Markdown docs directory");
-    return false;
-  }
+    // 创建markdown文档目录
+    std::string mdPath = FileUtils::combinePath(docsPath, "md");
+    if (!FileUtils::createDirectory(mdPath)) {
+        spdlog::warn("Failed to create Markdown docs directory");
+        return false;
+    }
 
-  // 创建索引
-  std::string mdIndexContent = fmt::format(R"(# {0} Documentation
+    // 创建索引
+    std::string mdIndexContent = fmt::format(R"(# {0} Documentation
 
 Welcome to the {0} documentation!
 
@@ -457,101 +452,96 @@ See the [API Reference](api/index.md) for detailed function and class documentat
 
 Check out the [examples](examples/index.md) to see {0} in action.
 )",
-                                           options_.projectName);
+                                             options_.projectName);
 
-  if (!FileUtils::writeToFile(FileUtils::combinePath(mdPath, "index.md"),
-                              mdIndexContent)) {
-    spdlog::warn("Failed to create Markdown index file");
-    return false;
-  }
+    if (!FileUtils::writeToFile(FileUtils::combinePath(mdPath, "index.md"), mdIndexContent)) {
+        spdlog::warn("Failed to create Markdown index file");
+        return false;
+    }
 
-  return true;
+    return true;
 }
 
 bool LibraryTemplate::setupContinuousIntegration() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // 创建GitHub Actions工作流目录
-  std::string githubDir = FileUtils::combinePath(projectPath, ".github");
-  if (!FileUtils::createDirectory(githubDir)) {
-    spdlog::warn("Failed to create .github directory");
-    return false;
-  }
+    // 创建GitHub Actions工作流目录
+    std::string githubDir = FileUtils::combinePath(projectPath, ".github");
+    if (!FileUtils::createDirectory(githubDir)) {
+        spdlog::warn("Failed to create .github directory");
+        return false;
+    }
 
-  std::string workflowsDir = FileUtils::combinePath(githubDir, "workflows");
-  if (!FileUtils::createDirectory(workflowsDir)) {
-    spdlog::warn("Failed to create workflows directory");
-    return false;
-  }
+    std::string workflowsDir = FileUtils::combinePath(githubDir, "workflows");
+    if (!FileUtils::createDirectory(workflowsDir)) {
+        spdlog::warn("Failed to create workflows directory");
+        return false;
+    }
 
-  // 创建GitHub Actions工作流
-  if (!FileUtils::writeToFile(FileUtils::combinePath(workflowsDir, "build.yml"),
-                              getGitHubWorkflowContent(std::string(to_string(options_.buildSystem))))) {
-    spdlog::warn("Failed to create GitHub workflow file");
-    return false;
-  }
+    // 创建GitHub Actions工作流
+    if (!FileUtils::writeToFile(
+                FileUtils::combinePath(workflowsDir, "build.yml"),
+                getGitHubWorkflowContent(std::string(to_string(options_.buildSystem))))) {
+        spdlog::warn("Failed to create GitHub workflow file");
+        return false;
+    }
 
-  // 创建Travis CI配置
-  if (!FileUtils::writeToFile(
-          FileUtils::combinePath(projectPath, ".travis.yml"),
-          getTravisCIContent(std::string(to_string(options_.buildSystem))))) {
-    spdlog::warn("Failed to create Travis CI config");
-    return false;
-  }
+    // 创建Travis CI配置
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, ".travis.yml"),
+                                getTravisCIContent(std::string(to_string(options_.buildSystem))))) {
+        spdlog::warn("Failed to create Travis CI config");
+        return false;
+    }
 
-  // 创建AppVeyor配置
-  if (!FileUtils::writeToFile(
-          FileUtils::combinePath(projectPath, "appveyor.yml"),
-          getAppVeyorContent(std::string(to_string(options_.buildSystem))))) {
-    spdlog::warn("Failed to create AppVeyor config");
-    return false;
-  }
+    // 创建AppVeyor配置
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "appveyor.yml"),
+                                getAppVeyorContent(std::string(to_string(options_.buildSystem))))) {
+        spdlog::warn("Failed to create AppVeyor config");
+        return false;
+    }
 
-  return true;
+    return true;
 }
 
 bool LibraryTemplate::setupCodeFormatting() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // 创建.clang-format文件
-  if (!FileUtils::writeToFile(
-          FileUtils::combinePath(projectPath, ".clang-format"),
-          getClangFormatContent())) {
-    spdlog::warn("Failed to create .clang-format file");
-    return false;
-  }
+    // 创建.clang-format文件
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, ".clang-format"),
+                                getClangFormatContent())) {
+        spdlog::warn("Failed to create .clang-format file");
+        return false;
+    }
 
-  // 创建.clang-tidy文件
-  if (!FileUtils::writeToFile(
-          FileUtils::combinePath(projectPath, ".clang-tidy"),
-          getClangTidyContent())) {
-    spdlog::warn("Failed to create .clang-tidy file");
-    return false;
-  }
+    // 创建.clang-tidy文件
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, ".clang-tidy"),
+                                getClangTidyContent())) {
+        spdlog::warn("Failed to create .clang-tidy file");
+        return false;
+    }
 
-  return true;
+    return true;
 }
 
 bool LibraryTemplate::setupBenchmarking() {
-  std::string projectPath = options_.projectName;
-  std::string benchmarkPath = FileUtils::combinePath(projectPath, "benchmark");
+    std::string projectPath = options_.projectName;
+    std::string benchmarkPath = FileUtils::combinePath(projectPath, "benchmark");
 
-  if (!FileUtils::createDirectory(benchmarkPath)) {
-    spdlog::warn("Failed to create benchmark directory");
-    return false;
-  }
+    if (!FileUtils::createDirectory(benchmarkPath)) {
+        spdlog::warn("Failed to create benchmark directory");
+        return false;
+    }
 
-  // 创建基准测试源文件
-  if (!FileUtils::writeToFile(
-          FileUtils::combinePath(benchmarkPath, "benchmark_main.cpp"),
-          getBenchmarkContent())) {
-    spdlog::warn("Failed to create benchmark source file");
-    return false;
-  }
+    // 创建基准测试源文件
+    if (!FileUtils::writeToFile(FileUtils::combinePath(benchmarkPath, "benchmark_main.cpp"),
+                                getBenchmarkContent())) {
+        spdlog::warn("Failed to create benchmark source file");
+        return false;
+    }
 
-  // 如果使用CMake，创建相应的CMakeLists.txt
-  if (to_string(options_.buildSystem) == "cmake") {
-    std::string benchmarkCmakeContent = R"(
+    // 如果使用CMake，创建相应的CMakeLists.txt
+    if (to_string(options_.buildSystem) == "cmake") {
+        std::string benchmarkCmakeContent = R"(
 find_package(benchmark REQUIRED)
 
 add_executable(${PROJECT_NAME}_benchmark benchmark_main.cpp)
@@ -561,19 +551,17 @@ target_link_libraries(${PROJECT_NAME}_benchmark PRIVATE
 )
 )";
 
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(benchmarkPath, "CMakeLists.txt"),
-            benchmarkCmakeContent)) {
-      spdlog::warn("Failed to create benchmark CMakeLists.txt");
-      return false;
-    }
+        if (!FileUtils::writeToFile(FileUtils::combinePath(benchmarkPath, "CMakeLists.txt"),
+                                    benchmarkCmakeContent)) {
+            spdlog::warn("Failed to create benchmark CMakeLists.txt");
+            return false;
+        }
 
-    // 更新主CMakeLists.txt添加benchmark子目录
-    std::string cmakePath =
-        FileUtils::combinePath(projectPath, "CMakeLists.txt");
-    std::string cmakeContent = FileUtils::readFromFile(cmakePath);
+        // 更新主CMakeLists.txt添加benchmark子目录
+        std::string cmakePath = FileUtils::combinePath(projectPath, "CMakeLists.txt");
+        std::string cmakeContent = FileUtils::readFromFile(cmakePath);
 
-    cmakeContent += R"(
+        cmakeContent += R"(
 # Benchmarking
 option(BUILD_BENCHMARKS "Build benchmarks" OFF)
 if(BUILD_BENCHMARKS)
@@ -581,28 +569,28 @@ if(BUILD_BENCHMARKS)
 endif()
 )";
 
-    if (!FileUtils::writeToFile(cmakePath, cmakeContent)) {
-      spdlog::warn("Failed to update main CMakeLists.txt for benchmarking");
-      return false;
+        if (!FileUtils::writeToFile(cmakePath, cmakeContent)) {
+            spdlog::warn("Failed to update main CMakeLists.txt for benchmarking");
+            return false;
+        }
     }
-  }
 
-  return true;
+    return true;
 }
 
 bool LibraryTemplate::setupVersionControl() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // 创建.gitignore文件
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, ".gitignore"),
-                              getGitignoreContent())) {
-    spdlog::warn("Failed to create .gitignore file");
-    return false;
-  }
+    // 创建.gitignore文件
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, ".gitignore"),
+                                getGitignoreContent())) {
+        spdlog::warn("Failed to create .gitignore file");
+        return false;
+    }
 
-  // 创建.gitattributes文件
-  std::string gitattributesContent =
-      R"(# Auto detect text files and perform LF normalization
+    // 创建.gitattributes文件
+    std::string gitattributesContent =
+            R"(# Auto detect text files and perform LF normalization
 * text=auto
 
 # C++ source files
@@ -625,18 +613,17 @@ WORKSPACE text
 LICENSE text
 )";
 
-  if (!FileUtils::writeToFile(
-          FileUtils::combinePath(projectPath, ".gitattributes"),
-          gitattributesContent)) {
-    spdlog::warn("Failed to create .gitattributes file");
-    return false;
-  }
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, ".gitattributes"),
+                                gitattributesContent)) {
+        spdlog::warn("Failed to create .gitattributes file");
+        return false;
+    }
 
-  return true;
+    return true;
 }
 
 std::string LibraryTemplate::getGitignoreContent() {
-  return R"(# Build directories
+    return R"(# Build directories
 build/
 bin/
 out/
@@ -701,10 +688,9 @@ GoogleTest/
 )";
 }
 
-std::string
-LibraryTemplate::getGitHubWorkflowContent(const std::string &buildSystem) {
-  if (buildSystem == "cmake") {
-    return R"(name: Build and Test
+std::string LibraryTemplate::getGitHubWorkflowContent(const std::string& buildSystem) {
+    if (buildSystem == "cmake") {
+        return R"(name: Build and Test
 
 on:
   push:
@@ -767,8 +753,8 @@ jobs:
       run: |
         ctest -C ${{ matrix.config.build_type }} --output-on-failure
 )";
-  } else if (buildSystem == "meson") {
-    return R"(name: Build and Test
+    } else if (buildSystem == "meson") {
+        return R"(name: Build and Test
 
 on:
   push:
@@ -828,8 +814,8 @@ jobs:
       run: |
         meson test -C build -v
 )";
-  } else { // bazel
-    return R"(name: Build and Test
+    } else {  // bazel
+        return R"(name: Build and Test
 
 on:
   push:
@@ -872,13 +858,12 @@ jobs:
       run: |
         bazel test //...
 )";
-  }
+    }
 }
 
-std::string
-LibraryTemplate::getTravisCIContent(const std::string &buildSystem) {
-  if (buildSystem == "cmake") {
-    return R"(language: cpp
+std::string LibraryTemplate::getTravisCIContent(const std::string& buildSystem) {
+    if (buildSystem == "cmake") {
+        return R"(language: cpp
 sudo: required
 
 matrix:
@@ -924,8 +909,8 @@ script:
   - cmake --build .
   - ctest --output-on-failure
 )";
-  } else if (buildSystem == "meson") {
-    return R"(language: cpp
+    } else if (buildSystem == "meson") {
+        return R"(language: cpp
 sudo: required
 
 matrix:
@@ -974,8 +959,8 @@ script:
   - meson compile -C build
   - meson test -C build -v
 )";
-  } else { // bazel
-    return R"(language: cpp
+    } else {  // bazel
+        return R"(language: cpp
 sudo: required
 
 matrix:
@@ -1010,13 +995,12 @@ script:
   - bazel build //...
   - bazel test //...
 )";
-  }
+    }
 }
 
-std::string
-LibraryTemplate::getAppVeyorContent(const std::string &buildSystem) {
-  if (buildSystem == "cmake") {
-    return R"(image:
+std::string LibraryTemplate::getAppVeyorContent(const std::string& buildSystem) {
+    if (buildSystem == "cmake") {
+        return R"(image:
   - Visual Studio 2022
   - Ubuntu
 
@@ -1072,8 +1056,8 @@ for:
       - cd build
       - ctest --output-on-failure
 )";
-  } else if (buildSystem == "meson") {
-    return R"(image:
+    } else if (buildSystem == "meson") {
+        return R"(image:
   - Visual Studio 2022
   - Ubuntu
 
@@ -1120,8 +1104,8 @@ for:
     test_script:
       - meson test -C build -v
 )";
-  } else { // bazel
-    return R"(image:
+    } else {  // bazel
+        return R"(image:
   - Visual Studio 2022
   - Ubuntu
 
@@ -1163,11 +1147,11 @@ for:
     test_script:
       - bazel test //...
 )";
-  }
+    }
 }
 
 std::string LibraryTemplate::getClangFormatContent() {
-  return R"(---
+    return R"(---
 Language: Cpp
 BasedOnStyle: Google
 AccessModifierOffset: -2
@@ -1317,10 +1301,10 @@ UseTab: Never
 }
 
 std::string LibraryTemplate::getLibraryCppContent() {
-  // 获取项目名称的大写版本（用于头文件保护）
-  std::string projectNameUpper = StringUtils::toUpper(options_.projectName);
+    // 获取项目名称的大写版本（用于头文件保护）
+    std::string projectNameUpper = StringUtils::toUpper(options_.projectName);
 
-  return fmt::format(R"(#include "{0}/{0}.h"
+    return fmt::format(R"(#include "{0}/{0}.h"
 #include "{0}/version.h"
 
 namespace {0} {{
@@ -1347,14 +1331,14 @@ std::string getVersion() {{
 }}
 
 }} // namespace {0})",
-                     options_.projectName);
+                       options_.projectName);
 }
 
 std::string LibraryTemplate::getLibraryHeaderContent() {
-  // 获取项目名称的大写版本（用于头文件保护）
-  std::string projectNameUpper = StringUtils::toUpper(options_.projectName);
+    // 获取项目名称的大写版本（用于头文件保护）
+    std::string projectNameUpper = StringUtils::toUpper(options_.projectName);
 
-  return fmt::format(R"(#ifndef {1}_H
+    return fmt::format(R"(#ifndef {1}_H
 #define {1}_H
 
 #include <string>
@@ -1383,13 +1367,13 @@ std::string getVersion();
 
 #endif // {1}_H
 )",
-                     options_.projectName, projectNameUpper);
+                       options_.projectName, projectNameUpper);
 }
 
 std::string LibraryTemplate::getVersionHeaderContent() {
-  std::string projectNameUpper = StringUtils::toUpper(options_.projectName);
+    std::string projectNameUpper = StringUtils::toUpper(options_.projectName);
 
-  return fmt::format(R"(#ifndef {1}_VERSION_H
+    return fmt::format(R"(#ifndef {1}_VERSION_H
 #define {1}_VERSION_H
 
 #define VERSION_MAJOR 0
@@ -1400,53 +1384,60 @@ std::string LibraryTemplate::getVersionHeaderContent() {
 
 #endif // {1}_VERSION_H
 )",
-                     options_.projectName, projectNameUpper);
+                       options_.projectName, projectNameUpper);
 }
 
 std::string LibraryTemplate::getReadmeContent() {
-  std::string packageManagerInfo =
-      to_string(options_.packageManager) != "none"
-          ? fmt::format("- {} package manager\n", options_.packageManager)
-          : "";
+    std::string packageManagerInfo =
+            to_string(options_.packageManager) != "none"
+                    ? fmt::format("- {} package manager\n", options_.packageManager)
+                    : "";
 
-  std::string buildInstructions;
-  if (to_string(options_.buildSystem) == "cmake") {
-    buildInstructions = R"(mkdir build && cd build
+    std::string buildInstructions;
+    if (to_string(options_.buildSystem) == "cmake") {
+        buildInstructions = R"(mkdir build && cd build
 cmake ..
 make
 make install)";
-  } else if (to_string(options_.buildSystem) == "meson") {
-    buildInstructions = R"(meson setup build
+    } else if (to_string(options_.buildSystem) == "meson") {
+        buildInstructions = R"(meson setup build
 cd build
 meson compile
 meson install)";
-  } else {
-    buildInstructions = R"(bazel build //...
-bazel run //:install)";
-  }
-
-  std::string testInstructions;
-  if (options_.includeTests) {
-    if (to_string(options_.buildSystem) == "cmake") {
-      testInstructions = R"(cd build
-ctest)";
-    } else if (to_string(options_.buildSystem) == "meson") {
-      testInstructions = R"(cd build
-meson test)";
+    } else if (to_string(options_.buildSystem) == "xmake") {
+        buildInstructions = R"(xmake
+xmake install)";
+    } else if (to_string(options_.buildSystem) == "premake") {
+        buildInstructions = R"(premake5 gmake2
+make config=release
+make install)";
     } else {
-      testInstructions = R"(bazel test //...)";
+        buildInstructions = R"(bazel build //...
+bazel run //:install)";
     }
 
-    testInstructions = fmt::format(R"(## Running Tests
+    std::string testInstructions;
+    if (options_.includeTests) {
+        if (to_string(options_.buildSystem) == "cmake") {
+            testInstructions = R"(cd build
+ctest)";
+        } else if (to_string(options_.buildSystem) == "meson") {
+            testInstructions = R"(cd build
+meson test)";
+        } else {
+            testInstructions = R"(bazel test //...)";
+        }
+
+        testInstructions = fmt::format(R"(## Running Tests
 
 ```bash
 {}
 ```
 )",
-                                   testInstructions);
-  }
+                                       testInstructions);
+    }
 
-  return fmt::format(R"(# {0}
+    return fmt::format(R"(# {0}
 
 A C++ library created with CPP-Scaffold.
 
@@ -1496,49 +1487,50 @@ int main() {{
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 )",
-                     options_.projectName, options_.buildSystem,
-                     packageManagerInfo, buildInstructions, testInstructions);
+                       options_.projectName, options_.buildSystem, packageManagerInfo,
+                       buildInstructions, testInstructions);
 }
 
 std::string LibraryTemplate::getCMakeContent() {
-  std::string testSection = "";
-  if (options_.includeTests) {
-    std::string testFrameworkDeps = "";
-    if (to_string(options_.testFramework) == "gtest") {
-      testFrameworkDeps = R"(
+    std::string testSection = "";
+    if (options_.includeTests) {
+        std::string testFrameworkDeps = "";
+        if (to_string(options_.testFramework) == "gtest") {
+            testFrameworkDeps = R"(
 # Test framework dependencies
 find_package(gtest REQUIRED)
 )";
-    } else if (to_string(options_.testFramework) == "catch2") {
-      testFrameworkDeps = R"(
+        } else if (to_string(options_.testFramework) == "catch2") {
+            testFrameworkDeps = R"(
 # Test framework dependencies
 find_package(Catch2 REQUIRED)
 )";
-    } else if (to_string(options_.testFramework) == "doctest") {
-      testFrameworkDeps = R"(
+        } else if (to_string(options_.testFramework) == "doctest") {
+            testFrameworkDeps = R"(
 # Test framework dependencies
 find_package(doctest REQUIRED)
 )";
-    }
+        }
 
-    testSection = fmt::format(R"({}
+        testSection = fmt::format(R"({}
 # Tests
 if(BUILD_TESTING)
   enable_testing()
   add_subdirectory(tests)
 endif()
-)", testFrameworkDeps);
-  }
+)",
+                                  testFrameworkDeps);
+    }
 
-  std::string vcpkgSection = to_string(options_.packageManager) == "vcpkg" ? R"(
+    std::string vcpkgSection = to_string(options_.packageManager) == "vcpkg" ? R"(
 # vcpkg integration
 if(DEFINED ENV{VCPKG_ROOT})
   set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 endif()
 )"
-                                                                : "";
+                                                                             : "";
 
-  return fmt::format(R"(cmake_minimum_required(VERSION 3.14)
+    return fmt::format(R"(cmake_minimum_required(VERSION 3.14)
 project({0} VERSION 0.1.0 LANGUAGES CXX)
 
 # Set C++ standard
@@ -1626,29 +1618,29 @@ install(FILES
   DESTINATION lib/cmake/${{PROJECT_NAME}}
 )
 {2}{3})",
-                     options_.projectName, options_.includeTests ? "ON" : "OFF",
-                     vcpkgSection, testSection);
+                       options_.projectName, options_.includeTests ? "ON" : "OFF", vcpkgSection,
+                       testSection);
 }
 
 std::string LibraryTemplate::getMesonContent() {
-  std::string testDeps = "";
-  if (options_.includeTests) {
-    if (to_string(options_.testFramework) == "gtest") {
-      testDeps = "gtest_dep = dependency('gtest', main : true)\n";
-    } else if (to_string(options_.testFramework) == "catch2") {
-      testDeps = "catch2_dep = dependency('catch2')\n";
-    } else {
-      testDeps = "doctest_dep = dependency('doctest')\n";
+    std::string testDeps = "";
+    if (options_.includeTests) {
+        if (to_string(options_.testFramework) == "gtest") {
+            testDeps = "gtest_dep = dependency('gtest', main : true)\n";
+        } else if (to_string(options_.testFramework) == "catch2") {
+            testDeps = "catch2_dep = dependency('catch2')\n";
+        } else {
+            testDeps = "doctest_dep = dependency('doctest')\n";
+        }
     }
-  }
 
-  std::string testSection;
-  if (options_.includeTests) {
-    std::string testDep = to_string(options_.testFramework) == "gtest"    ? "gtest_dep"
-                          : to_string(options_.testFramework) == "catch2" ? "catch2_dep"
-                                                               : "doctest_dep";
+    std::string testSection;
+    if (options_.includeTests) {
+        std::string testDep = to_string(options_.testFramework) == "gtest"    ? "gtest_dep"
+                              : to_string(options_.testFramework) == "catch2" ? "catch2_dep"
+                                                                              : "doctest_dep";
 
-    testSection = fmt::format(R"(
+        testSection = fmt::format(R"(
 test_exe = executable('test_{0}',
   ['tests/test_{0}.cpp'],
   include_directories : inc_dirs,
@@ -1658,12 +1650,12 @@ test_exe = executable('test_{0}',
 
 test('{0}_tests', test_exe)
 )",
-                              options_.projectName, testDep);
-  } else {
-    testSection = "# No tests configured";
-  }
+                                  options_.projectName, testDep);
+    } else {
+        testSection = "# No tests configured";
+    }
 
-  return fmt::format(R"(project('{0}', 'cpp',
+    return fmt::format(R"(project('{0}', 'cpp',
   version : '0.1.0',
   default_options : [
     'warning_level=3',
@@ -1726,22 +1718,22 @@ pkg.generate(
 
 # Tests
 {2})",
-                     options_.projectName, testDeps, testSection);
+                       options_.projectName, testDeps, testSection);
 }
 
 std::string LibraryTemplate::getBazelContent() {
-  std::string testSection = "";
-  if (options_.includeTests) {
-    std::string testFrameworkDep;
-    if (to_string(options_.testFramework) == "gtest") {
-      testFrameworkDep = "com_google_googletest//:gtest_main";
-    } else if (to_string(options_.testFramework) == "catch2") {
-      testFrameworkDep = "catch2//:catch2";
-    } else {
-      testFrameworkDep = "doctest//:doctest";
-    }
+    std::string testSection = "";
+    if (options_.includeTests) {
+        std::string testFrameworkDep;
+        if (to_string(options_.testFramework) == "gtest") {
+            testFrameworkDep = "com_google_googletest//:gtest_main";
+        } else if (to_string(options_.testFramework) == "catch2") {
+            testFrameworkDep = "catch2//:catch2";
+        } else {
+            testFrameworkDep = "doctest//:doctest";
+        }
 
-    testSection = fmt::format(R"(
+        testSection = fmt::format(R"(
 cc_test(
     name = "{0}_test",
     srcs = ["tests/test_{0}.cpp"],
@@ -1763,9 +1755,9 @@ genrule(
     cmd = "echo 'Installation completed.' > $@",
     local = 1,
 ))",
-                              options_.projectName, testFrameworkDep);
-  } else {
-    testSection = R"(
+                                  options_.projectName, testFrameworkDep);
+    } else {
+        testSection = R"(
 # Install rule
 genrule(
     name = "install",
@@ -1774,10 +1766,10 @@ genrule(
     cmd = "echo 'Installation completed.' > $@",
     local = 1,
 ))";
-  }
+    }
 
-  return fmt::format(
-      R"(load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+    return fmt::format(
+            R"(load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -1802,33 +1794,186 @@ cc_binary(
         "//conditions:default": ["-Wall", "-Wextra", "-Wpedantic"],
     }),
 ){1})",
-      options_.projectName, fmt::format(testSection, options_.projectName));
+            options_.projectName, fmt::format(testSection, options_.projectName));
+}
+
+std::string LibraryTemplate::getXMakeContent() {
+    std::string testSection;
+    if (options_.includeTests) {
+        std::string testFramework;
+        if (to_string(options_.testFramework) == "gtest") {
+            testFramework = "gtest";
+        } else if (to_string(options_.testFramework) == "catch2") {
+            testFramework = "catch2";
+        } else if (to_string(options_.testFramework) == "doctest") {
+            testFramework = "doctest";
+        }
+
+        if (!testFramework.empty()) {
+            testSection = fmt::format(R"(
+add_requires("{}")
+
+target("{}_tests")
+    set_kind("binary")
+    add_files("tests/test_main.cpp")
+    add_packages("{}")
+    add_deps("{}")
+    set_targetdir("tests/bin")
+)",
+                                      testFramework, options_.projectName, testFramework,
+                                      options_.projectName);
+        }
+    }
+
+    return fmt::format(R"(set_project("{}")
+set_version("1.0.0")
+
+-- Set C++ standard
+set_languages("c++17")
+
+-- Add build modes
+add_rules("mode.debug", "mode.release")
+
+-- Library target
+target("{0}")
+    set_kind("static")
+    add_files("src/*.cpp")
+    add_headerfiles("include/{1}/*.h")
+    add_includedirs("include", {{public = true}})
+
+    -- Install headers
+    add_installfiles("include/{2}/*.h")
+
+    -- Set output directory
+    set_targetdir("lib")
+
+    -- Enable C++ features
+    set_languages("c++17")
+
+    -- Add compile flags
+    if is_mode("debug") then
+        add_defines("DEBUG")
+        set_symbols("debug")
+        set_optimize("none")
+    elseif is_mode("release") then
+        add_defines("NDEBUG")
+        set_symbols("hidden")
+        set_optimize("fastest")
+    end
+
+-- Example executable
+target("{3}_example")
+    set_kind("binary")
+    add_files("examples/example.cpp")
+    add_deps("{4}")
+    set_targetdir("bin")
+{5})",
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName, options_.projectName,
+                       testSection);
+}
+
+std::string LibraryTemplate::getPremakeContent() {
+    std::string testSection;
+    if (options_.includeTests) {
+        testSection = fmt::format(R"(
+project "{}_tests"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++17"
+    targetdir "bin/%{{cfg.buildcfg}}"
+
+    files {{
+        "tests/**.cpp",
+        "tests/**.h"
+    }}
+
+    includedirs {{
+        "include",
+        "tests"
+    }}
+
+    links {{
+        "{}"
+    }}
+)",
+                                  options_.projectName, options_.projectName);
+    }
+
+    return fmt::format(R"(workspace "{}"
+    configurations {{ "Debug", "Release" }}
+    platforms {{ "x64" }}
+
+project "{}"
+    kind "StaticLib"
+    language "C++"
+    cppdialect "C++17"
+    targetdir "lib/%{{cfg.buildcfg}}"
+
+    files {{
+        "src/**.cpp",
+        "include/**.h"
+    }}
+
+    includedirs {{
+        "include"
+    }}
+
+    filter "configurations:Debug"
+        defines {{ "DEBUG" }}
+        symbols "On"
+        optimize "Off"
+
+    filter "configurations:Release"
+        defines {{ "NDEBUG" }}
+        symbols "Off"
+        optimize "Speed"
+
+project "{}_example"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++17"
+    targetdir "bin/%{{cfg.buildcfg}}"
+
+    files {{
+        "examples/**.cpp"
+    }}
+
+    includedirs {{
+        "include"
+    }}
+
+    links {{
+        "{}"
+    }}
+{})",
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, testSection);
 }
 
 std::string LibraryTemplate::getVcpkgJsonContent() {
-  std::string testDependency = "";
-  if (options_.includeTests) {
-    std::string testFramework = to_string(options_.testFramework) == "gtest" ? "gtest"
-                                : to_string(options_.testFramework) == "catch2"
-                                    ? "catch2"
-                                    : "doctest";
-    std::string features = to_string(options_.testFramework) == "gtest" ? "gmock" : "";
+    std::string testDependency = "";
+    if (options_.includeTests) {
+        std::string testFramework = to_string(options_.testFramework) == "gtest"    ? "gtest"
+                                    : to_string(options_.testFramework) == "catch2" ? "catch2"
+                                                                                    : "doctest";
+        std::string features = to_string(options_.testFramework) == "gtest" ? "gmock" : "";
 
-    if (!features.empty()) {
-      testDependency = fmt::format(R"(    {{
+        if (!features.empty()) {
+            testDependency = fmt::format(R"(    {{
       "name": "{}",
       "features": ["{}"]
     }},)",
-                                   testFramework, features);
-    } else {
-      testDependency = fmt::format(R"(    {{
+                                         testFramework, features);
+        } else {
+            testDependency = fmt::format(R"(    {{
       "name": "{}"
     }},)",
-                                   testFramework);
+                                         testFramework);
+        }
     }
-  }
 
-  return fmt::format(R"({{
+    return fmt::format(R"({{
   "name": "{0}",
   "version": "0.1.0",
   "description": "A C++ library created with CPP-Scaffold",
@@ -1838,24 +1983,24 @@ std::string LibraryTemplate::getVcpkgJsonContent() {
   ]
 }}
 )",
-                     options_.projectName, testDependency);
+                       options_.projectName, testDependency);
 }
 
 std::string LibraryTemplate::getConanfileContent() {
-  std::string testRequirement = "";
-  if (options_.includeTests) {
-    if (to_string(options_.testFramework) == "gtest") {
-      testRequirement = "gtest/1.12.1";
-    } else if (to_string(options_.testFramework) == "catch2") {
-      testRequirement = "catch2/3.1.0";
-    } else {
-      testRequirement = "doctest/2.4.9";
+    std::string testRequirement = "";
+    if (options_.includeTests) {
+        if (to_string(options_.testFramework) == "gtest") {
+            testRequirement = "gtest/1.12.1";
+        } else if (to_string(options_.testFramework) == "catch2") {
+            testRequirement = "catch2/3.1.0";
+        } else {
+            testRequirement = "doctest/2.4.9";
+        }
     }
-  }
 
-  std::string generator = to_string(options_.buildSystem) == "cmake" ? "cmake" : "";
+    std::string generator = to_string(options_.buildSystem) == "cmake" ? "cmake" : "";
 
-  return fmt::format(R"([requires]
+    return fmt::format(R"([requires]
 {0}
 
 [generators]
@@ -1867,80 +2012,89 @@ std::string LibraryTemplate::getConanfileContent() {
 [imports]
 # Add any binary imports here
 )",
-                     testRequirement, generator);
+                       testRequirement, generator);
 }
 
 std::string LibraryTemplate::getMSYS2PKGBUILDContent() {
-  std::string testDependencies;
-  if (options_.includeTests) {
-    if (to_string(options_.testFramework) == "gtest") {
-      testDependencies = "  \"${MINGW_PACKAGE_PREFIX}-gtest\"";
-    } else if (to_string(options_.testFramework) == "catch2") {
-      testDependencies = "  \"${MINGW_PACKAGE_PREFIX}-catch2\"";
+    std::string testDependencies;
+    if (options_.includeTests) {
+        if (to_string(options_.testFramework) == "gtest") {
+            testDependencies = "  \"${MINGW_PACKAGE_PREFIX}-gtest\"";
+        } else if (to_string(options_.testFramework) == "catch2") {
+            testDependencies = "  \"${MINGW_PACKAGE_PREFIX}-catch2\"";
+        }
     }
-  }
 
-  std::string pkgbuildContent =
-    "# Maintainer: Your Name <your.email@example.com>\n"
-    "_realname=" + options_.projectName + "\n"
-    "pkgbase=mingw-w64-${_realname}\n"
-    "pkgname=\"${MINGW_PACKAGE_PREFIX}-${_realname}\"\n"
-    "pkgver=1.0.0\n"
-    "pkgrel=1\n"
-    "pkgdesc=\"A C++ library (mingw-w64)\"\n"
-    "arch=(\"any\")\n"
-    "mingw_arch=(\"mingw32\" \"mingw64\" \"ucrt64\" \"clang64\" \"clangarm64\")\n"
-    "url=\"https://github.com/yourname/" + options_.projectName + "\"\n"
-    "license=(\"MIT\")\n"
-    "makedepends=(\n"
-    "  \"${MINGW_PACKAGE_PREFIX}-cc\"\n"
-    "  \"${MINGW_PACKAGE_PREFIX}-cmake\"\n"
-    "  \"${MINGW_PACKAGE_PREFIX}-ninja\"\n"
-    ")\n"
-    "depends=(\n"
-    "  \"${MINGW_PACKAGE_PREFIX}-gcc-libs\"\n" +
-    testDependencies + "\n"
-    ")\n"
-    "source=(\"${_realname}-${pkgver}.tar.gz\")\n"
-    "sha256sums=(\"SKIP\")\n\n"
-    "build() {\n"
-    "  cd \"${srcdir}/${_realname}-${pkgver}\"\n"
-    "  \n"
-    "  mkdir -p build && cd build\n"
-    "  \n"
-    "  MSYS2_ARG_CONV_EXCL=\"-DCMAKE_INSTALL_PREFIX=\" \\\n"
-    "  ${MINGW_PREFIX}/bin/cmake.exe \\\n"
-    "    -GNinja \\\n"
-    "    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \\\n"
-    "    -DCMAKE_BUILD_TYPE=Release \\\n"
-    "    -DBUILD_SHARED_LIBS=ON \\\n"
-    "    ..\n"
-    "  \n"
-    "  ${MINGW_PREFIX}/bin/cmake.exe --build .\n"
-    "}\n\n"
-    "check() {\n"
-    "  cd \"${srcdir}/${_realname}-${pkgver}/build\"\n"
-    "  \n"
-    "  # Run tests if available\n"
-    "  if [ -f \"test_" + options_.projectName + "\" ]; then\n"
-    "    ./test_" + options_.projectName + "\n"
-    "  fi\n"
-    "}\n\n"
-    "package() {\n"
-    "  cd \"${srcdir}/${_realname}-${pkgver}/build\"\n"
-    "  \n"
-    "  DESTDIR=\"${pkgdir}\" ${MINGW_PREFIX}/bin/cmake.exe --install .\n"
-    "  \n"
-    "  # Install license\n"
-    "  install -Dm644 \"${srcdir}/${_realname}-${pkgver}/LICENSE\" \\\n"
-    "    \"${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE\"\n"
-    "}\n";
+    std::string pkgbuildContent =
+            "# Maintainer: Your Name <your.email@example.com>\n"
+            "_realname=" +
+            options_.projectName +
+            "\n"
+            "pkgbase=mingw-w64-${_realname}\n"
+            "pkgname=\"${MINGW_PACKAGE_PREFIX}-${_realname}\"\n"
+            "pkgver=1.0.0\n"
+            "pkgrel=1\n"
+            "pkgdesc=\"A C++ library (mingw-w64)\"\n"
+            "arch=(\"any\")\n"
+            "mingw_arch=(\"mingw32\" \"mingw64\" \"ucrt64\" \"clang64\" \"clangarm64\")\n"
+            "url=\"https://github.com/yourname/" +
+            options_.projectName +
+            "\"\n"
+            "license=(\"MIT\")\n"
+            "makedepends=(\n"
+            "  \"${MINGW_PACKAGE_PREFIX}-cc\"\n"
+            "  \"${MINGW_PACKAGE_PREFIX}-cmake\"\n"
+            "  \"${MINGW_PACKAGE_PREFIX}-ninja\"\n"
+            ")\n"
+            "depends=(\n"
+            "  \"${MINGW_PACKAGE_PREFIX}-gcc-libs\"\n" +
+            testDependencies +
+            "\n"
+            ")\n"
+            "source=(\"${_realname}-${pkgver}.tar.gz\")\n"
+            "sha256sums=(\"SKIP\")\n\n"
+            "build() {\n"
+            "  cd \"${srcdir}/${_realname}-${pkgver}\"\n"
+            "  \n"
+            "  mkdir -p build && cd build\n"
+            "  \n"
+            "  MSYS2_ARG_CONV_EXCL=\"-DCMAKE_INSTALL_PREFIX=\" \\\n"
+            "  ${MINGW_PREFIX}/bin/cmake.exe \\\n"
+            "    -GNinja \\\n"
+            "    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \\\n"
+            "    -DCMAKE_BUILD_TYPE=Release \\\n"
+            "    -DBUILD_SHARED_LIBS=ON \\\n"
+            "    ..\n"
+            "  \n"
+            "  ${MINGW_PREFIX}/bin/cmake.exe --build .\n"
+            "}\n\n"
+            "check() {\n"
+            "  cd \"${srcdir}/${_realname}-${pkgver}/build\"\n"
+            "  \n"
+            "  # Run tests if available\n"
+            "  if [ -f \"test_" +
+            options_.projectName +
+            "\" ]; then\n"
+            "    ./test_" +
+            options_.projectName +
+            "\n"
+            "  fi\n"
+            "}\n\n"
+            "package() {\n"
+            "  cd \"${srcdir}/${_realname}-${pkgver}/build\"\n"
+            "  \n"
+            "  DESTDIR=\"${pkgdir}\" ${MINGW_PREFIX}/bin/cmake.exe --install .\n"
+            "  \n"
+            "  # Install license\n"
+            "  install -Dm644 \"${srcdir}/${_realname}-${pkgver}/LICENSE\" \\\n"
+            "    \"${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE\"\n"
+            "}\n";
 
-  return pkgbuildContent;
+    return pkgbuildContent;
 }
 
 std::string LibraryTemplate::getExampleContent() {
-  return fmt::format(R"(#include <iostream>
+    return fmt::format(R"(#include <iostream>
 #include "{0}/{0}.h"
 
 int main() {{
@@ -1965,11 +2119,11 @@ int main() {{
     return 0;
 }}
 )",
-                     options_.projectName);
+                       options_.projectName);
 }
 
 std::string LibraryTemplate::getGTestContent() {
-  return fmt::format(R"(#include <gtest/gtest.h>
+    return fmt::format(R"(#include <gtest/gtest.h>
 #include "{0}/{0}.h"
 
 // Test Example class
@@ -2004,11 +2158,11 @@ int main(int argc, char argv) {{
     return RUN_ALL_TESTS();
 }}
 )",
-                     options_.projectName);
+                       options_.projectName);
 }
 
 std::string LibraryTemplate::getCatch2Content() {
-  return fmt::format(R"(#define CATCH_CONFIG_MAIN
+    return fmt::format(R"(#define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 #include "{0}/{0}.h"
 
@@ -2042,11 +2196,11 @@ TEST_CASE("Version tests", "[Version]") {{
     }}
 }}
 )",
-                     options_.projectName);
+                       options_.projectName);
 }
 
 std::string LibraryTemplate::getDocTestContent() {
-  return fmt::format(R"(#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+    return fmt::format(R"(#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 #include "{0}/{0}.h"
 
@@ -2080,11 +2234,11 @@ TEST_CASE("Version tests") {{
     }}
 }}
 )",
-                     options_.projectName);
+                       options_.projectName);
 }
 
 std::string LibraryTemplate::getBenchmarkContent() {
-  return fmt::format(R"(#include <benchmark/benchmark.h>
+    return fmt::format(R"(#include <benchmark/benchmark.h>
 #include "{0}/{0}.h"
 
 // 简单的add函数基准测试
@@ -2118,11 +2272,11 @@ BENCHMARK(BM_ExampleGetValue)->Range(8, 8<<10);
 
 BENCHMARK_MAIN();
 )",
-                     options_.projectName);
+                       options_.projectName);
 }
 
 std::string LibraryTemplate::getInstallScriptContent() {
-  return fmt::format(R"(#!/bin/bash
+    return fmt::format(R"(#!/bin/bash
 # Installation script for {0}
 
 set -e
@@ -2159,12 +2313,12 @@ fi
 
 echo "{0} has been successfully installed to $INSTALL_DIR"
 )",
-                     options_.projectName);
+                       options_.projectName);
 }
 
-std::string LibraryTemplate::getLicenseContent(const std::string &licenseType) {
-  if (licenseType == "MIT") {
-    return R"(MIT License
+std::string LibraryTemplate::getLicenseContent(const std::string& licenseType) {
+    if (licenseType == "MIT") {
+        return R"(MIT License
 
 Copyright (c) 2023 [Author Name]
 
@@ -2185,8 +2339,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.)";
-  } else if (licenseType == "Apache") {
-    return R"(                                 Apache License
+    } else if (licenseType == "Apache") {
+        return R"(                                 Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
 
@@ -2231,14 +2385,14 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.)";
-  }
+    }
 
-  // Default return for unknown license types
-  return "";
+    // Default return for unknown license types
+    return "";
 }
 
 std::string LibraryTemplate::getClangTidyContent() {
-  return R"(Checks: '*,
+    return R"(Checks: '*,
         -fuchsia-*,
         -google-*,
         -zircon-*,
@@ -2258,7 +2412,7 @@ CheckOptions:
 }
 
 std::string LibraryTemplate::getDoxyfileContent() {
-  return fmt::format(R"(PROJECT_NAME           = {0}
+    return fmt::format(R"(PROJECT_NAME           = {0}
 PROJECT_NUMBER         = 0.1.0
 PROJECT_BRIEF         = "A C++ library created with CPP-Scaffold"
 OUTPUT_DIRECTORY      = docs/doxygen
@@ -2307,12 +2461,12 @@ INPUT               = src include
 FILE_PATTERNS       = *.cpp *.h
 RECURSIVE          = YES
 )",
-                     options_.projectName);
+                       options_.projectName);
 }
 
 std::string LibraryTemplate::getSphinxConfigContent() {
-  return fmt::format(
-      R"(# Configuration file for the Sphinx documentation builder.
+    return fmt::format(
+            R"(# Configuration file for the Sphinx documentation builder.
 
 project = '{0}'
 copyright = '2023, Author Name'
@@ -2343,11 +2497,11 @@ breathe_projects = {{ "{0}": "../doxygen/xml" }}
 breathe_default_project = "{0}"
 breathe_default_members = ('members', 'undoc-members')
 )",
-      options_.projectName);
+            options_.projectName);
 }
 
 std::string LibraryTemplate::getMkDocsContent() {
-  return fmt::format(R"(site_name: {0}
+    return fmt::format(R"(site_name: {0}
 site_description: 'Documentation for {0}'
 site_author: 'Author Name'
 docs_dir: docs/md
@@ -2385,5 +2539,5 @@ plugins:
   - search
   - mkdocstrings
 )",
-                     options_.projectName);
+                       options_.projectName);
 }

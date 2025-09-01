@@ -1,8 +1,6 @@
 #pragma once
-#include "types/cli_options.h"
-#include "types/cli_enums.h"
-#include "localization/localization.h"
-#include "../utils/terminal_utils.h" // 引入终端工具
+#include <spdlog/fmt/fmt.h>
+
 #include <filesystem>
 #include <functional>
 #include <optional>
@@ -11,7 +9,11 @@
 #include <unordered_map>
 #include <variant>
 #include <vector>
-#include <fmt/format.h>
+
+#include "../utils/terminal_utils.h"  // 引入终端工具
+#include "localization/localization.h"
+#include "types/cli_enums.h"
+#include "types/cli_options.h"
 
 // Import the enums and types from the types module
 using namespace cli_enums;
@@ -65,7 +67,7 @@ std::vector<std::string_view> all_cpp_standards();
 std::vector<std::string_view> all_project_structures();
 std::vector<std::string_view> all_compiler_flags();
 
-} // namespace enums
+}  // namespace enums
 
 // CliOptions is now imported from types/cli_options.h
 
@@ -76,7 +78,7 @@ std::vector<std::string_view> all_compiler_flags();
 
 // CliParser class declaration
 class CliParser {
-public:
+   public:
     static CliOptions parse(int argc, char* argv[]);
     static CliOptions promptUserForOptions(const CliOptions& defaultOptions = {});
     static bool validateOptions(CliOptions& options);

@@ -1,285 +1,317 @@
 ﻿#include "header_only_lib_template.h"
-#include "../utils/file_utils.h"
-#include "../utils/string_utils.h"
-#include "../utils/terminal_utils.h"
-#include <fmt/format.h>
+
+#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
+
 #include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 
+#include "../utils/file_utils.h"
+#include "../utils/string_utils.h"
+#include "../utils/terminal_utils.h"
+
 using namespace utils;
 using namespace cli_enums;
 
-HeaderOnlyLibTemplate::HeaderOnlyLibTemplate(const CliOptions &options)
-    : TemplateBase(options) {}
+HeaderOnlyLibTemplate::HeaderOnlyLibTemplate(const CliOptions& options) : TemplateBase(options) {}
 
 bool HeaderOnlyLibTemplate::create() {
-  spdlog::info("Creating header-only library project: {}", options_.projectName);
+    spdlog::info("Creating header-only library project: {}", options_.projectName);
 
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // Create project structure
-  if (!createProjectStructure()) {
-    spdlog::error("Failed to create project structure");
-    return false;
-  }
-
-  // Create build system files
-  if (!createBuildSystem()) {
-    spdlog::error("Failed to create build system files");
-    return false;
-  }
-
-  // Setup package manager
-  if (!setupPackageManager()) {
-    spdlog::error("Failed to setup package manager");
-    return false;
-  }
-
-  // Setup test framework
-  if (options_.includeTests && !setupTestFramework()) {
-    spdlog::error("Failed to setup test framework");
-    return false;
-  }
-
-  // Setup documentation
-  if (options_.includeDocumentation && !setupDocumentation()) {
-    spdlog::error("Failed to setup documentation");
-    return false;
-  }
-
-  // Setup code formatting
-  if (options_.includeCodeStyleTools && !setupCodeFormatting()) {
-    spdlog::error("Failed to setup code formatting");
-    return false;
-  }
-
-  // Setup CI/CD
-  if (!options_.ciOptions.empty() && !setupContinuousIntegration()) {
-    spdlog::error("Failed to setup CI/CD");
-    return false;
-  }
-
-  // Create examples
-  if (!createExamples()) {
-    spdlog::error("Failed to create examples");
-    return false;
-  }
-
-  // Create single header version
-  if (!createSingleHeaderVersion()) {
-    spdlog::error("Failed to create single header version");
-    return false;
-  }
-
-  // Initialize Git
-  if (options_.initGit) {
-    if (!initializeGit(projectPath)) {
-      spdlog::error("Failed to initialize Git repository");
-      return false;
+    // Create project structure
+    if (!createProjectStructure()) {
+        spdlog::error("Failed to create project structure");
+        return false;
     }
-    spdlog::info("✅ Git repository initialized");
-  }
 
-  spdlog::info("\nYour header-only library project is ready!\n");
-
-  // Print usage instructions
-  TerminalUtils::showSuccess("Project created successfully!");
-  TerminalUtils::showInfo("Next steps:");
-  std::cout << "  1. cd " << options_.projectName << "\n";
-  std::cout << "  2. Review the generated headers in include/" << options_.projectName << "/\n";
-  std::cout << "  3. Customize the library implementation\n";
-
-  if (options_.includeTests) {
-    std::cout << "  4. Build and run tests:\n";
-    if (to_string(options_.buildSystem) == "cmake") {
-      std::cout << "     mkdir build && cd build\n";
-      std::cout << "     cmake .. && make && ctest\n";
+    // Create build system files
+    if (!createBuildSystem()) {
+        spdlog::error("Failed to create build system files");
+        return false;
     }
-  }
 
-  std::cout << "  5. Use the single-header version from single_header/ directory\n";
-  std::cout << "  6. Check examples/ directory for usage examples\n";
+    // Setup package manager
+    if (!setupPackageManager()) {
+        spdlog::error("Failed to setup package manager");
+        return false;
+    }
 
-  return true;
+    // Setup test framework
+    if (options_.includeTests && !setupTestFramework()) {
+        spdlog::error("Failed to setup test framework");
+        return false;
+    }
+
+    // Setup documentation
+    if (options_.includeDocumentation && !setupDocumentation()) {
+        spdlog::error("Failed to setup documentation");
+        return false;
+    }
+
+    // Setup code formatting
+    if (options_.includeCodeStyleTools && !setupCodeFormatting()) {
+        spdlog::error("Failed to setup code formatting");
+        return false;
+    }
+
+    // Setup CI/CD
+    if (!options_.ciOptions.empty() && !setupContinuousIntegration()) {
+        spdlog::error("Failed to setup CI/CD");
+        return false;
+    }
+
+    // Create examples
+    if (!createExamples()) {
+        spdlog::error("Failed to create examples");
+        return false;
+    }
+
+    // Create single header version
+    if (!createSingleHeaderVersion()) {
+        spdlog::error("Failed to create single header version");
+        return false;
+    }
+
+    // Initialize Git
+    if (options_.initGit) {
+        if (!initializeGit(projectPath)) {
+            spdlog::error("Failed to initialize Git repository");
+            return false;
+        }
+        spdlog::info("✅ Git repository initialized");
+    }
+
+    spdlog::info("\nYour header-only library project is ready!\n");
+
+    // Print usage instructions
+    TerminalUtils::showSuccess("Project created successfully!");
+    TerminalUtils::showInfo("Next steps:");
+    std::cout << "  1. cd " << options_.projectName << "\n";
+    std::cout << "  2. Review the generated headers in include/" << options_.projectName << "/\n";
+    std::cout << "  3. Customize the library implementation\n";
+
+    if (options_.includeTests) {
+        std::cout << "  4. Build and run tests:\n";
+        if (to_string(options_.buildSystem) == "cmake") {
+            std::cout << "     mkdir build && cd build\n";
+            std::cout << "     cmake .. && make && ctest\n";
+        }
+    }
+
+    std::cout << "  5. Use the single-header version from single_header/ directory\n";
+    std::cout << "  6. Check examples/ directory for usage examples\n";
+
+    return true;
 }
 
 bool HeaderOnlyLibTemplate::createProjectStructure() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // Create main directories
-  std::vector<std::string> directories = {
-      projectPath,
-      FileUtils::combinePath(projectPath, "include"),
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "include"), options_.projectName),
-      FileUtils::combinePath(FileUtils::combinePath(FileUtils::combinePath(projectPath, "include"), options_.projectName), "detail"),
-      FileUtils::combinePath(projectPath, "examples"),
-      FileUtils::combinePath(projectPath, "single_header"),
-      FileUtils::combinePath(projectPath, "scripts"),
-      FileUtils::combinePath(projectPath, "docs")
-  };
+    // Create main directories
+    std::vector<std::string> directories = {
+            projectPath,
+            FileUtils::combinePath(projectPath, "include"),
+            FileUtils::combinePath(FileUtils::combinePath(projectPath, "include"),
+                                   options_.projectName),
+            FileUtils::combinePath(
+                    FileUtils::combinePath(FileUtils::combinePath(projectPath, "include"),
+                                           options_.projectName),
+                    "detail"),
+            FileUtils::combinePath(projectPath, "examples"),
+            FileUtils::combinePath(projectPath, "single_header"),
+            FileUtils::combinePath(projectPath, "scripts"),
+            FileUtils::combinePath(projectPath, "docs")};
 
-  if (options_.includeTests) {
-    directories.push_back(FileUtils::combinePath(projectPath, "tests"));
-  }
-
-  for (const auto &dir : directories) {
-    if (!FileUtils::createDirectory(dir)) {
-      spdlog::error("Failed to create directory: {}", dir);
-      return false;
+    if (options_.includeTests) {
+        directories.push_back(FileUtils::combinePath(projectPath, "tests"));
     }
-  }
 
-  // Create main header file
-  std::string mainHeaderPath = FileUtils::combinePath(
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "include"), options_.projectName),
-      options_.projectName + ".h");
-  if (!FileUtils::writeToFile(mainHeaderPath, getMainHeaderContent())) {
-    spdlog::error("Failed to create main header file");
-    return false;
-  }
+    for (const auto& dir : directories) {
+        if (!FileUtils::createDirectory(dir)) {
+            spdlog::error("Failed to create directory: {}", dir);
+            return false;
+        }
+    }
 
-  // Create detail header
-  std::string detailHeaderPath = FileUtils::combinePath(
-      FileUtils::combinePath(FileUtils::combinePath(FileUtils::combinePath(projectPath, "include"), options_.projectName), "detail"),
-      "impl.h");
-  if (!FileUtils::writeToFile(detailHeaderPath, getDetailHeaderContent())) {
-    spdlog::error("Failed to create detail header file");
-    return false;
-  }
+    // Create main header file
+    std::string mainHeaderPath = FileUtils::combinePath(
+            FileUtils::combinePath(FileUtils::combinePath(projectPath, "include"),
+                                   options_.projectName),
+            options_.projectName + ".h");
+    if (!FileUtils::writeToFile(mainHeaderPath, getMainHeaderContent())) {
+        spdlog::error("Failed to create main header file");
+        return false;
+    }
 
-  // Create version header
-  std::string versionHeaderPath = FileUtils::combinePath(
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "include"), options_.projectName),
-      "version.h");
-  if (!FileUtils::writeToFile(versionHeaderPath, getVersionHeaderContent())) {
-    spdlog::error("Failed to create version header file");
-    return false;
-  }
+    // Create detail header
+    std::string detailHeaderPath = FileUtils::combinePath(
+            FileUtils::combinePath(
+                    FileUtils::combinePath(FileUtils::combinePath(projectPath, "include"),
+                                           options_.projectName),
+                    "detail"),
+            "impl.h");
+    if (!FileUtils::writeToFile(detailHeaderPath, getDetailHeaderContent())) {
+        spdlog::error("Failed to create detail header file");
+        return false;
+    }
 
-  // Create config header
-  std::string configHeaderPath = FileUtils::combinePath(
-      FileUtils::combinePath(FileUtils::combinePath(projectPath, "include"), options_.projectName),
-      "config.h");
-  if (!FileUtils::writeToFile(configHeaderPath, getConfigHeaderContent())) {
-    spdlog::error("Failed to create config header file");
-    return false;
-  }
+    // Create version header
+    std::string versionHeaderPath = FileUtils::combinePath(
+            FileUtils::combinePath(FileUtils::combinePath(projectPath, "include"),
+                                   options_.projectName),
+            "version.h");
+    if (!FileUtils::writeToFile(versionHeaderPath, getVersionHeaderContent())) {
+        spdlog::error("Failed to create version header file");
+        return false;
+    }
 
-  // Create README
-  std::string readmePath = FileUtils::combinePath(projectPath, "README.md");
-  if (!FileUtils::writeToFile(readmePath, getReadmeContent())) {
-    spdlog::error("Failed to create README file");
-    return false;
-  }
+    // Create config header
+    std::string configHeaderPath = FileUtils::combinePath(
+            FileUtils::combinePath(FileUtils::combinePath(projectPath, "include"),
+                                   options_.projectName),
+            "config.h");
+    if (!FileUtils::writeToFile(configHeaderPath, getConfigHeaderContent())) {
+        spdlog::error("Failed to create config header file");
+        return false;
+    }
 
-  // Create example usage
-  std::string examplePath = FileUtils::combinePath(
-      FileUtils::combinePath(projectPath, "examples"), "basic_usage.cpp");
-  if (!FileUtils::writeToFile(examplePath, getExampleUsageContent())) {
-    spdlog::error("Failed to create example file");
-    return false;
-  }
+    // Create README
+    std::string readmePath = FileUtils::combinePath(projectPath, "README.md");
+    if (!FileUtils::writeToFile(readmePath, getReadmeContent())) {
+        spdlog::error("Failed to create README file");
+        return false;
+    }
 
-  // Create single header generation script
-  std::string scriptPath = FileUtils::combinePath(
-      FileUtils::combinePath(projectPath, "scripts"), "generate_single_header.py");
-  if (!FileUtils::writeToFile(scriptPath, getSingleHeaderScript())) {
-    spdlog::error("Failed to create single header script");
-    return false;
-  }
+    // Create example usage
+    std::string examplePath = FileUtils::combinePath(
+            FileUtils::combinePath(projectPath, "examples"), "basic_usage.cpp");
+    if (!FileUtils::writeToFile(examplePath, getExampleUsageContent())) {
+        spdlog::error("Failed to create example file");
+        return false;
+    }
 
-  return true;
+    // Create single header generation script
+    std::string scriptPath = FileUtils::combinePath(FileUtils::combinePath(projectPath, "scripts"),
+                                                    "generate_single_header.py");
+    if (!FileUtils::writeToFile(scriptPath, getSingleHeaderScript())) {
+        spdlog::error("Failed to create single header script");
+        return false;
+    }
+
+    return true;
 }
 
 bool HeaderOnlyLibTemplate::createBuildSystem() {
-  std::string projectPath = options_.projectName;
-  std::string buildSystem = std::string(to_string(options_.buildSystem));
+    std::string projectPath = options_.projectName;
+    std::string buildSystem = std::string(to_string(options_.buildSystem));
 
-  if (buildSystem == "cmake") {
-    std::string cmakePath = FileUtils::combinePath(projectPath, "CMakeLists.txt");
-    if (!FileUtils::writeToFile(cmakePath, getCMakeContent())) {
-      spdlog::error("Failed to create CMakeLists.txt");
-      return false;
-    }
-  } else if (buildSystem == "meson") {
-    std::string mesonPath = FileUtils::combinePath(projectPath, "meson.build");
-    if (!FileUtils::writeToFile(mesonPath, getMesonContent())) {
-      spdlog::error("Failed to create meson.build");
-      return false;
-    }
-  } else if (buildSystem == "bazel") {
-    std::string bazelPath = FileUtils::combinePath(projectPath, "BUILD");
-    if (!FileUtils::writeToFile(bazelPath, getBazelContent())) {
-      spdlog::error("Failed to create BUILD file");
-      return false;
+    if (buildSystem == "cmake") {
+        std::string cmakePath = FileUtils::combinePath(projectPath, "CMakeLists.txt");
+        if (!FileUtils::writeToFile(cmakePath, getCMakeContent())) {
+            spdlog::error("Failed to create CMakeLists.txt");
+            return false;
+        }
+    } else if (buildSystem == "meson") {
+        std::string mesonPath = FileUtils::combinePath(projectPath, "meson.build");
+        if (!FileUtils::writeToFile(mesonPath, getMesonContent())) {
+            spdlog::error("Failed to create meson.build");
+            return false;
+        }
+    } else if (buildSystem == "bazel") {
+        std::string bazelPath = FileUtils::combinePath(projectPath, "BUILD");
+        if (!FileUtils::writeToFile(bazelPath, getBazelContent())) {
+            spdlog::error("Failed to create BUILD file");
+            return false;
+        }
+
+        std::string workspacePath = FileUtils::combinePath(projectPath, "WORKSPACE");
+        if (!FileUtils::writeToFile(workspacePath,
+                                    "workspace(name = \"" + options_.projectName + "\")\n")) {
+            spdlog::error("Failed to create WORKSPACE file");
+            return false;
+        }
+    } else if (buildSystem == "xmake") {
+        std::string xmakePath = FileUtils::combinePath(projectPath, "xmake.lua");
+        if (!FileUtils::writeToFile(xmakePath, getXMakeContent())) {
+            spdlog::error("Failed to create xmake.lua");
+            return false;
+        }
+    } else if (buildSystem == "premake") {
+        std::string premakePath = FileUtils::combinePath(projectPath, "premake5.lua");
+        if (!FileUtils::writeToFile(premakePath, getPremakeContent())) {
+            spdlog::error("Failed to create premake5.lua");
+            return false;
+        }
+    } else {
+        spdlog::warn("Unsupported build system: {}, defaulting to CMake", buildSystem);
+        std::string cmakePath = FileUtils::combinePath(projectPath, "CMakeLists.txt");
+        if (!FileUtils::writeToFile(cmakePath, getCMakeContent())) {
+            spdlog::error("Failed to create CMakeLists.txt");
+            return false;
+        }
     }
 
-    std::string workspacePath = FileUtils::combinePath(projectPath, "WORKSPACE");
-    if (!FileUtils::writeToFile(workspacePath, "workspace(name = \"" + options_.projectName + "\")\n")) {
-      spdlog::error("Failed to create WORKSPACE file");
-      return false;
-    }
-  }
-
-  return true;
+    return true;
 }
 
 bool HeaderOnlyLibTemplate::setupPackageManager() {
-  std::string projectPath = options_.projectName;
-  std::string packageManager = std::string(to_string(options_.packageManager));
+    std::string projectPath = options_.projectName;
+    std::string packageManager = std::string(to_string(options_.packageManager));
 
-  if (packageManager == "vcpkg") {
-    std::string vcpkgPath = FileUtils::combinePath(projectPath, "vcpkg.json");
-    if (!FileUtils::writeToFile(vcpkgPath, getVcpkgJsonContent())) {
-      spdlog::error("Failed to create vcpkg.json");
-      return false;
+    if (packageManager == "vcpkg") {
+        std::string vcpkgPath = FileUtils::combinePath(projectPath, "vcpkg.json");
+        if (!FileUtils::writeToFile(vcpkgPath, getVcpkgJsonContent())) {
+            spdlog::error("Failed to create vcpkg.json");
+            return false;
+        }
+    } else if (packageManager == "conan") {
+        std::string conanPath = FileUtils::combinePath(projectPath, "conanfile.txt");
+        if (!FileUtils::writeToFile(conanPath, getConanfileContent())) {
+            spdlog::error("Failed to create conanfile.txt");
+            return false;
+        }
     }
-  } else if (packageManager == "conan") {
-    std::string conanPath = FileUtils::combinePath(projectPath, "conanfile.txt");
-    if (!FileUtils::writeToFile(conanPath, getConanfileContent())) {
-      spdlog::error("Failed to create conanfile.txt");
-      return false;
-    }
-  }
 
-  return true;
+    return true;
 }
 
 bool HeaderOnlyLibTemplate::setupTestFramework() {
-  if (!options_.includeTests) {
-    return true;
-  }
-
-  std::string projectPath = options_.projectName;
-  std::string testFramework = std::string(to_string(options_.testFramework));
-
-  // Create test CMakeLists.txt if using CMake
-  if (to_string(options_.buildSystem) == "cmake") {
-    std::string testCMakePath = FileUtils::combinePath(
-        FileUtils::combinePath(projectPath, "tests"), "CMakeLists.txt");
-    std::string testCMakeContent;
-
-    if (testFramework == "gtest") {
-      testCMakeContent = getGTestContent();
-    } else if (testFramework == "catch2") {
-      testCMakeContent = getCatch2Content();
-    } else if (testFramework == "doctest") {
-      testCMakeContent = getDocTestContent();
+    if (!options_.includeTests) {
+        return true;
     }
 
-    if (!FileUtils::writeToFile(testCMakePath, testCMakeContent)) {
-      spdlog::error("Failed to create test CMakeLists.txt");
-      return false;
-    }
-  }
+    std::string projectPath = options_.projectName;
+    std::string testFramework = std::string(to_string(options_.testFramework));
 
-  // Create basic test file
-  std::string testFilePath = FileUtils::combinePath(
-      FileUtils::combinePath(projectPath, "tests"), "test_" + options_.projectName + ".cpp");
-  std::string testContent = fmt::format(R"(#include <{0}/{0}.h>
+    // Create test CMakeLists.txt if using CMake
+    if (to_string(options_.buildSystem) == "cmake") {
+        std::string testCMakePath = FileUtils::combinePath(
+                FileUtils::combinePath(projectPath, "tests"), "CMakeLists.txt");
+        std::string testCMakeContent;
+
+        if (testFramework == "gtest") {
+            testCMakeContent = getGTestContent();
+        } else if (testFramework == "catch2") {
+            testCMakeContent = getCatch2Content();
+        } else if (testFramework == "doctest") {
+            testCMakeContent = getDocTestContent();
+        }
+
+        if (!FileUtils::writeToFile(testCMakePath, testCMakeContent)) {
+            spdlog::error("Failed to create test CMakeLists.txt");
+            return false;
+        }
+    }
+
+    // Create basic test file
+    std::string testFilePath = FileUtils::combinePath(FileUtils::combinePath(projectPath, "tests"),
+                                                      "test_" + options_.projectName + ".cpp");
+    std::string testContent =
+            fmt::format(R"(#include <{0}/{0}.h>
 
 #ifdef USING_GTEST
 #include <gtest/gtest.h>
@@ -327,134 +359,135 @@ int main() {{
     return 0;
 }}
 #endif
-)", options_.projectName, StringUtils::toUpper(options_.projectName));
+)",
+                        options_.projectName, StringUtils::toUpper(options_.projectName));
 
-  if (!FileUtils::writeToFile(testFilePath, testContent)) {
-    spdlog::error("Failed to create test file");
-    return false;
-  }
+    if (!FileUtils::writeToFile(testFilePath, testContent)) {
+        spdlog::error("Failed to create test file");
+        return false;
+    }
 
-  return true;
+    return true;
 }
 
 bool HeaderOnlyLibTemplate::setupDocumentation() {
-  std::string projectPath = options_.projectName;
-  std::string docsPath = FileUtils::combinePath(projectPath, "docs");
+    std::string projectPath = options_.projectName;
+    std::string docsPath = FileUtils::combinePath(projectPath, "docs");
 
-  // Create documentation directory
-  if (!FileUtils::createDirectory(docsPath)) {
-    spdlog::error("Failed to create documentation directory");
-    return false;
-  }
+    // Create documentation directory
+    if (!FileUtils::createDirectory(docsPath)) {
+        spdlog::error("Failed to create documentation directory");
+        return false;
+    }
 
-  // Create Doxygen configuration
-  std::string doxyfilePath = FileUtils::combinePath(projectPath, "Doxyfile");
-  if (!FileUtils::writeToFile(doxyfilePath, getDoxygenContent())) {
-    spdlog::error("Failed to create Doxygen configuration");
-    return false;
-  }
+    // Create Doxygen configuration
+    std::string doxyfilePath = FileUtils::combinePath(projectPath, "Doxyfile");
+    if (!FileUtils::writeToFile(doxyfilePath, getDoxygenContent())) {
+        spdlog::error("Failed to create Doxygen configuration");
+        return false;
+    }
 
-  // Create README for documentation
-  std::string docReadmePath = FileUtils::combinePath(docsPath, "README.md");
-  if (!FileUtils::writeToFile(docReadmePath, getDocumentationReadme())) {
-    spdlog::error("Failed to create documentation README");
-    return false;
-  }
+    // Create README for documentation
+    std::string docReadmePath = FileUtils::combinePath(docsPath, "README.md");
+    if (!FileUtils::writeToFile(docReadmePath, getDocumentationReadme())) {
+        spdlog::error("Failed to create documentation README");
+        return false;
+    }
 
-  // Create API documentation template
-  std::string apiDocsPath = FileUtils::combinePath(docsPath, "api");
-  if (!FileUtils::createDirectory(apiDocsPath)) {
-    spdlog::error("Failed to create API documentation directory");
-    return false;
-  }
+    // Create API documentation template
+    std::string apiDocsPath = FileUtils::combinePath(docsPath, "api");
+    if (!FileUtils::createDirectory(apiDocsPath)) {
+        spdlog::error("Failed to create API documentation directory");
+        return false;
+    }
 
-  std::string apiIndexPath = FileUtils::combinePath(apiDocsPath, "index.md");
-  if (!FileUtils::writeToFile(apiIndexPath, getAPIDocumentationTemplate())) {
-    spdlog::error("Failed to create API documentation template");
-    return false;
-  }
+    std::string apiIndexPath = FileUtils::combinePath(apiDocsPath, "index.md");
+    if (!FileUtils::writeToFile(apiIndexPath, getAPIDocumentationTemplate())) {
+        spdlog::error("Failed to create API documentation template");
+        return false;
+    }
 
-  // Create examples documentation
-  std::string examplesDocsPath = FileUtils::combinePath(docsPath, "examples");
-  if (!FileUtils::createDirectory(examplesDocsPath)) {
-    spdlog::error("Failed to create examples documentation directory");
-    return false;
-  }
+    // Create examples documentation
+    std::string examplesDocsPath = FileUtils::combinePath(docsPath, "examples");
+    if (!FileUtils::createDirectory(examplesDocsPath)) {
+        spdlog::error("Failed to create examples documentation directory");
+        return false;
+    }
 
-  std::string examplesIndexPath = FileUtils::combinePath(examplesDocsPath, "index.md");
-  if (!FileUtils::writeToFile(examplesIndexPath, getExamplesDocumentationTemplate())) {
-    spdlog::error("Failed to create examples documentation template");
-    return false;
-  }
+    std::string examplesIndexPath = FileUtils::combinePath(examplesDocsPath, "index.md");
+    if (!FileUtils::writeToFile(examplesIndexPath, getExamplesDocumentationTemplate())) {
+        spdlog::error("Failed to create examples documentation template");
+        return false;
+    }
 
-  // Create documentation generation script
-  std::string scriptName = "generate_docs";
+    // Create documentation generation script
+    std::string scriptName = "generate_docs";
 #ifdef _WIN32
-  scriptName += ".bat";
+    scriptName += ".bat";
 #else
-  scriptName += ".sh";
+    scriptName += ".sh";
 #endif
 
-  std::string scriptPath = FileUtils::combinePath(docsPath, scriptName);
-  if (!FileUtils::writeToFile(scriptPath, getDocumentationScript())) {
-    spdlog::error("Failed to create documentation generation script");
-    return false;
-  }
+    std::string scriptPath = FileUtils::combinePath(docsPath, scriptName);
+    if (!FileUtils::writeToFile(scriptPath, getDocumentationScript())) {
+        spdlog::error("Failed to create documentation generation script");
+        return false;
+    }
 
-  // Make script executable on Unix-like systems
+    // Make script executable on Unix-like systems
 #ifndef _WIN32
-  system(("chmod +x \"" + scriptPath + "\"").c_str());
+    system(("chmod +x \"" + scriptPath + "\"").c_str());
 #endif
 
-  spdlog::info("Documentation setup completed successfully");
-  return true;
+    spdlog::info("Documentation setup completed successfully");
+    return true;
 }
 
 bool HeaderOnlyLibTemplate::setupContinuousIntegration() {
-  // Implementation will be added in next chunk
-  return true;
+    // Implementation will be added in next chunk
+    return true;
 }
 
 bool HeaderOnlyLibTemplate::setupCodeFormatting() {
-  // Implementation will be added in next chunk
-  return true;
+    // Implementation will be added in next chunk
+    return true;
 }
 
 bool HeaderOnlyLibTemplate::setupBenchmarking() {
-  // Implementation will be added in next chunk
-  return true;
+    // Implementation will be added in next chunk
+    return true;
 }
 
 bool HeaderOnlyLibTemplate::setupVersionControl() {
-  // Implementation will be added in next chunk
-  return true;
+    // Implementation will be added in next chunk
+    return true;
 }
 
 bool HeaderOnlyLibTemplate::createSingleHeaderVersion() {
-  // Implementation will be added in next chunk
-  return true;
+    // Implementation will be added in next chunk
+    return true;
 }
 
 bool HeaderOnlyLibTemplate::createExamples() {
-  // Implementation will be added in next chunk
-  return true;
+    // Implementation will be added in next chunk
+    return true;
 }
 
 bool HeaderOnlyLibTemplate::createBenchmarks() {
-  // Implementation will be added in next chunk
-  return true;
+    // Implementation will be added in next chunk
+    return true;
 }
 
 bool HeaderOnlyLibTemplate::createDocumentation() {
-  // Implementation will be added in next chunk
-  return true;
+    // Implementation will be added in next chunk
+    return true;
 }
 
 std::string HeaderOnlyLibTemplate::getMainHeaderContent() {
-  std::string projectNameUpper = getProjectNameUpper();
-  std::string includeGuard = getIncludeGuard(options_.projectName + ".h");
+    std::string projectNameUpper = getProjectNameUpper();
+    std::string includeGuard = getIncludeGuard(options_.projectName + ".h");
 
-  return fmt::format(R"({0}
+    return fmt::format(R"({0}
 {0}
 
 #include <string>
@@ -543,13 +576,14 @@ constexpr bool isDebugBuild() noexcept {{
 #include "{1}/detail/impl.h"
 
 #endif // {0}
-)", includeGuard, options_.projectName, projectNameUpper);
+)",
+                       includeGuard, options_.projectName, projectNameUpper);
 }
 
 std::string HeaderOnlyLibTemplate::getDetailHeaderContent() {
-  std::string includeGuard = getIncludeGuard("detail/impl.h");
+    std::string includeGuard = getIncludeGuard("detail/impl.h");
 
-  return fmt::format(R"({0}
+    return fmt::format(R"({0}
 {0}
 
 // This file contains implementation details that are not part of the public API
@@ -594,14 +628,15 @@ public:
 }} // namespace {1}
 
 #endif // {0}
-)", includeGuard, options_.projectName);
+)",
+                       includeGuard, options_.projectName);
 }
 
 std::string HeaderOnlyLibTemplate::getVersionHeaderContent() {
-  std::string projectNameUpper = getProjectNameUpper();
-  std::string includeGuard = getIncludeGuard("version.h");
+    std::string projectNameUpper = getProjectNameUpper();
+    std::string includeGuard = getIncludeGuard("version.h");
 
-  return fmt::format(R"({0}
+    return fmt::format(R"({0}
 {0}
 
 #define {1}_VERSION_MAJOR 1
@@ -619,14 +654,15 @@ std::string HeaderOnlyLibTemplate::getVersionHeaderContent() {
     ({1}_VERSION_INT >= (((major) << 16) | ((minor) << 8) | (patch)))
 
 #endif // {0}
-)", includeGuard, projectNameUpper);
+)",
+                       includeGuard, projectNameUpper);
 }
 
 std::string HeaderOnlyLibTemplate::getConfigHeaderContent() {
-  std::string projectNameUpper = getProjectNameUpper();
-  std::string includeGuard = getIncludeGuard("config.h");
+    std::string projectNameUpper = getProjectNameUpper();
+    std::string includeGuard = getIncludeGuard("config.h");
 
-  return fmt::format(R"({0}
+    return fmt::format(R"({0}
 {0}
 
 // Configuration macros for {1}
@@ -699,11 +735,12 @@ std::string HeaderOnlyLibTemplate::getConfigHeaderContent() {
 #endif
 
 #endif // {0}
-)", includeGuard, options_.projectName, projectNameUpper);
+)",
+                       includeGuard, options_.projectName, projectNameUpper);
 }
 
 std::string HeaderOnlyLibTemplate::getExampleUsageContent() {
-  return fmt::format(R"(#include <iostream>
+    return fmt::format(R"(#include <iostream>
 #include <{0}/{0}.h>
 
 int main() {{
@@ -737,16 +774,17 @@ int main() {{
 
     return 0;
 }}
-)", options_.projectName);
+)",
+                       options_.projectName);
 }
 
 std::string HeaderOnlyLibTemplate::getReadmeContent() {
-  std::string buildInstructions;
-  std::string packageManagerInfo;
-  std::string testInstructions;
+    std::string buildInstructions;
+    std::string packageManagerInfo;
+    std::string testInstructions;
 
-  if (to_string(options_.buildSystem) == "cmake") {
-    buildInstructions = R"(```bash
+    if (to_string(options_.buildSystem) == "cmake") {
+        buildInstructions = R"(```bash
 mkdir build && cd build
 cmake ..
 make
@@ -783,12 +821,13 @@ ctest
 Or run the test executable directly:
 
 ```bash
-./tests/test_)" + options_.projectName + R"(
+./tests/test_)" + options_.projectName +
+                            R"(
 ```
 )";
-  }
+    }
 
-  return fmt::format(R"(# {0}
+    return fmt::format(R"(# {0}
 
 A modern C++ header-only library created with CPP-Scaffold.
 
@@ -868,48 +907,50 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Contributing
 
 Contributions are welcome! Please read `CONTRIBUTING.md` for guidelines.
-)", options_.projectName, packageManagerInfo, buildInstructions, testInstructions);
+)",
+                       options_.projectName, packageManagerInfo, buildInstructions,
+                       testInstructions);
 }
 
 // Helper methods
 std::string HeaderOnlyLibTemplate::getProjectNameUpper() const {
-  return StringUtils::toUpper(options_.projectName);
+    return StringUtils::toUpper(options_.projectName);
 }
 
 std::string HeaderOnlyLibTemplate::getProjectNamespace() const {
-  return options_.projectName;
+    return options_.projectName;
 }
 
 std::string HeaderOnlyLibTemplate::getIncludeGuard(const std::string& filename) const {
-  std::string guard = getProjectNameUpper() + "_" + StringUtils::toUpper(filename);
-  // Replace non-alphanumeric characters with underscores
-  for (char& c : guard) {
-    if (!std::isalnum(c)) {
-      c = '_';
+    std::string guard = getProjectNameUpper() + "_" + StringUtils::toUpper(filename);
+    // Replace non-alphanumeric characters with underscores
+    for (char& c : guard) {
+        if (!std::isalnum(c)) {
+            c = '_';
+        }
     }
-  }
-  return "#ifndef " + guard + "\n#define " + guard;
+    return "#ifndef " + guard + "\n#define " + guard;
 }
 
 std::string HeaderOnlyLibTemplate::getCurrentYear() const {
-  auto now = std::chrono::system_clock::now();
-  auto time_t = std::chrono::system_clock::to_time_t(now);
-  std::stringstream ss;
-  ss << std::put_time(std::localtime(&time_t), "%Y");
-  return ss.str();
+    auto now = std::chrono::system_clock::now();
+    auto time_t = std::chrono::system_clock::to_time_t(now);
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&time_t), "%Y");
+    return ss.str();
 }
 
 std::string HeaderOnlyLibTemplate::getCMakeContent() {
-  std::string testConfig;
-  if (options_.includeTests) {
-    testConfig = R"(
+    std::string testConfig;
+    if (options_.includeTests) {
+        testConfig = R"(
 # Testing
 enable_testing()
 add_subdirectory(tests)
 )";
-  }
+    }
 
-  return fmt::format(R"(cmake_minimum_required(VERSION 3.15)
+    return fmt::format(R"(cmake_minimum_required(VERSION 3.15)
 project({0} VERSION 1.0.0 LANGUAGES CXX)
 
 # Set C++ standard
@@ -973,11 +1014,12 @@ if(BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
 {1}
-)", options_.projectName, testConfig);
+)",
+                       options_.projectName, testConfig);
 }
 
 std::string HeaderOnlyLibTemplate::getMesonContent() {
-  return fmt::format(R"(project('{0}', 'cpp',
+    return fmt::format(R"(project('{0}', 'cpp',
   version : '1.0.0',
   default_options : ['warning_level=3', 'cpp_std=c++17'])
 
@@ -1010,11 +1052,12 @@ pkg.generate(
   version : meson.project_version(),
   subdirs : '{0}'
 )
-)", options_.projectName);
+)",
+                       options_.projectName);
 }
 
 std::string HeaderOnlyLibTemplate::getBazelContent() {
-  return fmt::format(R"(load("@rules_cc//cc:defs.bzl", "cc_library")
+    return fmt::format(R"(load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
     name = "{0}",
@@ -1033,11 +1076,130 @@ cc_library(
         "@googletest//:gtest_main",
     ],
 )
-)", options_.projectName);
+)",
+                       options_.projectName);
+}
+
+std::string HeaderOnlyLibTemplate::getXMakeContent() {
+    std::string testSection;
+    if (options_.includeTests) {
+        std::string testFramework = std::string(to_string(options_.testFramework));
+        testSection = fmt::format(R"(
+add_requires("{0}")
+
+target("{1}_tests")
+    set_kind("binary")
+    add_files("tests/test_{1}.cpp")
+    add_packages("{0}")
+    add_headerfiles("include/{1}/*.h")
+    add_includedirs("include")
+    set_targetdir("tests/bin")
+    set_languages("c++17")
+)",
+                                  testFramework, options_.projectName);
+    }
+
+    return fmt::format(R"(set_project("{0}")
+set_version("1.0.0")
+
+-- Set C++ standard
+set_languages("c++17")
+
+-- Add build modes
+add_rules("mode.debug", "mode.release")
+
+-- Header-only library (interface target)
+target("{1}")
+    set_kind("headeronly")
+    add_headerfiles("include/{1}/*.h")
+    add_includedirs("include", {{public = true}})
+
+    -- Enable C++ features
+    set_languages("c++17")
+
+    -- Install headers
+    add_installfiles("include/{1}/*.h", {{prefixdir = "include/{1}"}})
+
+-- Example executable
+target("{2}_example")
+    set_kind("binary")
+    add_files("examples/example.cpp")
+    add_headerfiles("include/{3}/*.h")
+    add_includedirs("include")
+    set_targetdir("bin")
+    set_languages("c++17")
+{4})",
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, testSection);
+}
+
+std::string HeaderOnlyLibTemplate::getPremakeContent() {
+    std::string testSection;
+    if (options_.includeTests) {
+        testSection = fmt::format(R"(
+project "{0}_tests"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++17"
+    targetdir "bin/%{{cfg.buildcfg}}"
+
+    files {{
+        "tests/test_{0}.cpp"
+    }}
+
+    includedirs {{
+        "include"
+    }}
+
+    filter "configurations:Debug"
+        defines {{ "DEBUG" }}
+        symbols "On"
+        optimize "Off"
+
+    filter "configurations:Release"
+        defines {{ "NDEBUG" }}
+        symbols "Off"
+        optimize "Speed"
+)",
+                                  options_.projectName);
+    }
+
+    return fmt::format(R"(workspace "{0}"
+    configurations {{ "Debug", "Release" }}
+    platforms {{ "x64" }}
+
+-- Header-only library (no actual target needed for header-only)
+-- Just define include paths for dependent projects
+
+project "{1}_example"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++17"
+    targetdir "bin/%{{cfg.buildcfg}}"
+
+    files {{
+        "examples/example.cpp"
+    }}
+
+    includedirs {{
+        "include"
+    }}
+
+    filter "configurations:Debug"
+        defines {{ "DEBUG" }}
+        symbols "On"
+        optimize "Off"
+
+    filter "configurations:Release"
+        defines {{ "NDEBUG" }}
+        symbols "Off"
+        optimize "Speed"
+{2})",
+                       options_.projectName, options_.projectName, testSection);
 }
 
 std::string HeaderOnlyLibTemplate::getVcpkgJsonContent() {
-  return fmt::format(R"({{
+    return fmt::format(R"({{
   "name": "{0}",
   "version": "1.0.0",
   "description": "A header-only C++ library",
@@ -1053,11 +1215,12 @@ std::string HeaderOnlyLibTemplate::getVcpkgJsonContent() {
     }}
   }}
 }}
-)", options_.projectName);
+)",
+                       options_.projectName);
 }
 
 std::string HeaderOnlyLibTemplate::getConanfileContent() {
-  return fmt::format(R"([requires]
+    return fmt::format(R"([requires]
 
 [generators]
 CMakeDeps
@@ -1075,11 +1238,12 @@ arch
 
 [build_requires]
 cmake/[>=3.15]
-)", options_.projectName);
+)",
+                       options_.projectName);
 }
 
 std::string HeaderOnlyLibTemplate::getGTestContent() {
-  return fmt::format(R"(find_package(GTest REQUIRED)
+    return fmt::format(R"(find_package(GTest REQUIRED)
 
 add_executable(test_{0}
     test_{0}.cpp
@@ -1095,11 +1259,12 @@ target_compile_definitions(test_{0} PRIVATE USING_GTEST)
 
 include(GoogleTest)
 gtest_discover_tests(test_{0})
-)", options_.projectName);
+)",
+                       options_.projectName);
 }
 
 std::string HeaderOnlyLibTemplate::getCatch2Content() {
-  return fmt::format(R"(find_package(Catch2 REQUIRED)
+    return fmt::format(R"(find_package(Catch2 REQUIRED)
 
 add_executable(test_{0}
     test_{0}.cpp
@@ -1116,11 +1281,12 @@ target_compile_definitions(test_{0} PRIVATE USING_CATCH2)
 include(CTest)
 include(Catch)
 catch_discover_tests(test_{0})
-)", options_.projectName);
+)",
+                       options_.projectName);
 }
 
 std::string HeaderOnlyLibTemplate::getDocTestContent() {
-  return fmt::format(R"(find_package(doctest REQUIRED)
+    return fmt::format(R"(find_package(doctest REQUIRED)
 
 add_executable(test_{0}
     test_{0}.cpp
@@ -1137,11 +1303,12 @@ target_compile_definitions(test_{0} PRIVATE USING_DOCTEST)
 include(CTest)
 include(doctest)
 doctest_discover_tests(test_{0})
-)", options_.projectName);
+)",
+                       options_.projectName);
 }
 
 std::string HeaderOnlyLibTemplate::getSingleHeaderScript() {
-  return fmt::format(R"(#!/usr/bin/env python3
+    return fmt::format(R"(#!/usr/bin/env python3
 """
 Script to generate a single-header version of {0}
 """
@@ -1224,11 +1391,12 @@ def main():
 
 if __name__ == "__main__":
     main()
-)", options_.projectName);
+)",
+                       options_.projectName);
 }
 
 std::string HeaderOnlyLibTemplate::getDocumentationReadme() {
-  return fmt::format(R"(# {} Documentation
+    return fmt::format(R"(# {} Documentation
 
 This directory contains the documentation for the {} header-only library.
 
@@ -1299,11 +1467,12 @@ If you're hosting your documentation online, consider using:
 ## Contributing to Documentation
 
 Please ensure all new features and public APIs are properly documented before submitting pull requests.
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 }
 
 std::string HeaderOnlyLibTemplate::getAPIDocumentationTemplate() {
-  return fmt::format(R"(# {} API Reference
+    return fmt::format(R"(# {} API Reference
 
 This document provides a comprehensive reference for the {} library API.
 
@@ -1402,11 +1571,14 @@ All functions in this library are thread-safe unless otherwise noted.
 ## Memory Management
 
 This is a header-only library with minimal memory allocation. All classes use RAII principles.
-)", options_.projectName, options_.projectName, options_.projectName, options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, options_.projectName);
 }
 
 std::string HeaderOnlyLibTemplate::getExamplesDocumentationTemplate() {
-  return fmt::format(R"(# {} Examples
+    return fmt::format(
+            R"(# {} Examples
 
 This document provides practical examples of using the {} library.
 
@@ -1592,15 +1764,15 @@ public:
 // Debug information will be available
 ```
 )",
-    options_.projectName, options_.projectName, options_.projectName, options_.projectName,
-    options_.projectName, options_.projectName, options_.projectName, options_.projectName,
-    options_.projectName, options_.projectName, options_.projectName, options_.projectName,
-    options_.projectName, options_.projectName, options_.projectName, options_.projectName,
-    options_.projectName, StringUtils::toUpper(options_.projectName), options_.projectName);
+            options_.projectName, options_.projectName, options_.projectName, options_.projectName,
+            options_.projectName, options_.projectName, options_.projectName, options_.projectName,
+            options_.projectName, options_.projectName, options_.projectName, options_.projectName,
+            options_.projectName, options_.projectName, options_.projectName, options_.projectName,
+            options_.projectName, StringUtils::toUpper(options_.projectName), options_.projectName);
 }
 
 std::string HeaderOnlyLibTemplate::getDoxygenContent() {
-  return fmt::format(R"(PROJECT_NAME           = {0}
+    return fmt::format(R"(PROJECT_NAME           = {0}
 PROJECT_NUMBER         = 1.0.0
 PROJECT_BRIEF         = "A header-only C++ library created with CPP-Scaffold"
 OUTPUT_DIRECTORY      = docs/doxygen
@@ -1838,12 +2010,13 @@ DOT_TRANSPARENT      = NO
 DOT_MULTI_TARGETS    = NO
 GENERATE_LEGEND      = YES
 DOT_CLEANUP          = YES
-)", options_.projectName);
+)",
+                       options_.projectName);
 }
 
 std::string HeaderOnlyLibTemplate::getDocumentationScript() {
 #ifdef _WIN32
-  return fmt::format(R"(@echo off
+    return fmt::format(R"(@echo off
 REM Documentation generation script for {}
 
 echo Generating documentation for {}...
@@ -1872,9 +2045,10 @@ echo.
 echo Documentation generated successfully!
 echo Open docs\html\index.html in your browser to view the documentation.
 echo.
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 #else
-  return fmt::format(R"(#!/bin/bash
+    return fmt::format(R"(#!/bin/bash
 # Documentation generation script for {}
 
 echo "Generating documentation for {}..."
@@ -1905,6 +2079,7 @@ echo
 echo "Documentation generated successfully!"
 echo "Open docs/html/index.html in your browser to view the documentation."
 echo
-)", options_.projectName, options_.projectName);
+)",
+                       options_.projectName, options_.projectName);
 #endif
 }

@@ -1,16 +1,18 @@
 #include <gtest/gtest.h>
-#include "../src/templates/template_manager.h"
+
+#include <filesystem>
+#include <fstream>
+
 #include "../src/templates/console_template.h"
 #include "../src/templates/library_template.h"
 #include "../src/templates/network_template.h"
+#include "../src/templates/template_manager.h"
 #include "../src/utils/file_utils.h"
-#include <filesystem>
-#include <fstream>
 
 using namespace utils;
 
 class TemplateEdgeCasesTest : public ::testing::Test {
-protected:
+   protected:
     void SetUp() override {
         testDir = std::filesystem::temp_directory_path() / "cpp_scaffold_edge_test";
         std::filesystem::remove_all(testDir);
@@ -73,8 +75,9 @@ TEST_F(TemplateEdgeCasesTest, ReadOnlyParentDirectory) {
     std::filesystem::create_directory(readOnlyDir);
 
 #ifndef _WIN32  // Skip on Windows as permissions work differently
-    std::filesystem::permissions(readOnlyDir,
-        std::filesystem::perms::owner_read | std::filesystem::perms::group_read | std::filesystem::perms::others_read);
+    std::filesystem::permissions(readOnlyDir, std::filesystem::perms::owner_read |
+                                                      std::filesystem::perms::group_read |
+                                                      std::filesystem::perms::others_read);
 
     std::filesystem::current_path(readOnlyDir);
 
@@ -124,10 +127,9 @@ TEST_F(TemplateEdgeCasesTest, NetworkTemplateAllLibraries) {
 
 // Test template with all build systems
 TEST_F(TemplateEdgeCasesTest, AllBuildSystems) {
-    std::vector<BuildSystem> buildSystems = {
-        BuildSystem::CMake, BuildSystem::Meson, BuildSystem::Bazel,
-        BuildSystem::XMake, BuildSystem::Premake
-    };
+    std::vector<BuildSystem> buildSystems = {BuildSystem::CMake, BuildSystem::Meson,
+                                             BuildSystem::Bazel, BuildSystem::XMake,
+                                             BuildSystem::Premake};
 
     for (const auto& buildSystem : buildSystems) {
         CliOptions options;
@@ -139,7 +141,7 @@ TEST_F(TemplateEdgeCasesTest, AllBuildSystems) {
 
         TemplateManager manager;
         EXPECT_TRUE(manager.createProject(options))
-            << "Failed to create project with build system " << static_cast<int>(buildSystem);
+                << "Failed to create project with build system " << static_cast<int>(buildSystem);
 
         // Verify appropriate build file exists
         std::string buildFile;
@@ -168,7 +170,7 @@ TEST_F(TemplateEdgeCasesTest, AllBuildSystems) {
         }
 
         EXPECT_TRUE(std::filesystem::exists(buildFile))
-            << "Build file " << buildFile << " does not exist";
+                << "Build file " << buildFile << " does not exist";
 
         // Clean up for next iteration
         std::filesystem::remove_all(options.projectName);
@@ -177,10 +179,8 @@ TEST_F(TemplateEdgeCasesTest, AllBuildSystems) {
 
 // Test template with all test frameworks
 TEST_F(TemplateEdgeCasesTest, AllTestFrameworks) {
-    std::vector<TestFramework> testFrameworks = {
-        TestFramework::GTest, TestFramework::Catch2,
-        TestFramework::Doctest, TestFramework::Boost
-    };
+    std::vector<TestFramework> testFrameworks = {TestFramework::GTest, TestFramework::Catch2,
+                                                 TestFramework::Doctest, TestFramework::Boost};
 
     for (const auto& framework : testFrameworks) {
         CliOptions options;
@@ -194,12 +194,12 @@ TEST_F(TemplateEdgeCasesTest, AllTestFrameworks) {
 
         TemplateManager manager;
         EXPECT_TRUE(manager.createProject(options))
-            << "Failed to create project with test framework " << static_cast<int>(framework);
+                << "Failed to create project with test framework " << static_cast<int>(framework);
 
         // Verify test directory exists
         std::string testDir = options.projectName + "/tests";
         EXPECT_TRUE(std::filesystem::exists(testDir))
-            << "Test directory does not exist for framework " << static_cast<int>(framework);
+                << "Test directory does not exist for framework " << static_cast<int>(framework);
 
         // Clean up for next iteration
         std::filesystem::remove_all(options.projectName);
@@ -231,4 +231,66 @@ TEST_F(TemplateEdgeCasesTest, LibraryTemplateConfigurations) {
     std::string cmakeContent = FileUtils::readFromFile(options.projectName + "/CMakeLists.txt");
     EXPECT_TRUE(cmakeContent.find("add_library") != std::string::npos);
     EXPECT_TRUE(cmakeContent.find("target_include_directories") != std::string::npos);
+}
+
+// Test XMake with all template types
+TEST_F(TemplateEdgeCasesTest, XMakeWithAllTemplateTypes) {
+    std::vector<TemplateType> templateTypes = {
+            TemplateType::Console,   TemplateType::Lib,     TemplateType::HeaderOnlyLib,
+            TemplateType::Gui,       TemplateType::Modules, TemplateType::WebService,
+            TemplateType::GameEngine};
+
+    for (const auto& templateType : templateTypes) {
+        CliOptions options;
+        options.projectName = "xmake-template-" + std::to_string(static_cast<int>(templateType));
+        options.templateType = templateType;
+        options.buildSystem = BuildSystem::XMake;
+        options.packageManager = PackageManager::None;
+        options.initGit = false;
+        options.includeTests = true;
+
+        TemplateManager manager;
+        EXPECT_TRUE(manager.createProject(options))
+                << "Failed to create XMake project with template type "
+                << static_cast<int>(templateType);
+
+        // Verify XMake file exists
+        std::string projectPath = options.projectName;
+        EXPECT_TRUE(FileUtils::fileExists(projectPath + "/xmake.lua"))
+                << "XMake file missing for template type " << static_cast<int>(templateType);
+
+        // Clean up for next iteration
+        std::filesystem::remove_all(options.projectName);
+    }
+}
+
+// Test Premake with all template types
+TEST_F(TemplateEdgeCasesTest, PremakeWithAllTemplateTypes) {
+    std::vector<TemplateType> templateTypes = {
+            TemplateType::Console,   TemplateType::Lib,     TemplateType::HeaderOnlyLib,
+            TemplateType::Gui,       TemplateType::Modules, TemplateType::WebService,
+            TemplateType::GameEngine};
+
+    for (const auto& templateType : templateTypes) {
+        CliOptions options;
+        options.projectName = "premake-template-" + std::to_string(static_cast<int>(templateType));
+        options.templateType = templateType;
+        options.buildSystem = BuildSystem::Premake;
+        options.packageManager = PackageManager::None;
+        options.initGit = false;
+        options.includeTests = true;
+
+        TemplateManager manager;
+        EXPECT_TRUE(manager.createProject(options))
+                << "Failed to create Premake project with template type "
+                << static_cast<int>(templateType);
+
+        // Verify Premake file exists
+        std::string projectPath = options.projectName;
+        EXPECT_TRUE(FileUtils::fileExists(projectPath + "/premake5.lua"))
+                << "Premake file missing for template type " << static_cast<int>(templateType);
+
+        // Clean up for next iteration
+        std::filesystem::remove_all(options.projectName);
+    }
 }

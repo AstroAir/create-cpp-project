@@ -1,15 +1,19 @@
 #include "template_customizer.h"
-#include "../utils/terminal_utils.h"
+
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/spdlog.h>
+
+#include <fstream>
+#include <iostream>
+#include <nlohmann/json.hpp>
+#include <regex>
+#include <sstream>
+
 #include "../cli/input/user_input.h"
+#include "../cli/types/cli_enums.h"
 #include "../utils/file_utils.h"
 #include "../utils/string_utils.h"
-#include "../cli/types/cli_enums.h"
-#include <iostream>
-#include <fstream>
-#include <regex>
-#include <fmt/format.h>
-#include <spdlog/spdlog.h>
-#include <nlohmann/json.hpp>
+#include "../utils/terminal_utils.h"
 
 using namespace utils;
 using json = nlohmann::json;
@@ -20,10 +24,8 @@ namespace templates {
 std::vector<TemplateCustomization> TemplateCustomizer::s_registeredTemplates;
 bool TemplateCustomizer::s_initialized = false;
 
-TemplateCustomization TemplateCustomizer::customizeTemplate(
-    TemplateType templateType,
-    const CliOptions& options) {
-
+TemplateCustomization TemplateCustomizer::customizeTemplate(TemplateType templateType,
+                                                            const CliOptions& options) {
     if (!s_initialized) {
         initializeDefaultTemplates();
     }
@@ -48,11 +50,11 @@ TemplateCustomization TemplateCustomizer::customizeTemplate(
     } else if (options.projectStructure == ProjectStructure::Custom) {
         // Use custom directories from options
         if (options.additionalOptions.count("custom_directories")) {
-            customization.structure = parseCustomStructure(
-                options.additionalOptions.at("custom_directories"),
-                options.additionalOptions.count("custom_files") ?
-                    options.additionalOptions.at("custom_files") : ""
-            );
+            customization.structure =
+                    parseCustomStructure(options.additionalOptions.at("custom_directories"),
+                                         options.additionalOptions.count("custom_files")
+                                                 ? options.additionalOptions.at("custom_files")
+                                                 : "");
         }
     }
 
@@ -61,7 +63,8 @@ TemplateCustomization TemplateCustomizer::customizeTemplate(
 
     if (options.includeTests) {
         enabledFeatures.push_back("testing");
-        enabledFeatures.push_back("test-" + std::string(cli_enums::to_string(options.testFramework)));
+        enabledFeatures.push_back("test-" +
+                                  std::string(cli_enums::to_string(options.testFramework)));
     }
 
     if (options.includeDocumentation) {
@@ -88,19 +91,14 @@ TemplateCustomization TemplateCustomizer::customizeTemplate(
     }
 
     // Select template files based on enabled features
-    customization.structure.files = selectTemplateFiles(
-        customization.structure.files,
-        enabledFeatures,
-        options
-    );
+    customization.structure.files =
+            selectTemplateFiles(customization.structure.files, enabledFeatures, options);
 
     return customization;
 }
 
 TemplateCustomization TemplateCustomizer::runInteractiveCustomization(
-    TemplateType templateType,
-    const CliOptions& baseOptions) {
-
+        TemplateType templateType, const CliOptions& baseOptions) {
     TerminalUtils::showInfo("🎨 Interactive Template Customization");
     TerminalUtils::showSectionSeparator();
 
@@ -121,23 +119,19 @@ TemplateCustomization TemplateCustomizer::runInteractiveCustomization(
 
     // Feature selection
     std::cout << TerminalUtils::colorize("🔧 Feature Selection:", Color::BrightYellow) << "\n";
-    std::vector<std::string> selectedFeatures = selectFeatures(
-        customization.availableFeatures,
-        customization.defaultFeatures,
-        customization.templateName
-    );
+    std::vector<std::string> selectedFeatures =
+            selectFeatures(customization.availableFeatures, customization.defaultFeatures,
+                           customization.templateName);
 
     // Directory structure customization
-    std::cout << "\n" << TerminalUtils::colorize("📁 Directory Structure:", Color::BrightMagenta) << "\n";
+    std::cout << "\n"
+              << TerminalUtils::colorize("📁 Directory Structure:", Color::BrightMagenta) << "\n";
     customization.structure = customizeDirectoryStructure(customization.structure, baseOptions);
 
     // File selection
     std::cout << "\n" << TerminalUtils::colorize("📄 File Selection:", Color::BrightGreen) << "\n";
-    customization.structure.files = selectTemplateFiles(
-        customization.structure.files,
-        selectedFeatures,
-        baseOptions
-    );
+    customization.structure.files =
+            selectTemplateFiles(customization.structure.files, selectedFeatures, baseOptions);
 
     // Generate placeholders
     customization.placeholders = generatePlaceholders(baseOptions);
@@ -160,7 +154,8 @@ TemplateCustomization TemplateCustomizer::runInteractiveCustomization(
             if (saveCustomTemplate(customization, templateName)) {
                 TerminalUtils::showNpmStyleSuccess("Custom template saved: " + templateName);
             } else {
-                TerminalUtils::showNpmStyleError("Failed to save custom template", "Check permissions");
+                TerminalUtils::showNpmStyleError("Failed to save custom template",
+                                                 "Check permissions");
             }
         }
     }
@@ -169,16 +164,17 @@ TemplateCustomization TemplateCustomizer::runInteractiveCustomization(
 }
 
 std::vector<std::string> TemplateCustomizer::selectFeatures(
-    const std::vector<std::string>& availableFeatures,
-    const std::vector<std::string>& defaultFeatures,
-    const std::string& templateName) {
-
+        const std::vector<std::string>& availableFeatures,
+        const std::vector<std::string>& defaultFeatures, const std::string& templateName) {
     std::vector<std::string> selectedFeatures = defaultFeatures;
 
-    std::cout << TerminalUtils::colorize("Available features for " + templateName + ":", Color::BrightCyan) << "\n";
+    std::cout << TerminalUtils::colorize("Available features for " + templateName + ":",
+                                         Color::BrightCyan)
+              << "\n";
 
     for (const auto& feature : availableFeatures) {
-        bool isDefault = std::find(defaultFeatures.begin(), defaultFeatures.end(), feature) != defaultFeatures.end();
+        bool isDefault = std::find(defaultFeatures.begin(), defaultFeatures.end(), feature) !=
+                         defaultFeatures.end();
         bool isSelected = isDefault;
 
         std::string prompt = fmt::format("Include {} feature?", feature);
@@ -194,9 +190,8 @@ std::vector<std::string> TemplateCustomizer::selectFeatures(
             selectedFeatures.push_back(feature);
         } else if (!isSelected && isDefault) {
             selectedFeatures.erase(
-                std::remove(selectedFeatures.begin(), selectedFeatures.end(), feature),
-                selectedFeatures.end()
-            );
+                    std::remove(selectedFeatures.begin(), selectedFeatures.end(), feature),
+                    selectedFeatures.end());
         }
     }
 
@@ -204,16 +199,16 @@ std::vector<std::string> TemplateCustomizer::selectFeatures(
 }
 
 std::unordered_map<std::string, std::string> TemplateCustomizer::generatePlaceholders(
-    const CliOptions& options) {
-
+        const CliOptions& options) {
     std::unordered_map<std::string, std::string> placeholders;
 
     // Basic project information
     placeholders["PROJECT_NAME"] = options.projectName;
     placeholders["PROJECT_NAME_UPPER"] = StringUtils::toUpper(options.projectName);
     placeholders["PROJECT_NAME_LOWER"] = StringUtils::toLower(options.projectName);
-    placeholders["PROJECT_DESCRIPTION"] = options.projectDescription.empty() ?
-        "A C++ project created with cpp-scaffold" : options.projectDescription;
+    placeholders["PROJECT_DESCRIPTION"] = options.projectDescription.empty()
+                                                  ? "A C++ project created with cpp-scaffold"
+                                                  : options.projectDescription;
 
     // Replace hyphens with underscores for C++ identifiers
     std::string cppName = options.projectName;
@@ -231,7 +226,7 @@ std::unordered_map<std::string, std::string> TemplateCustomizer::generatePlaceho
     if (cppStdStr.substr(0, 3) == "c++") {
         placeholders["CPP_STANDARD_NUM"] = cppStdStr.substr(3);
     } else {
-        placeholders["CPP_STANDARD_NUM"] = "17"; // Default fallback
+        placeholders["CPP_STANDARD_NUM"] = "17";  // Default fallback
     }
 
     // Testing configuration
@@ -252,8 +247,8 @@ std::unordered_map<std::string, std::string> TemplateCustomizer::generatePlaceho
     auto tm = *std::localtime(&time_t);
 
     placeholders["CURRENT_YEAR"] = std::to_string(1900 + tm.tm_year);
-    placeholders["CURRENT_DATE"] = fmt::format("{:04d}-{:02d}-{:02d}",
-        1900 + tm.tm_year, tm.tm_mon + 1, tm.tm_mday);
+    placeholders["CURRENT_DATE"] =
+            fmt::format("{:04d}-{:02d}-{:02d}", 1900 + tm.tm_year, tm.tm_mon + 1, tm.tm_mday);
 
     // Author information (could be retrieved from git config or environment)
     placeholders["AUTHOR_NAME"] = "Your Name";
@@ -271,9 +266,8 @@ std::unordered_map<std::string, std::string> TemplateCustomizer::generatePlaceho
 }
 
 std::string TemplateCustomizer::processTemplate(
-    const std::string& templateContent,
-    const std::unordered_map<std::string, std::string>& placeholders) {
-
+        const std::string& templateContent,
+        const std::unordered_map<std::string, std::string>& placeholders) {
     std::string result = templateContent;
 
     // Replace placeholders in the format {{PLACEHOLDER_NAME}}
@@ -375,25 +369,32 @@ DirectoryStructure TemplateCustomizer::getAdvancedStructure(TemplateType type) {
 
     switch (type) {
         case TemplateType::Console:
-            structure.directories = {"src", "include", "tests", "docs", "examples", "scripts", "cmake"};
+            structure.directories = {"src",      "include", "tests", "docs",
+                                     "examples", "scripts", "cmake"};
             break;
         case TemplateType::Lib:
-            structure.directories = {"include", "src", "tests", "docs", "examples", "benchmarks", "cmake", "tools"};
+            structure.directories = {"include",  "src",        "tests", "docs",
+                                     "examples", "benchmarks", "cmake", "tools"};
             break;
         case TemplateType::HeaderOnlyLib:
-            structure.directories = {"include", "tests", "docs", "examples", "cmake", "single_include"};
+            structure.directories = {"include",  "tests", "docs",
+                                     "examples", "cmake", "single_include"};
             break;
         case TemplateType::Gui:
-            structure.directories = {"src", "include", "resources", "assets", "tests", "docs", "cmake"};
+            structure.directories = {"src",   "include", "resources", "assets",
+                                     "tests", "docs",    "cmake"};
             break;
         case TemplateType::Network:
-            structure.directories = {"src", "include", "tests", "examples", "docs", "cmake", "configs"};
+            structure.directories = {"src",  "include", "tests",  "examples",
+                                     "docs", "cmake",   "configs"};
             break;
         case TemplateType::WebService:
-            structure.directories = {"src", "include", "tests", "docs", "docker", "configs", "migrations", "cmake"};
+            structure.directories = {"src",    "include", "tests",      "docs",
+                                     "docker", "configs", "migrations", "cmake"};
             break;
         case TemplateType::GameEngine:
-            structure.directories = {"src", "include", "assets", "shaders", "tests", "examples", "docs", "tools", "cmake"};
+            structure.directories = {"src",      "include", "assets", "shaders", "tests",
+                                     "examples", "docs",    "tools",  "cmake"};
             break;
         default:
             structure.directories = {"src", "include", "tests", "docs", "cmake"};
@@ -403,10 +404,8 @@ DirectoryStructure TemplateCustomizer::getAdvancedStructure(TemplateType type) {
     return structure;
 }
 
-DirectoryStructure TemplateCustomizer::parseCustomStructure(
-    const std::string& directoriesStr,
-    const std::string& filesStr) {
-
+DirectoryStructure TemplateCustomizer::parseCustomStructure(const std::string& directoriesStr,
+                                                            const std::string& filesStr) {
     DirectoryStructure structure;
     structure.name = "custom";
     structure.description = "User-customized project structure";
@@ -437,10 +436,8 @@ DirectoryStructure TemplateCustomizer::parseCustomStructure(
 }
 
 std::vector<TemplateFile> TemplateCustomizer::selectTemplateFiles(
-    const std::vector<TemplateFile>& availableFiles,
-    const std::vector<std::string>& enabledFeatures,
-    const CliOptions& options) {
-
+        const std::vector<TemplateFile>& availableFiles,
+        const std::vector<std::string>& enabledFeatures, const CliOptions& options) {
     std::vector<TemplateFile> selectedFiles;
 
     for (const auto& file : availableFiles) {
@@ -448,7 +445,8 @@ std::vector<TemplateFile> TemplateCustomizer::selectTemplateFiles(
 
         // Check required features
         for (const auto& requiredFeature : file.requiredFeatures) {
-            if (std::find(enabledFeatures.begin(), enabledFeatures.end(), requiredFeature) == enabledFeatures.end()) {
+            if (std::find(enabledFeatures.begin(), enabledFeatures.end(), requiredFeature) ==
+                enabledFeatures.end()) {
                 shouldInclude = false;
                 break;
             }
@@ -470,33 +468,33 @@ std::vector<TemplateFile> TemplateCustomizer::selectTemplateFiles(
 void TemplateCustomizer::showFeatureDetails(const std::string& feature) {
     // Feature descriptions
     static const std::unordered_map<std::string, std::string> featureDescriptions = {
-        {"testing", "Adds unit testing framework and test directory structure"},
-        {"documentation", "Includes README, API docs, and documentation generation"},
-        {"doxygen", "Configures Doxygen for automatic API documentation"},
-        {"code-style", "Adds code formatting and static analysis tools"},
-        {"clang-format", "Configures clang-format for consistent code formatting"},
-        {"clang-tidy", "Configures clang-tidy for static code analysis"},
-        {"benchmarks", "Adds performance benchmarking framework and examples"},
-        {"examples", "Includes example code and usage demonstrations"},
-        {"docker", "Adds Docker configuration for containerized deployment"},
-        {"ci-github", "Configures GitHub Actions for continuous integration"},
-        {"ci-gitlab", "Configures GitLab CI/CD pipelines"},
-        {"editor-vscode", "Adds VS Code configuration and settings"},
-        {"editor-clion", "Adds CLion IDE configuration"}
-    };
+            {"testing", "Adds unit testing framework and test directory structure"},
+            {"documentation", "Includes README, API docs, and documentation generation"},
+            {"doxygen", "Configures Doxygen for automatic API documentation"},
+            {"code-style", "Adds code formatting and static analysis tools"},
+            {"clang-format", "Configures clang-format for consistent code formatting"},
+            {"clang-tidy", "Configures clang-tidy for static code analysis"},
+            {"benchmarks", "Adds performance benchmarking framework and examples"},
+            {"examples", "Includes example code and usage demonstrations"},
+            {"docker", "Adds Docker configuration for containerized deployment"},
+            {"ci-github", "Configures GitHub Actions for continuous integration"},
+            {"ci-gitlab", "Configures GitLab CI/CD pipelines"},
+            {"editor-vscode", "Adds VS Code configuration and settings"},
+            {"editor-clion", "Adds CLion IDE configuration"}};
 
     if (featureDescriptions.count(feature)) {
-        std::cout << "  " << TerminalUtils::colorize("💡 " + featureDescriptions.at(feature), Color::BrightBlack) << "\n";
+        std::cout << "  "
+                  << TerminalUtils::colorize("💡 " + featureDescriptions.at(feature),
+                                             Color::BrightBlack)
+                  << "\n";
     }
 }
 
 void TemplateCustomizer::showTemplatePreview(const TemplateCustomization& customization) {
     TerminalUtils::clearScreen();
 
-    std::vector<std::string> previewLines = {
-        "📋 Template Customization Preview",
-        "Review your customized template before applying"
-    };
+    std::vector<std::string> previewLines = {"📋 Template Customization Preview",
+                                             "Review your customized template before applying"};
     TerminalUtils::showBox(previewLines, BorderStyle::Double, Color::BrightGreen, Color::White, "");
 
     std::cout << "\n";
@@ -510,10 +508,12 @@ void TemplateCustomizer::showTemplatePreview(const TemplateCustomization& custom
         std::cout << "  📁 " << TerminalUtils::colorize(dir, Color::BrightWhite) << "\n";
     }
 
-    std::cout << "\n" << TerminalUtils::colorize("Files to be created:", Color::BrightMagenta) << "\n";
+    std::cout << "\n"
+              << TerminalUtils::colorize("Files to be created:", Color::BrightMagenta) << "\n";
     for (const auto& file : customization.structure.files) {
         std::string icon = file.isOptional ? "📄" : "📋";
-        std::cout << "  " << icon << " " << TerminalUtils::colorize(file.relativePath, Color::BrightWhite);
+        std::cout << "  " << icon << " "
+                  << TerminalUtils::colorize(file.relativePath, Color::BrightWhite);
         if (!file.description.empty()) {
             std::cout << " - " << TerminalUtils::colorize(file.description, Color::BrightBlack);
         }
@@ -524,7 +524,7 @@ void TemplateCustomizer::showTemplatePreview(const TemplateCustomization& custom
 }
 
 bool TemplateCustomizer::confirmCustomization(const TemplateCustomization& customization) {
-    (void)customization; // Suppress unused parameter warning
+    (void)customization;  // Suppress unused parameter warning
     return UserInput::readConfirmation("Apply this template customization?", true);
 }
 
@@ -533,16 +533,14 @@ void TemplateCustomizer::loadCustomTemplates() {
     spdlog::debug("Loading custom templates from user configuration");
 }
 
-bool TemplateCustomizer::saveCustomTemplate(
-    const TemplateCustomization& customization,
-    const std::string& name) {
-
-    (void)customization; // Suppress unused parameter warning
-    (void)name; // Suppress unused parameter warning
+bool TemplateCustomizer::saveCustomTemplate(const TemplateCustomization& customization,
+                                            const std::string& name) {
+    (void)customization;  // Suppress unused parameter warning
+    (void)name;           // Suppress unused parameter warning
 
     // Implementation would save custom template to user's config directory
     spdlog::info("Saving custom template: {}", name);
     return true;
 }
 
-} // namespace templates
+}  // namespace templates

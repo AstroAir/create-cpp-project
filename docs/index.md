@@ -4,6 +4,8 @@
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/cpp-scaffold/cpp-scaffold)
 [![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://en.cppreference.com/w/cpp/17)
 [![CMake](https://img.shields.io/badge/CMake-3.14+-blue.svg)](https://cmake.org/)
+[![XMake](https://img.shields.io/badge/XMake-2.8+-green.svg)](https://xmake.io/)
+[![MSYS2](https://img.shields.io/badge/MSYS2-supported-orange.svg)](https://www.msys2.org/)
 
 Welcome to CPP-Scaffold, a powerful, modern C++ project scaffolding tool that helps developers quickly create well-structured C++ projects with industry best practices, modern build systems, package managers, testing frameworks, and development tools.
 
@@ -12,7 +14,8 @@ Welcome to CPP-Scaffold, a powerful, modern C++ project scaffolding tool that he
 ### Core Capabilities
 
 - 🏗️ **Multiple Project Templates**: Console apps, libraries, GUI applications, network services, embedded systems, web services, and more
-- 🔧 **Build System Support**: CMake, Meson, Bazel, XMake, Premake, Make, Ninja with optimized configurations
+- 🔧 **Build System Support**: **XMake** (modern, recommended), CMake, Meson, Bazel, Premake, Make, Ninja with optimized configurations
+- 🪟 **MSYS2 Integration**: Native MSYS2 support with automatic package management and optimizations
 - 📦 **Package Managers**: vcpkg, Conan, Spack, Hunter with automatic dependency management
 - 🧪 **Testing Frameworks**: Google Test, Catch2, Doctest, Boost.Test with CI integration
 - 🎨 **IDE Integration**: VSCode, CLion, Visual Studio, Vim, Emacs with project-specific configurations
@@ -36,49 +39,53 @@ This documentation is organized into several categories to help you find the inf
 
 ### 👥 For Users
 
-| Document | Description | Location |
-|----------|-------------|----------|
-| **[Installation Guide](getting-started/installation.md)** | Complete installation instructions for all platforms | `getting-started/` |
-| **[Usage Guide](user-guide/usage.md)** | Comprehensive usage examples and command reference | `user-guide/` |
-| **[Troubleshooting](user-guide/troubleshooting.md)** | Common issues and solutions | `user-guide/` |
+| Document                                                      | Description                                          | Location           |
+| ------------------------------------------------------------- | ---------------------------------------------------- | ------------------ |
+| **[Installation Guide](getting-started/installation.md)**     | Complete installation instructions for all platforms | `getting-started/` |
+| **[XMake Quick Start](getting-started/xmake-quick-start.md)** | Getting started with XMake build system              | `getting-started/` |
+| **[Usage Guide](user-guide/usage.md)**                        | Comprehensive usage examples and command reference   | `user-guide/`      |
+| **[Troubleshooting](user-guide/troubleshooting.md)**          | Common issues and solutions                          | `user-guide/`      |
 
 ### 👨‍💻 For Developers
 
-| Document | Description | Location |
-|----------|-------------|----------|
+| Document                                                  | Description                              | Location           |
+| --------------------------------------------------------- | ---------------------------------------- | ------------------ |
 | **[Architecture Guide](developer-guide/architecture.md)** | System design and component interactions | `developer-guide/` |
-| **[Build System](developer-guide/building.md)** | Build process and configuration options | `developer-guide/` |
-| **[Contributing Guide](developer-guide/contributing.md)** | Guidelines for contributors | `developer-guide/` |
+| **[Build System](developer-guide/building.md)**           | Build process and configuration options  | `developer-guide/` |
+| **[Contributing Guide](developer-guide/contributing.md)** | Guidelines for contributors              | `developer-guide/` |
 
 ### 📖 Reference Documentation
 
-| Document | Description | Location |
-|----------|-------------|----------|
-| **[API Reference](api-reference/api.md)** | Complete API documentation | `api-reference/` |
-| **[Component Documentation](components/index.md)** | Detailed component documentation | `components/` |
-| **[Enhancement History](reference/enhancements.md)** | Recent improvements and features | `reference/` |
+| Document                                                            | Description                        | Location           |
+| ------------------------------------------------------------------- | ---------------------------------- | ------------------ |
+| **[XMake Build System](developer-guide/xmake-build-system.md)**     | Comprehensive XMake documentation  | `developer-guide/` |
+| **[MSYS2 Integration](developer-guide/xmake-msys2-integration.md)** | Windows development with MSYS2     | `developer-guide/` |
+| **[Build System Comparison](developer-guide/build-system.md)**      | CMake vs XMake detailed comparison | `developer-guide/` |
+| **[API Reference](api-reference/api.md)**                           | Complete API documentation         | `api-reference/`   |
+| **[Component Documentation](components/index.md)**                  | Detailed component documentation   | `components/`      |
+| **[Enhancement History](reference/enhancements.md)**                | Recent improvements and features   | `reference/`       |
 
 ## 🎯 Quick Navigation
 
 ### By User Type
 
-| User Type | Start Here | Then Read |
-|-----------|------------|-----------|
-| **New Users** | [Installation Guide](getting-started/installation.md) | [Usage Guide](user-guide/usage.md) |
-| **Power Users** | [Usage Guide](user-guide/usage.md) | [API Reference](api-reference/api.md) |
+| User Type        | Start Here                                            | Then Read                                             |
+| ---------------- | ----------------------------------------------------- | ----------------------------------------------------- |
+| **New Users**    | [Installation Guide](getting-started/installation.md) | [Usage Guide](user-guide/usage.md)                    |
+| **Power Users**  | [Usage Guide](user-guide/usage.md)                    | [API Reference](api-reference/api.md)                 |
 | **Contributors** | [Architecture Guide](developer-guide/architecture.md) | [Contributing Guide](developer-guide/contributing.md) |
-| **Maintainers** | [Build System](developer-guide/building.md) | [Component Documentation](components/index.md) |
+| **Maintainers**  | [Build System](developer-guide/building.md)           | [Component Documentation](components/index.md)        |
 
 ### By Task
 
-| Task | Documentation |
-|------|---------------|
-| **Install CPP-Scaffold** | [Installation Guide](getting-started/installation.md) |
-| **Create your first project** | [Getting Started](getting-started/first-project.md) |
-| **Understand the architecture** | [Architecture Guide](developer-guide/architecture.md) |
-| **Extend functionality** | [API Reference](api-reference/api.md) + [Component Documentation](components/index.md) |
-| **Report issues** | [Troubleshooting](user-guide/troubleshooting.md) + [Contributing Guide](developer-guide/contributing.md) |
-| **Build from source** | [Build System](developer-guide/building.md) |
+| Task                            | Documentation                                                                                            |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **Install CPP-Scaffold**        | [Installation Guide](getting-started/installation.md)                                                    |
+| **Create your first project**   | [Getting Started](getting-started/first-project.md)                                                      |
+| **Understand the architecture** | [Architecture Guide](developer-guide/architecture.md)                                                    |
+| **Extend functionality**        | [API Reference](api-reference/api.md) + [Component Documentation](components/index.md)                   |
+| **Report issues**               | [Troubleshooting](user-guide/troubleshooting.md) + [Contributing Guide](developer-guide/contributing.md) |
+| **Build from source**           | [Build System](developer-guide/building.md)                                                              |
 
 ## ⚡ Quick Start
 
@@ -160,16 +167,16 @@ ctest
 
 ### Available Templates
 
-| Template | Description | Use Case | Key Features |
-|----------|-------------|----------|--------------|
-| `console` | Command-line application | CLI tools, utilities, system tools | Argument parsing, logging, cross-platform |
-| `lib` | Static/shared library | Reusable components, SDKs | Export/import handling, pkg-config, versioning |
-| `header-only-lib` | Header-only library | Template libraries, utilities | Single-header distribution, comprehensive docs |
-| `gui` | GUI application | Desktop applications | Framework integration (Qt, SFML), resource management |
-| `network` | Network service | Servers, clients, APIs | Async I/O, protocol handling, scalability |
-| `embedded` | Embedded system | IoT, microcontrollers | Resource constraints, real-time, hardware abstraction |
-| `webservice` | Web service | REST APIs, web backends | HTTP handling, JSON APIs, middleware |
-| `multi-executable` | Multiple executables | Complex projects, tool suites | Shared libraries, modular architecture |
+| Template           | Description              | Use Case                           | Key Features                                          |
+| ------------------ | ------------------------ | ---------------------------------- | ----------------------------------------------------- |
+| `console`          | Command-line application | CLI tools, utilities, system tools | Argument parsing, logging, cross-platform             |
+| `lib`              | Static/shared library    | Reusable components, SDKs          | Export/import handling, pkg-config, versioning        |
+| `header-only-lib`  | Header-only library      | Template libraries, utilities      | Single-header distribution, comprehensive docs        |
+| `gui`              | GUI application          | Desktop applications               | Framework integration (Qt, SFML), resource management |
+| `network`          | Network service          | Servers, clients, APIs             | Async I/O, protocol handling, scalability             |
+| `embedded`         | Embedded system          | IoT, microcontrollers              | Resource constraints, real-time, hardware abstraction |
+| `webservice`       | Web service              | REST APIs, web backends            | HTTP handling, JSON APIs, middleware                  |
+| `multi-executable` | Multiple executables     | Complex projects, tool suites      | Shared libraries, modular architecture                |
 
 ### Template Features
 

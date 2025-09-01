@@ -4,6 +4,8 @@
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/cpp-scaffold/cpp-scaffold)
 [![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://en.cppreference.com/w/cpp/17)
 [![CMake](https://img.shields.io/badge/CMake-3.14+-blue.svg)](https://cmake.org/)
+[![XMake](https://img.shields.io/badge/XMake-2.8+-green.svg)](https://xmake.io/)
+[![MSYS2](https://img.shields.io/badge/MSYS2-supported-orange.svg)](https://www.msys2.org/)
 
 A powerful, modern C++ project scaffolding tool that helps developers quickly create well-structured C++ projects with industry best practices, modern build systems, package managers, testing frameworks, and development tools.
 
@@ -37,12 +39,25 @@ winget install cpp-scaffold
 **Build from Source:**
 
 ```bash
-# Clone and build
+# Clone repository
 git clone https://github.com/cpp-scaffold/cpp-scaffold.git
 cd cpp-scaffold
+
+# Option 1: XMake (Recommended)
+xmake config --mode=release
+xmake build
+xmake install
+
+# Option 2: CMake (Traditional)
 cmake --preset release
 cmake --build --preset release
 cmake --install build --prefix /usr/local
+
+# Option 3: MSYS2 + XMake (Windows)
+# In MSYS2 MinGW64 shell:
+xmake msys2-setup-dev
+xmake config --mode=release --msys2_optimizations=true
+xmake build
 ```
 
 📖 **[Complete Installation Guide](docs/installation/README.md)**
@@ -63,7 +78,8 @@ cmake --install build --prefix /usr/local
 ## 🏗️ Features
 
 - **🎯 Multiple Project Templates**: Console apps, libraries, GUI applications, network services, embedded systems, web services
-- **🔧 Build System Support**: CMake, Meson, Bazel, XMake, Premake, Make, Ninja
+- **🔧 Build System Support**: **XMake** (modern, Lua-based), **Premake** (Lua-based), **Meson** (Python-based), CMake, Bazel, Make, Ninja
+- **🪟 MSYS2 Integration**: Native MSYS2 support with automatic package management and optimizations
 - **📦 Package Managers**: vcpkg, Conan, Spack, Hunter with automatic dependency management
 - **🧪 Testing Frameworks**: Google Test, Catch2, Doctest, Boost.Test with CI integration
 - **🎨 IDE Integration**: VSCode, CLion, Visual Studio, Vim, Emacs with project-specific configurations
@@ -97,20 +113,25 @@ mkdocs build
 ### 📋 Quick Links
 
 - **[Getting Started](docs/getting-started/index.md)** - Installation and first project
+- **[XMake Build System](docs/developer-guide/xmake-build-system.md)** - Modern Lua-based build system
+- **[MSYS2 Integration](docs/developer-guide/xmake-msys2-integration.md)** - Windows development with MSYS2
 - **[User Guide](docs/user-guide/index.md)** - Complete usage documentation
 - **[Tutorials](docs/tutorials/index.md)** - Step-by-step examples
 - **[Developer Guide](docs/developer-guide/index.md)** - Contributing and extending
 - **[API Reference](docs/api-reference/index.md)** - Complete API documentation
 
-### Quick Links
+### 🔗 Documentation Links
 
-| For | Documentation | Description |
-|-----|---------------|-------------|
-| **New Users** | [Getting Started](docs/getting-started/index.md) | Installation and first project |
-| **All Users** | [User Guide](docs/user-guide/index.md) | Complete usage documentation |
-| **Developers** | [API Reference](docs/api-reference/index.md) | Complete API documentation |
-| **Contributors** | [Developer Guide](docs/developer-guide/index.md) | Contributing and extending |
-| **Troubleshooting** | [Troubleshooting](docs/user-guide/troubleshooting.md) | Common issues and solutions |
+| For                 | Documentation                                                        | Description                    |
+| ------------------- | -------------------------------------------------------------------- | ------------------------------ |
+| **New Users**       | [Getting Started](docs/getting-started/index.md)                     | Installation and first project |
+| **XMake Users**     | [XMake Build System](docs/developer-guide/xmake-build-system.md)     | Modern Lua-based build system  |
+| **Windows Users**   | [MSYS2 Integration](docs/developer-guide/xmake-msys2-integration.md) | Windows development with MSYS2 |
+| **All Users**       | [User Guide](docs/user-guide/index.md)                               | Complete usage documentation   |
+| **Developers**      | [API Reference](docs/api-reference/index.md)                         | Complete API documentation     |
+| **Contributors**    | [Developer Guide](docs/developer-guide/index.md)                     | Contributing and extending     |
+| **Build Systems**   | [Build System Docs](docs/developer-guide/build-system.md)            | CMake and XMake documentation  |
+| **Troubleshooting** | [Troubleshooting](docs/user-guide/troubleshooting.md)                | Common issues and solutions    |
 
 ### Documentation Structure
 
@@ -153,29 +174,44 @@ requirements.txt                # Python dependencies for docs
 
 ## 🎯 Project Templates
 
-| Template | Description | Use Case |
-|----------|-------------|----------|
-| `console` | Command-line application | CLI tools, utilities, system tools |
-| `lib` | Static/shared library | Reusable components, SDKs |
-| `header-only-lib` | Header-only library | Template libraries, utilities |
-| `gui` | GUI application | Desktop applications |
-| `network` | Network service | Servers, clients, APIs |
-| `embedded` | Embedded system | IoT, microcontrollers |
-| `webservice` | Web service | REST APIs, web backends |
-| `custom` | User-defined template | Specialized projects |
+| Template          | Description              | Use Case                           |
+| ----------------- | ------------------------ | ---------------------------------- |
+| `console`         | Command-line application | CLI tools, utilities, system tools |
+| `lib`             | Static/shared library    | Reusable components, SDKs          |
+| `header-only-lib` | Header-only library      | Template libraries, utilities      |
+| `gui`             | GUI application          | Desktop applications               |
+| `network`         | Network service          | Servers, clients, APIs             |
+| `embedded`        | Embedded system          | IoT, microcontrollers              |
+| `webservice`      | Web service              | REST APIs, web backends            |
+| `custom`          | User-defined template    | Specialized projects               |
 
 ## 💡 Examples
 
 ### Quick Start Examples
 
 #### Console Application
+
 Create a command-line tool with modern C++ practices:
 
 ```bash
-# Basic console app
+# Basic console app with XMake (recommended)
+cpp-scaffold MyTool --type console --build xmake --test gtest
+
+# Basic console app with CMake (traditional)
 cpp-scaffold MyTool --type console --build cmake --package vcpkg --test gtest
 
-# Advanced console app with CI/CD and editor setup
+# Advanced console app with XMake and MSYS2 support
+cpp-scaffold FileProcessor \
+  --type console \
+  --build xmake \
+  --test gtest \
+  --ci github \
+  --editor vscode \
+  --std cpp20 \
+  --docs \
+  --msys2
+
+# Advanced console app with CMake
 cpp-scaffold FileProcessor \
   --type console \
   --build cmake \
@@ -187,8 +223,26 @@ cpp-scaffold FileProcessor \
   --docs
 ```
 
-**Generated structure:**
+**Generated structure (XMake):**
+
+```text
+FileProcessor/
+├── xmake.lua              # XMake build configuration
+├── xmake/                 # Modular XMake files
+│   ├── packages.lua       # Package dependencies
+│   ├── components.lua     # Component definitions
+│   └── tasks.lua          # Custom tasks
+├── .github/workflows/     # GitHub Actions CI/CD
+├── .vscode/              # VSCode configuration
+├── src/main.cpp          # Application entry point
+├── include/              # Public headers
+├── tests/                # Unit tests with GTest
+└── docs/                 # Documentation
 ```
+
+**Generated structure (CMake):**
+
+```text
 FileProcessor/
 ├── CMakeLists.txt          # CMake build configuration
 ├── vcpkg.json             # Package dependencies
@@ -201,10 +255,21 @@ FileProcessor/
 ```
 
 #### C++ Library
+
 Create a reusable library with comprehensive tooling:
 
 ```bash
-# Static/shared library
+# Static/shared library with XMake
+cpp-scaffold MathLib \
+  --type lib \
+  --build xmake \
+  --test catch2 \
+  --docs \
+  --ci github,gitlab \
+  --editor clion \
+  --msys2
+
+# Static/shared library with CMake
 cpp-scaffold MathLib \
   --type lib \
   --build cmake \
@@ -214,7 +279,14 @@ cpp-scaffold MathLib \
   --ci github,gitlab \
   --editor clion
 
-# Header-only library
+# Header-only library with XMake
+cpp-scaffold UtilsLib \
+  --type header-only-lib \
+  --build xmake \
+  --test doctest \
+  --std cpp20
+
+# Header-only library with CMake
 cpp-scaffold UtilsLib \
   --type header-only-lib \
   --build cmake \
@@ -224,6 +296,7 @@ cpp-scaffold UtilsLib \
 ```
 
 **Features included:**
+
 - Modern CMake with proper target exports
 - Package manager integration (Conan/vcpkg)
 - Comprehensive testing setup
@@ -231,6 +304,7 @@ cpp-scaffold UtilsLib \
 - CI/CD for multiple platforms
 
 #### Qt GUI Application
+
 Build desktop applications with Qt framework:
 
 ```bash
@@ -254,6 +328,7 @@ cpp-scaffold ImageEditor \
 ```
 
 #### Network Service
+
 Create high-performance network applications:
 
 ```bash
@@ -305,6 +380,7 @@ ctest
 ```
 
 **What you get:**
+
 - Complete CLI argument parsing
 - File I/O operations with error handling
 - Unit tests with Google Test
@@ -336,6 +412,7 @@ ctest --preset conan-release
 ```
 
 **Features demonstrated:**
+
 - Modern C++20 modules (optional)
 - Conan package management
 - Catch2 testing framework
@@ -366,11 +443,60 @@ cmake --build build
 ```
 
 **Includes:**
+
 - Qt6 integration with CMake
 - Modern Qt widgets and layouts
 - Image processing capabilities
 - Cross-platform deployment
 - Unit testing for Qt components
+
+## 🔧 Build System Support
+
+CPP-Scaffold supports multiple modern build systems, each with their own strengths:
+
+### XMake (Recommended)
+
+- **Modern Lua-based** build system with excellent cross-platform support
+- **Fast compilation** and intelligent dependency management
+- **Built-in package management** with automatic dependency resolution
+- **MSYS2 integration** for Windows development
+- **Example**: `cpp-scaffold MyProject --build xmake`
+
+### Premake
+
+- **Lua-based** build system that generates native project files
+- **Multi-platform** support (Visual Studio, Xcode, Make, etc.)
+- **Simple configuration** with powerful scripting capabilities
+- **Example**: `cpp-scaffold MyProject --build premake`
+
+### Meson
+
+- **Python-based** build system focused on speed and usability
+- **Fast builds** with excellent dependency tracking
+- **Cross-compilation** support and modern C++ features
+- **Example**: `cpp-scaffold MyProject --build meson`
+
+### CMake
+
+- **Industry standard** with extensive ecosystem support
+- **Mature tooling** and IDE integration
+- **Package manager** integration (vcpkg, Conan)
+- **Example**: `cpp-scaffold MyProject --build cmake`
+
+### Bazel
+
+- **Google's build system** for large-scale projects
+- **Hermetic builds** and excellent caching
+- **Multi-language** support and remote execution
+- **Example**: `cpp-scaffold MyProject --build bazel`
+
+All build systems support:
+
+- ✅ **All template types** (console, library, GUI, etc.)
+- ✅ **Testing frameworks** (GTest, Catch2, Doctest)
+- ✅ **Package managers** (vcpkg, Conan, etc.)
+- ✅ **CI/CD integration** (GitHub Actions, GitLab CI, etc.)
+- ✅ **Cross-platform** development (Windows, Linux, macOS)
 
 ## 🤝 Contributing
 

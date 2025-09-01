@@ -1,327 +1,317 @@
 #include "console_template.h"
 
-#include "../utils/file_utils.h"
-#include "../utils/enhanced_terminal.h"
-
-#include <fmt/core.h>
-#include <iostream>
+#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
+
+#include <iostream>
+
+#include "../utils/enhanced_terminal.h"
+#include "../utils/file_utils.h"
 
 using namespace utils;
 using namespace cli_enums;
 
-ConsoleTemplate::ConsoleTemplate(const CliOptions &options)
-    : TemplateBase(options) {}
+ConsoleTemplate::ConsoleTemplate(const CliOptions& options) : TemplateBase(options) {}
 
 bool ConsoleTemplate::create() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // Check if project directory already exists
-  if (FileUtils::directoryExists(projectPath)) {
-    spdlog::error("Directory '{}' already exists.", projectPath);
-    return false;
-  }
-
-  spdlog::info("🚀 Creating project...");
-
-  // Create basic structure
-  if (!createProjectStructure()) {
-    spdlog::error("Failed to create project structure");
-    return false;
-  }
-  spdlog::info("�?Project structure created");
-
-  // Create build system
-  if (!createBuildSystem()) {
-    spdlog::error("Failed to configure build system");
-    return false;
-  }
-  spdlog::info("�?Build system configured");
-
-  // Setup package manager
-  if (!setupPackageManager()) {
-    spdlog::error("Failed to setup package manager");
-    return false;
-  }
-  spdlog::info("�?Package manager setup");
-
-  // Setup test framework
-  if (options_.includeTests) {
-    if (!setupTestFramework()) {
-      spdlog::error("Failed to setup test framework");
-      return false;
+    // Check if project directory already exists
+    if (FileUtils::directoryExists(projectPath)) {
+        spdlog::error("Directory '{}' already exists.", projectPath);
+        return false;
     }
-    spdlog::info("�?Test framework configured");
-  }
 
-  // Initialize Git
-  if (options_.initGit) {
-    if (!initializeGit(projectPath)) {
-      spdlog::error("Failed to initialize Git repository");
-      return false;
+    spdlog::info("🚀 Creating project...");
+
+    // Create basic structure
+    if (!createProjectStructure()) {
+        spdlog::error("Failed to create project structure");
+        return false;
     }
-    spdlog::info("�?Git repository initialized");
-  }
+    spdlog::info("�?Project structure created");
 
-  // Setup code style tools if enabled
-  if (options_.includeCodeStyleTools) {
-    if (!setupCodeStyleConfig(projectPath)) {
-      spdlog::error("Failed to setup code style tools");
-      return false;
+    // Create build system
+    if (!createBuildSystem()) {
+        spdlog::error("Failed to configure build system");
+        return false;
     }
-    spdlog::info("�?Code style tools configured");
-  }
+    spdlog::info("�?Build system configured");
 
-  spdlog::info("\nYour project is ready!\n");
+    // Setup package manager
+    if (!setupPackageManager()) {
+        spdlog::error("Failed to setup package manager");
+        return false;
+    }
+    spdlog::info("�?Package manager setup");
 
-  // Execute post-creation actions (temporarily disabled)
-  // if (!executePostCreationActions()) {
-  //   std::cerr << "⚠️ Some post-creation actions failed, but the project was created successfully.\n";
-  // }
+    // Setup test framework
+    if (options_.includeTests) {
+        if (!setupTestFramework()) {
+            spdlog::error("Failed to setup test framework");
+            return false;
+        }
+        spdlog::info("�?Test framework configured");
+    }
 
-  // Print usage instructions
-  printUsageGuide();
+    // Initialize Git
+    if (options_.initGit) {
+        if (!initializeGit(projectPath)) {
+            spdlog::error("Failed to initialize Git repository");
+            return false;
+        }
+        spdlog::info("�?Git repository initialized");
+    }
 
-  std::cout << "\nHappy coding! 🎉\n";
+    // Setup code style tools if enabled
+    if (options_.includeCodeStyleTools) {
+        if (!setupCodeStyleConfig(projectPath)) {
+            spdlog::error("Failed to setup code style tools");
+            return false;
+        }
+        spdlog::info("�?Code style tools configured");
+    }
 
-  return true;
+    spdlog::info("\nYour project is ready!\n");
+
+    // Execute post-creation actions (temporarily disabled)
+    // if (!executePostCreationActions()) {
+    //   std::cerr << "⚠️ Some post-creation actions failed, but the project was created
+    //   successfully.\n";
+    // }
+
+    // Print usage instructions
+    printUsageGuide();
+
+    std::cout << "\nHappy coding! 🎉\n";
+
+    return true;
 }
 
 bool ConsoleTemplate::createProjectStructure() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  // Create main directory
-  if (!FileUtils::createDirectory(projectPath)) {
-    return false;
-  }
+    // Create main directory
+    if (!FileUtils::createDirectory(projectPath)) {
+        return false;
+    }
 
-  // Create src directory
-  std::string srcPath = FileUtils::combinePath(projectPath, "src");
-  if (!FileUtils::createDirectory(srcPath)) {
-    return false;
-  }
+    // Create src directory
+    std::string srcPath = FileUtils::combinePath(projectPath, "src");
+    if (!FileUtils::createDirectory(srcPath)) {
+        return false;
+    }
 
-  // Create include directory
-  std::string includePath = FileUtils::combinePath(projectPath, "include");
-  if (!FileUtils::createDirectory(includePath)) {
-    return false;
-  }
+    // Create include directory
+    std::string includePath = FileUtils::combinePath(projectPath, "include");
+    if (!FileUtils::createDirectory(includePath)) {
+        return false;
+    }
 
-  std::string includeProjectPath =
-      FileUtils::combinePath(includePath, options_.projectName);
-  if (!FileUtils::createDirectory(includeProjectPath)) {
-    return false;
-  }
+    std::string includeProjectPath = FileUtils::combinePath(includePath, options_.projectName);
+    if (!FileUtils::createDirectory(includeProjectPath)) {
+        return false;
+    }
 
-  // Write main.cpp
-  if (!FileUtils::writeToFile(FileUtils::combinePath(srcPath, "main.cpp"),
-                              getMainCppContent())) {
-    return false;
-  }
+    // Write main.cpp
+    if (!FileUtils::writeToFile(FileUtils::combinePath(srcPath, "main.cpp"), getMainCppContent())) {
+        return false;
+    }
 
-  // Create README.md
-  if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "README.md"),
-                              getReadmeContent())) {
-    return false;
-  }
+    // Create README.md
+    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "README.md"),
+                                getReadmeContent())) {
+        return false;
+    }
 
-  return true;
+    return true;
 }
 
 bool ConsoleTemplate::createBuildSystem() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  if (options_.buildSystem == BuildSystem::CMake) {
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "CMakeLists.txt"),
-            getCMakeContent())) {
-      return false;
-    }
-  } else if (options_.buildSystem == BuildSystem::Meson) {
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "meson.build"),
-            getMesonContent())) {
-      return false;
-    }
-  } else if (options_.buildSystem == BuildSystem::Bazel) {
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "WORKSPACE"),
-            fmt::format("workspace(name = \"{}\")\n", options_.projectName))) {
-      return false;
+    if (options_.buildSystem == BuildSystem::CMake) {
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "CMakeLists.txt"),
+                                    getCMakeContent())) {
+            return false;
+        }
+    } else if (options_.buildSystem == BuildSystem::Meson) {
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "meson.build"),
+                                    getMesonContent())) {
+            return false;
+        }
+    } else if (options_.buildSystem == BuildSystem::Bazel) {
+        if (!FileUtils::writeToFile(
+                    FileUtils::combinePath(projectPath, "WORKSPACE"),
+                    fmt::format("workspace(name = \"{}\")\n", options_.projectName))) {
+            return false;
+        }
+
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "BUILD"),
+                                    getBazelContent())) {
+            return false;
+        }
+    } else if (options_.buildSystem == BuildSystem::XMake) {
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "xmake.lua"),
+                                    getXMakeContent())) {
+            return false;
+        }
+    } else if (options_.buildSystem == BuildSystem::Premake) {
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "premake5.lua"),
+                                    getPremakeContent())) {
+            return false;
+        }
     }
 
-    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "BUILD"),
-                                getBazelContent())) {
-      return false;
-    }
-  } else if (options_.buildSystem == BuildSystem::XMake) {
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "xmake.lua"),
-            getXMakeContent())) {
-      return false;
-    }
-  } else if (options_.buildSystem == BuildSystem::Premake) {
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "premake5.lua"),
-            getPremakeContent())) {
-      return false;
-    }
-  }
-
-  return true;
+    return true;
 }
 
 bool ConsoleTemplate::setupPackageManager() {
-  std::string projectPath = options_.projectName;
+    std::string projectPath = options_.projectName;
 
-  if (options_.packageManager == PackageManager::Vcpkg) {
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "vcpkg.json"),
-            getVcpkgJsonContent())) {
-      return false;
+    if (options_.packageManager == PackageManager::Vcpkg) {
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "vcpkg.json"),
+                                    getVcpkgJsonContent())) {
+            return false;
+        }
+    } else if (options_.packageManager == PackageManager::Conan) {
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "conanfile.txt"),
+                                    getConanfileContent())) {
+            return false;
+        }
+    } else if (options_.packageManager == PackageManager::MSYS2) {
+        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "PKGBUILD"),
+                                    getMSYS2PKGBUILDContent())) {
+            return false;
+        }
     }
-  } else if (options_.packageManager == PackageManager::Conan) {
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "conanfile.txt"),
-            getConanfileContent())) {
-      return false;
-    }
-  } else if (options_.packageManager == PackageManager::MSYS2) {
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(projectPath, "PKGBUILD"),
-            getMSYS2PKGBUILDContent())) {
-      return false;
-    }
-  }
 
-  return true;
+    return true;
 }
 
 bool ConsoleTemplate::setupTestFramework() {
-  if (!options_.includeTests) {
-    return true;
-  }
-
-  // Use the enhanced test framework manager
-  auto& testManager = testing::TestFrameworkManager::getInstance();
-
-  // Configure test settings
-  testing::TestConfig testConfig;
-
-  // Map CLI test framework to testing framework
-  switch (options_.testFramework) {
-    case TestFramework::GTest:
-      testConfig.framework = testing::TestFramework::GoogleTest;
-      break;
-    case TestFramework::Catch2:
-      testConfig.framework = testing::TestFramework::Catch2;
-      break;
-    case TestFramework::Doctest:
-      testConfig.framework = testing::TestFramework::Doctest;
-      break;
-    default:
-      testConfig.framework = testing::TestFramework::GoogleTest;
-      break;
-  }
-
-  testConfig.testTypes = {
-    testing::TestType::Unit,
-    testing::TestType::Integration
-  };
-
-  testConfig.generateMocks = false;
-  testConfig.generateFixtures = true;
-  testConfig.enableCodeCoverage = true;
-  testConfig.enableAddressSanitizer = true;
-
-  // Setup the test framework
-  std::filesystem::path projectPath(options_.projectName);
-
-  // Convert CLI TestFramework enum to testing::TestFramework enum
-  testing::TestFramework testingFramework;
-  switch (options_.testFramework) {
-    case TestFramework::GTest:
-      testingFramework = testing::TestFramework::GoogleTest;
-      break;
-    case TestFramework::Catch2:
-      testingFramework = testing::TestFramework::Catch2;
-      break;
-    case TestFramework::Doctest:
-      testingFramework = testing::TestFramework::Doctest;
-      break;
-    case TestFramework::Boost:
-      testingFramework = testing::TestFramework::Boost_Test;
-      break;
-    default:
-      testingFramework = testing::TestFramework::GoogleTest;
-      break;
-  }
-
-  testConfig.framework = testingFramework;
-
-  if (!testManager.setupFramework(testConfig.framework, projectPath, testConfig)) {
-    spdlog::warn("Failed to setup enhanced test framework, using fallback");
-  }
-
-  // Generate test for the main class
-  auto testFile = projectPath / testConfig.testDirectory / "unit" / "console_app_test.cpp";
-  if (!testManager.generateTestFile(testFile, "ConsoleApp", testingFramework)) {
-    spdlog::warn("Failed to generate test file, using fallback");
-  }
-
-  // Always create a test_main.cpp file for compatibility with tests
-  std::string testsPath = FileUtils::combinePath(options_.projectName, "tests");
-  spdlog::info("Ensuring tests directory exists: {}", testsPath);
-
-  // Check if directory already exists
-  if (FileUtils::directoryExists(testsPath)) {
-    spdlog::info("Tests directory already exists");
-  } else {
-    if (!FileUtils::createDirectory(testsPath)) {
-      spdlog::error("Failed to create tests directory: {}", testsPath);
-      return false;
+    if (!options_.includeTests) {
+        return true;
     }
-    spdlog::info("Tests directory created successfully");
-  }
 
-  std::string testContent;
-  if (options_.testFramework == TestFramework::GTest) {
-    testContent = getGTestContent();
-    spdlog::info("Using GTest content for test_main.cpp");
-  } else if (options_.testFramework == TestFramework::Catch2) {
-    testContent = getCatch2Content();
-    spdlog::info("Using Catch2 content for test_main.cpp");
-  } else if (options_.testFramework == TestFramework::Doctest) {
-    testContent = getDocTestContent();
-    spdlog::info("Using Doctest content for test_main.cpp");
-  } else {
-    spdlog::warn("Unknown test framework: {}, using GTest as fallback", static_cast<int>(options_.testFramework));
-    testContent = getGTestContent();
-  }
+    // Use the enhanced test framework manager
+    auto& testManager = testing::TestFrameworkManager::getInstance();
 
-  if (testContent.empty()) {
-    spdlog::error("Test content is empty!");
-    return false;
-  }
+    // Configure test settings
+    testing::TestConfig testConfig;
 
-  std::string testMainPath = FileUtils::combinePath(testsPath, "test_main.cpp");
-  spdlog::info("Writing test_main.cpp to: {}", testMainPath);
+    // Map CLI test framework to testing framework
+    switch (options_.testFramework) {
+        case TestFramework::GTest:
+            testConfig.framework = testing::TestFramework::GoogleTest;
+            break;
+        case TestFramework::Catch2:
+            testConfig.framework = testing::TestFramework::Catch2;
+            break;
+        case TestFramework::Doctest:
+            testConfig.framework = testing::TestFramework::Doctest;
+            break;
+        default:
+            testConfig.framework = testing::TestFramework::GoogleTest;
+            break;
+    }
 
-  if (!FileUtils::writeToFile(testMainPath, testContent)) {
-    spdlog::error("Failed to write test_main.cpp file");
-    return false;
-  }
+    testConfig.testTypes = {testing::TestType::Unit, testing::TestType::Integration};
 
-  spdlog::info("Successfully created test_main.cpp");
+    testConfig.generateMocks = false;
+    testConfig.generateFixtures = true;
+    testConfig.enableCodeCoverage = true;
+    testConfig.enableAddressSanitizer = true;
 
-  // Update build system configuration
-  if (options_.buildSystem == BuildSystem::CMake) {
-    // Test configuration is already included in getCMakeContent(), no need to add it again
+    // Setup the test framework
+    std::filesystem::path projectPath(options_.projectName);
 
-    // Create tests/CMakeLists.txt
-    std::string testCmakeContent;
+    // Convert CLI TestFramework enum to testing::TestFramework enum
+    testing::TestFramework testingFramework;
+    switch (options_.testFramework) {
+        case TestFramework::GTest:
+            testingFramework = testing::TestFramework::GoogleTest;
+            break;
+        case TestFramework::Catch2:
+            testingFramework = testing::TestFramework::Catch2;
+            break;
+        case TestFramework::Doctest:
+            testingFramework = testing::TestFramework::Doctest;
+            break;
+        case TestFramework::Boost:
+            testingFramework = testing::TestFramework::Boost_Test;
+            break;
+        default:
+            testingFramework = testing::TestFramework::GoogleTest;
+            break;
+    }
+
+    testConfig.framework = testingFramework;
+
+    if (!testManager.setupFramework(testConfig.framework, projectPath, testConfig)) {
+        spdlog::warn("Failed to setup enhanced test framework, using fallback");
+    }
+
+    // Generate test for the main class
+    auto testFile = projectPath / testConfig.testDirectory / "unit" / "console_app_test.cpp";
+    if (!testManager.generateTestFile(testFile, "ConsoleApp", testingFramework)) {
+        spdlog::warn("Failed to generate test file, using fallback");
+    }
+
+    // Always create a test_main.cpp file for compatibility with tests
+    std::string testsPath = FileUtils::combinePath(options_.projectName, "tests");
+    spdlog::info("Ensuring tests directory exists: {}", testsPath);
+
+    // Check if directory already exists
+    if (FileUtils::directoryExists(testsPath)) {
+        spdlog::info("Tests directory already exists");
+    } else {
+        if (!FileUtils::createDirectory(testsPath)) {
+            spdlog::error("Failed to create tests directory: {}", testsPath);
+            return false;
+        }
+        spdlog::info("Tests directory created successfully");
+    }
+
+    std::string testContent;
     if (options_.testFramework == TestFramework::GTest) {
-      testCmakeContent = R"(
+        testContent = getGTestContent();
+        spdlog::info("Using GTest content for test_main.cpp");
+    } else if (options_.testFramework == TestFramework::Catch2) {
+        testContent = getCatch2Content();
+        spdlog::info("Using Catch2 content for test_main.cpp");
+    } else if (options_.testFramework == TestFramework::Doctest) {
+        testContent = getDocTestContent();
+        spdlog::info("Using Doctest content for test_main.cpp");
+    } else {
+        spdlog::warn("Unknown test framework: {}, using GTest as fallback",
+                     static_cast<int>(options_.testFramework));
+        testContent = getGTestContent();
+    }
+
+    if (testContent.empty()) {
+        spdlog::error("Test content is empty!");
+        return false;
+    }
+
+    std::string testMainPath = FileUtils::combinePath(testsPath, "test_main.cpp");
+    spdlog::info("Writing test_main.cpp to: {}", testMainPath);
+
+    if (!FileUtils::writeToFile(testMainPath, testContent)) {
+        spdlog::error("Failed to write test_main.cpp file");
+        return false;
+    }
+
+    spdlog::info("Successfully created test_main.cpp");
+
+    // Update build system configuration
+    if (options_.buildSystem == BuildSystem::CMake) {
+        // Test configuration is already included in getCMakeContent(), no need to add it again
+
+        // Create tests/CMakeLists.txt
+        std::string testCmakeContent;
+        if (options_.testFramework == TestFramework::GTest) {
+            testCmakeContent = R"(
 find_package(GTest REQUIRED)
 add_executable(${PROJECT_NAME}_tests test_main.cpp)
 target_link_libraries(${PROJECT_NAME}_tests PRIVATE
@@ -331,8 +321,8 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
 )
 add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
 )";
-    } else if (options_.testFramework == TestFramework::Catch2) {
-      testCmakeContent = R"(
+        } else if (options_.testFramework == TestFramework::Catch2) {
+            testCmakeContent = R"(
 find_package(Catch2 REQUIRED)
 add_executable(${PROJECT_NAME}_tests test_main.cpp)
 target_link_libraries(${PROJECT_NAME}_tests PRIVATE
@@ -341,8 +331,8 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
 )
 add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
 )";
-    } else if (options_.testFramework == TestFramework::Doctest) {
-      testCmakeContent = R"(
+        } else if (options_.testFramework == TestFramework::Doctest) {
+            testCmakeContent = R"(
 find_package(doctest REQUIRED)
 add_executable(${PROJECT_NAME}_tests test_main.cpp)
 target_link_libraries(${PROJECT_NAME}_tests PRIVATE
@@ -351,23 +341,20 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
 )
 add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
 )";
+        }
+
+        std::string testsPath = FileUtils::combinePath(options_.projectName, "tests");
+        if (!FileUtils::writeToFile(FileUtils::combinePath(testsPath, "CMakeLists.txt"),
+                                    testCmakeContent)) {
+            return false;
+        }
     }
 
-    std::string testsPath = FileUtils::combinePath(options_.projectName, "tests");
-    if (!FileUtils::writeToFile(
-            FileUtils::combinePath(testsPath, "CMakeLists.txt"),
-            testCmakeContent)) {
-      return false;
-    }
-  }
-
-  return true;
+    return true;
 }
 
-
-
 std::string ConsoleTemplate::getMainCppContent() {
-  return fmt::format(R"(#include <iostream>
+    return fmt::format(R"(#include <iostream>
 #include <string>
 
 int main(int argc, char* argv[]) {{
@@ -378,48 +365,48 @@ int main(int argc, char* argv[]) {{
     return 0;
 }}
 )",
-                     options_.projectName);
+                       options_.projectName);
 }
 
 std::string ConsoleTemplate::getReadmeContent() {
-  std::string packageManagerInfo =
-      to_string(options_.packageManager) != "none"
-          ? fmt::format("- {} package manager\n", to_string(options_.packageManager))
-          : "";
+    std::string packageManagerInfo =
+            to_string(options_.packageManager) != "none"
+                    ? fmt::format("- {} package manager\n", to_string(options_.packageManager))
+                    : "";
 
-  std::string buildInstructions;
-  if (to_string(options_.buildSystem) == "cmake") {
-    buildInstructions = R"(mkdir build && cd build
+    std::string buildInstructions;
+    if (to_string(options_.buildSystem) == "cmake") {
+        buildInstructions = R"(mkdir build && cd build
 cmake ..
 make)";
-  } else if (to_string(options_.buildSystem) == "meson") {
-    buildInstructions = R"(meson setup build
+    } else if (to_string(options_.buildSystem) == "meson") {
+        buildInstructions = R"(meson setup build
 cd build
 meson compile)";
-  } else {
-    buildInstructions = R"(bazel build //...)";
-  }
-
-  std::string testInstructions;
-  if (options_.includeTests) {
-    if (to_string(options_.buildSystem) == "cmake") {
-      testInstructions = R"(cd build
-ctest)";
-    } else if (to_string(options_.buildSystem) == "meson") {
-      testInstructions = R"(cd build
-meson test)";
     } else {
-      testInstructions = R"(bazel test //...)";
+        buildInstructions = R"(bazel build //...)";
     }
 
-    testInstructions = fmt::format(R"(### Running Tests
+    std::string testInstructions;
+    if (options_.includeTests) {
+        if (to_string(options_.buildSystem) == "cmake") {
+            testInstructions = R"(cd build
+ctest)";
+        } else if (to_string(options_.buildSystem) == "meson") {
+            testInstructions = R"(cd build
+meson test)";
+        } else {
+            testInstructions = R"(bazel test //...)";
+        }
+
+        testInstructions = fmt::format(R"(### Running Tests
 
 {}
 )",
-                                   testInstructions);
-  }
+                                       testInstructions);
+    }
 
-  return fmt::format(R"(# {}
+    return fmt::format(R"(# {}
 A C++ console application created with CPP-Scaffold.
 
 ## Features
@@ -445,29 +432,29 @@ A C++ console application created with CPP-Scaffold.
 License
 This project is licensed under the MIT License - see the LICENSE file for details.
 )",
-                     options_.projectName, options_.buildSystem,
-                     packageManagerInfo, buildInstructions, testInstructions);
+                       options_.projectName, options_.buildSystem, packageManagerInfo,
+                       buildInstructions, testInstructions);
 }
 
 std::string ConsoleTemplate::getCMakeContent() {
-  std::string vcpkgIntegration = to_string(options_.packageManager) == "vcpkg" ? R"(
+    std::string vcpkgIntegration = to_string(options_.packageManager) == "vcpkg" ? R"(
   # vcpkg integration
   if(DEFINED ENV{VCPKG_ROOT})
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
   endif()
   )"
-                                                                    : "";
+                                                                                 : "";
 
-  std::string conanIntegration = to_string(options_.packageManager) == "conan" ? R"(
+    std::string conanIntegration = to_string(options_.packageManager) == "conan" ? R"(
   # conan integration
   if(EXISTS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
     include("${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
     conan_basic_setup(TARGETS)
   endif()
   )"
-                                                                    : "";
+                                                                                 : "";
 
-  std::string testSection = options_.includeTests ? R"(
+    std::string testSection = options_.includeTests ? R"(
   # Tests
   option(BUILD_TESTING "Build tests" ON)
   if(BUILD_TESTING)
@@ -475,9 +462,9 @@ std::string ConsoleTemplate::getCMakeContent() {
     add_subdirectory(tests)
   endif()
   )"
-                                                  : "";
+                                                    : "";
 
-  std::string installSection = R"(
+    std::string installSection = R"(
   # Installation
   include(GNUInstallDirs)
   install(TARGETS ${PROJECT_NAME}
@@ -506,101 +493,97 @@ std::string ConsoleTemplate::getCMakeContent() {
   endif()
   )";
 
-  // Build the CMake content by concatenating strings to avoid brace escaping issues
-  std::string cmakeContent = "cmake_minimum_required(VERSION 3.15)\n";
-  cmakeContent += "project(" + options_.projectName + " VERSION 0.1.0 LANGUAGES CXX)\n\n";
-  cmakeContent += "# Set C++ standard\n";
-  cmakeContent += "set(CMAKE_CXX_STANDARD 17)\n";
-  cmakeContent += "set(CMAKE_CXX_STANDARD_REQUIRED ON)\n";
-  cmakeContent += "set(CMAKE_CXX_EXTENSIONS OFF)\n\n";
-  cmakeContent += "# Compile commands for IDE integration\n";
-  cmakeContent += "set(CMAKE_EXPORT_COMPILE_COMMANDS ON)\n\n";
-  cmakeContent += "# Package manager integration\n";
-  cmakeContent += vcpkgIntegration + conanIntegration + "\n";
-  cmakeContent += "# Dependencies\n";
-  cmakeContent += "find_package(fmt REQUIRED)\n\n";
-  cmakeContent += "# Source files\n";
-  cmakeContent += "set(SOURCES\n";
-  cmakeContent += "  src/main.cpp\n";
-  cmakeContent += "  # Add more source files here\n";
-  cmakeContent += ")\n\n";
-  cmakeContent += "# Include directories\n";
-  cmakeContent += "include_directories(\n";
-  cmakeContent += "  ${PROJECT_SOURCE_DIR}/include\n";
-  cmakeContent += ")\n\n";
-  cmakeContent += "# Library target (for reuse in tests)\n";
-  cmakeContent += "add_library(${PROJECT_NAME}_lib STATIC ${SOURCES})\n";
-  cmakeContent += "target_include_directories(${PROJECT_NAME}_lib\n";
-  cmakeContent += "  PUBLIC\n";
-  cmakeContent += "    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>\n";
-  cmakeContent += "    $<INSTALL_INTERFACE:include>\n";
-  cmakeContent += ")\n";
-  cmakeContent += "target_link_libraries(${PROJECT_NAME}_lib PUBLIC fmt::fmt)\n\n";
-  cmakeContent += "# Main executable\n";
-  cmakeContent += "add_executable(${PROJECT_NAME} ${SOURCES})\n";
-  cmakeContent += "target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_lib)\n\n";
-  cmakeContent += "# Add compiler warnings\n";
-  cmakeContent += "include(CheckCXXCompilerFlag)\n";
-  cmakeContent += "if(CMAKE_CXX_COMPILER_ID MATCHES \"GNU|Clang\")\n";
-  cmakeContent += "  target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)\n";
-  cmakeContent += "elseif(MSVC)\n";
-  cmakeContent += "  target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)\n";
-  cmakeContent += "endif()\n";
-  cmakeContent += testSection + installSection;
+    // Build the CMake content by concatenating strings to avoid brace escaping issues
+    std::string cmakeContent = "cmake_minimum_required(VERSION 3.15)\n";
+    cmakeContent += "project(" + options_.projectName + " VERSION 0.1.0 LANGUAGES CXX)\n\n";
+    cmakeContent += "# Set C++ standard\n";
+    cmakeContent += "set(CMAKE_CXX_STANDARD 17)\n";
+    cmakeContent += "set(CMAKE_CXX_STANDARD_REQUIRED ON)\n";
+    cmakeContent += "set(CMAKE_CXX_EXTENSIONS OFF)\n\n";
+    cmakeContent += "# Compile commands for IDE integration\n";
+    cmakeContent += "set(CMAKE_EXPORT_COMPILE_COMMANDS ON)\n\n";
+    cmakeContent += "# Package manager integration\n";
+    cmakeContent += vcpkgIntegration + conanIntegration + "\n";
+    cmakeContent += "# Dependencies\n";
+    cmakeContent += "find_package(fmt REQUIRED)\n\n";
+    cmakeContent += "# Source files\n";
+    cmakeContent += "set(SOURCES\n";
+    cmakeContent += "  src/main.cpp\n";
+    cmakeContent += "  # Add more source files here\n";
+    cmakeContent += ")\n\n";
+    cmakeContent += "# Include directories\n";
+    cmakeContent += "include_directories(\n";
+    cmakeContent += "  ${PROJECT_SOURCE_DIR}/include\n";
+    cmakeContent += ")\n\n";
+    cmakeContent += "# Library target (for reuse in tests)\n";
+    cmakeContent += "add_library(${PROJECT_NAME}_lib STATIC ${SOURCES})\n";
+    cmakeContent += "target_include_directories(${PROJECT_NAME}_lib\n";
+    cmakeContent += "  PUBLIC\n";
+    cmakeContent += "    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>\n";
+    cmakeContent += "    $<INSTALL_INTERFACE:include>\n";
+    cmakeContent += ")\n";
+    cmakeContent += "target_link_libraries(${PROJECT_NAME}_lib PUBLIC fmt::fmt)\n\n";
+    cmakeContent += "# Main executable\n";
+    cmakeContent += "add_executable(${PROJECT_NAME} ${SOURCES})\n";
+    cmakeContent += "target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_lib)\n\n";
+    cmakeContent += "# Add compiler warnings\n";
+    cmakeContent += "include(CheckCXXCompilerFlag)\n";
+    cmakeContent += "if(CMAKE_CXX_COMPILER_ID MATCHES \"GNU|Clang\")\n";
+    cmakeContent +=
+            "  target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)\n";
+    cmakeContent += "elseif(MSVC)\n";
+    cmakeContent += "  target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)\n";
+    cmakeContent += "endif()\n";
+    cmakeContent += testSection + installSection;
 
-  return cmakeContent;
+    return cmakeContent;
 }
 
 std::string ConsoleTemplate::getMesonContent() {
-  std::string dependencySection;
-  std::vector<std::string> dependencies;
+    std::string dependencySection;
+    std::vector<std::string> dependencies;
 
-  // 添加基本依赖
-  dependencies.push_back("fmt_dep = dependency('fmt')");
+    // 添加基本依赖
+    dependencies.push_back("fmt_dep = dependency('fmt')");
 
-  // 添加测试依赖
-  if (options_.includeTests) {
-    if (to_string(options_.testFramework) == "gtest") {
-      dependencies.push_back(
-          "gtest_dep = dependency('gtest', required : false)");
-      dependencies.push_back("if not gtest_dep.found()");
-      dependencies.push_back(
-          "  gtest_dep = dependency('GTest', required : true)");
-      dependencies.push_back("endif");
-      dependencies.push_back(
-          "gtest_main_dep = dependency('gtest_main', required : false)");
-      dependencies.push_back("if not gtest_main_dep.found()");
-      dependencies.push_back(
-          "  gtest_main_dep = dependency('GTest::Main', required : false)");
-      dependencies.push_back("endif");
-    } else if (to_string(options_.testFramework) == "catch2") {
-      dependencies.push_back(
-          "catch2_dep = dependency('catch2', required : true)");
-    } else {
-      dependencies.push_back(
-          "doctest_dep = dependency('doctest', required : true)");
+    // 添加测试依赖
+    if (options_.includeTests) {
+        if (to_string(options_.testFramework) == "gtest") {
+            dependencies.push_back("gtest_dep = dependency('gtest', required : false)");
+            dependencies.push_back("if not gtest_dep.found()");
+            dependencies.push_back("  gtest_dep = dependency('GTest', required : true)");
+            dependencies.push_back("endif");
+            dependencies.push_back("gtest_main_dep = dependency('gtest_main', required : false)");
+            dependencies.push_back("if not gtest_main_dep.found()");
+            dependencies.push_back(
+                    "  gtest_main_dep = dependency('GTest::Main', required : false)");
+            dependencies.push_back("endif");
+        } else if (to_string(options_.testFramework) == "catch2") {
+            dependencies.push_back("catch2_dep = dependency('catch2', required : true)");
+        } else {
+            dependencies.push_back("doctest_dep = dependency('doctest', required : true)");
+        }
     }
-  }
 
-  // 合并依赖部分
-  std::string dependencyStr;
-  for (size_t i = 0; i < dependencies.size(); ++i) {
-    dependencyStr += dependencies[i];
-    if (i < dependencies.size() - 1) {
-      dependencyStr += "\n";
+    // 合并依赖部分
+    std::string dependencyStr;
+    for (size_t i = 0; i < dependencies.size(); ++i) {
+        dependencyStr += dependencies[i];
+        if (i < dependencies.size() - 1) {
+            dependencyStr += "\n";
+        }
     }
-  }
-  dependencySection = dependencyStr;
+    dependencySection = dependencyStr;
 
-  // 配置测试部分
-  std::string testSection;
-  if (options_.includeTests) {
-    std::string testDep = to_string(options_.testFramework) == "gtest"
-                              ? "gtest_dep, gtest_main_dep"
-                          : to_string(options_.testFramework) == "catch2" ? "catch2_dep"
-                                                               : "doctest_dep";
+    // 配置测试部分
+    std::string testSection;
+    if (options_.includeTests) {
+        std::string testDep = to_string(options_.testFramework) == "gtest"
+                                      ? "gtest_dep, gtest_main_dep"
+                              : to_string(options_.testFramework) == "catch2" ? "catch2_dep"
+                                                                              : "doctest_dep";
 
-    testSection = fmt::format(R"(
+        testSection = fmt::format(R"(
   # Tests setup
   test_exe = executable(
     '{}_tests',
@@ -617,14 +600,14 @@ std::string ConsoleTemplate::getMesonContent() {
     timeout : 30
   )
   )",
-                              options_.projectName, testDep,
-                              options_.projectName, options_.projectName);
-  } else {
-    testSection = "# No tests configured";
-  }
+                                  options_.projectName, testDep, options_.projectName,
+                                  options_.projectName);
+    } else {
+        testSection = "# No tests configured";
+    }
 
-  // 安装配置部分
-  std::string installSection = R"(
+    // 安装配置部分
+    std::string installSection = R"(
   # Installation configuration
   install_headers(
     'include/' + meson.project_name(),
@@ -641,7 +624,7 @@ std::string ConsoleTemplate::getMesonContent() {
   )
   )";
 
-  return fmt::format(R"(project(
+    return fmt::format(R"(project(
     '{}',
     'cpp',
     version : '0.1.0',
@@ -695,25 +678,24 @@ std::string ConsoleTemplate::getMesonContent() {
   # Tests
   {}
   {})",
-                     options_.projectName, dependencySection,
-                     options_.projectName, options_.projectName,
-                     options_.projectName, options_.projectName,
-                     options_.projectName, testSection, installSection);
+                       options_.projectName, dependencySection, options_.projectName,
+                       options_.projectName, options_.projectName, options_.projectName,
+                       options_.projectName, testSection, installSection);
 }
 
 std::string ConsoleTemplate::getBazelContent() {
-  std::string testSection;
-  if (options_.includeTests) {
-    std::string testFrameworkDep;
-    if (to_string(options_.testFramework) == "gtest") {
-      testFrameworkDep = "com_google_googletest//:gtest_main";
-    } else if (to_string(options_.testFramework) == "catch2") {
-      testFrameworkDep = "catch2//:catch2";
-    } else {
-      testFrameworkDep = "doctest//:doctest";
-    }
+    std::string testSection;
+    if (options_.includeTests) {
+        std::string testFrameworkDep;
+        if (to_string(options_.testFramework) == "gtest") {
+            testFrameworkDep = "com_google_googletest//:gtest_main";
+        } else if (to_string(options_.testFramework) == "catch2") {
+            testFrameworkDep = "catch2//:catch2";
+        } else {
+            testFrameworkDep = "doctest//:doctest";
+        }
 
-    testSection = fmt::format(R"(
+        testSection = fmt::format(R"(
   cc_test(
       name = "{}_test",
       srcs = ["tests/test_main.cpp"],
@@ -728,14 +710,13 @@ std::string ConsoleTemplate::getBazelContent() {
       }),
   )
   )",
-                              options_.projectName, options_.projectName,
-                              testFrameworkDep);
-  } else {
-    testSection = "";
-  }
+                                  options_.projectName, options_.projectName, testFrameworkDep);
+    } else {
+        testSection = "";
+    }
 
-  // WORKSPACE 文件内容
-  std::string workspaceContent = fmt::format(R"(workspace(name = "{}")
+    // WORKSPACE 文件内容
+    std::string workspaceContent = fmt::format(R"(workspace(name = "{}")
 
   load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
@@ -748,15 +729,14 @@ std::string ConsoleTemplate::getBazelContent() {
       build_file = "@//:third_party/fmt.BUILD",
   )
   )",
-                                             options_.projectName);
+                                               options_.projectName);
 
-  // 写入WORKSPACE文件
-  FileUtils::writeToFile(
-      FileUtils::combinePath(options_.projectName, "WORKSPACE"),
-      workspaceContent);
+    // 写入WORKSPACE文件
+    FileUtils::writeToFile(FileUtils::combinePath(options_.projectName, "WORKSPACE"),
+                           workspaceContent);
 
-  // 创建fmt的BUILD文件
-  std::string fmtBuildContent = R"(cc_library(
+    // 创建fmt的BUILD文件
+    std::string fmtBuildContent = R"(cc_library(
       name = "fmt",
       hdrs = glob(["include/fmt/**/*.h"]),
       srcs = glob(["src/*.cc"]),
@@ -765,15 +745,13 @@ std::string ConsoleTemplate::getBazelContent() {
   )
   )";
 
-  // 创建第三方依赖目录和fmt.BUILD文件
-  std::string thirdPartyDir =
-      FileUtils::combinePath(options_.projectName, "third_party");
-  FileUtils::createDirectory(thirdPartyDir);
-  FileUtils::writeToFile(FileUtils::combinePath(thirdPartyDir, "fmt.BUILD"),
-                         fmtBuildContent);
+    // 创建第三方依赖目录和fmt.BUILD文件
+    std::string thirdPartyDir = FileUtils::combinePath(options_.projectName, "third_party");
+    FileUtils::createDirectory(thirdPartyDir);
+    FileUtils::writeToFile(FileUtils::combinePath(thirdPartyDir, "fmt.BUILD"), fmtBuildContent);
 
-  return fmt::format(
-      R"(load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+    return fmt::format(
+            R"(load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -800,29 +778,28 @@ cc_binary(
         "//conditions:default": ["-Wall", "-Wextra", "-Wpedantic", "-Werror"],
     }}),
 ){1})",
-      options_.projectName, testSection);
+            options_.projectName, testSection);
 }
 
 std::string ConsoleTemplate::getVcpkgJsonContent() {
-  std::string testDependency;
-  if (options_.includeTests) {
-    std::string testFramework = to_string(options_.testFramework) == "gtest" ? "gtest"
-                                : to_string(options_.testFramework) == "catch2"
-                                    ? "catch2"
-                                    : "doctest";
+    std::string testDependency;
+    if (options_.includeTests) {
+        std::string testFramework = to_string(options_.testFramework) == "gtest"    ? "gtest"
+                                    : to_string(options_.testFramework) == "catch2" ? "catch2"
+                                                                                    : "doctest";
 
-    std::string features = to_string(options_.testFramework) == "gtest" ? "gmock" : "";
-    std::string featuresText =
-        !features.empty() ? fmt::format(R"("features": ["{}"])", features) : "";
+        std::string features = to_string(options_.testFramework) == "gtest" ? "gmock" : "";
+        std::string featuresText =
+                !features.empty() ? fmt::format(R"("features": ["{}"])", features) : "";
 
-    testDependency = fmt::format(R"( {{
+        testDependency = fmt::format(R"( {{
 "name": "{}",
 {}
 }})",
-                                 testFramework, featuresText);
-  }
+                                     testFramework, featuresText);
+    }
 
-  return fmt::format(R"({{
+    return fmt::format(R"({{
 "name": "{}",
 "version": "0.1.0",
 "dependencies": [
@@ -830,101 +807,110 @@ std::string ConsoleTemplate::getVcpkgJsonContent() {
 ]
 }}
 )",
-                     options_.projectName, testDependency);
+                       options_.projectName, testDependency);
 }
 
 std::string ConsoleTemplate::getConanfileContent() {
-  std::string testRequirement;
-  if (options_.includeTests) {
-    if (to_string(options_.testFramework) == "gtest") {
-      testRequirement = "gtest/1.12.1";
-    } else if (to_string(options_.testFramework) == "catch2") {
-      testRequirement = "catch2/3.1.0";
-    } else {
-      testRequirement = "doctest/2.4.9";
+    std::string testRequirement;
+    if (options_.includeTests) {
+        if (to_string(options_.testFramework) == "gtest") {
+            testRequirement = "gtest/1.12.1";
+        } else if (to_string(options_.testFramework) == "catch2") {
+            testRequirement = "catch2/3.1.0";
+        } else {
+            testRequirement = "doctest/2.4.9";
+        }
     }
-  }
 
-  std::string generator = to_string(options_.buildSystem) == "cmake" ? "cmake" : "";
+    std::string generator = to_string(options_.buildSystem) == "cmake" ? "cmake" : "";
 
-  return fmt::format(R"([requires]
+    return fmt::format(R"([requires]
 {}
 
 [generators]
 {})",
-                     testRequirement, generator);
+                       testRequirement, generator);
 }
 
 std::string ConsoleTemplate::getMSYS2PKGBUILDContent() {
-  std::string testDependencies;
-  if (options_.includeTests) {
-    if (to_string(options_.testFramework) == "gtest") {
-      testDependencies = "  \"${{MINGW_PACKAGE_PREFIX}}-gtest\"";
-    } else if (to_string(options_.testFramework) == "catch2") {
-      testDependencies = "  \"${{MINGW_PACKAGE_PREFIX}}-catch2\"";
+    std::string testDependencies;
+    if (options_.includeTests) {
+        if (to_string(options_.testFramework) == "gtest") {
+            testDependencies = "  \"${{MINGW_PACKAGE_PREFIX}}-gtest\"";
+        } else if (to_string(options_.testFramework) == "catch2") {
+            testDependencies = "  \"${{MINGW_PACKAGE_PREFIX}}-catch2\"";
+        }
     }
-  }
 
-  std::string pkgbuildContent =
-    "# Maintainer: Your Name <your.email@example.com>\n"
-    "_realname=" + options_.projectName + "\n"
-    "pkgbase=mingw-w64-${_realname}\n"
-    "pkgname=\"${MINGW_PACKAGE_PREFIX}-${_realname}\"\n"
-    "pkgver=1.0.0\n"
-    "pkgrel=1\n"
-    "pkgdesc=\"A C++ console application (mingw-w64)\"\n"
-    "arch=(\"any\")\n"
-    "mingw_arch=(\"mingw32\" \"mingw64\" \"ucrt64\" \"clang64\" \"clangarm64\")\n"
-    "url=\"https://github.com/yourname/" + options_.projectName + "\"\n"
-    "license=(\"MIT\")\n"
-    "makedepends=(\n"
-    "  \"${MINGW_PACKAGE_PREFIX}-cc\"\n"
-    "  \"${MINGW_PACKAGE_PREFIX}-cmake\"\n"
-    "  \"${MINGW_PACKAGE_PREFIX}-ninja\"\n"
-    ")\n"
-    "depends=(\n"
-    "  \"${MINGW_PACKAGE_PREFIX}-gcc-libs\"\n" +
-    testDependencies + "\n"
-    ")\n"
-    "source=(\"${_realname}-${pkgver}.tar.gz\")\n"
-    "sha256sums=(\"SKIP\")\n\n"
-    "build() {\n"
-    "  cd \"${srcdir}/${_realname}-${pkgver}\"\n"
-    "  \n"
-    "  mkdir -p build && cd build\n"
-    "  \n"
-    "  MSYS2_ARG_CONV_EXCL=\"-DCMAKE_INSTALL_PREFIX=\" \\\n"
-    "  ${MINGW_PREFIX}/bin/cmake.exe \\\n"
-    "    -GNinja \\\n"
-    "    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \\\n"
-    "    -DCMAKE_BUILD_TYPE=Release \\\n"
-    "    ..\n"
-    "  \n"
-    "  ${MINGW_PREFIX}/bin/cmake.exe --build .\n"
-    "}\n\n"
-    "check() {\n"
-    "  cd \"${srcdir}/${_realname}-${pkgver}/build\"\n"
-    "  \n"
-    "  # Run tests if available\n"
-    "  if [ -f \"test_" + options_.projectName + "\" ]; then\n"
-    "    ./test_" + options_.projectName + "\n"
-    "  fi\n"
-    "}\n\n"
-    "package() {\n"
-    "  cd \"${srcdir}/${_realname}-${pkgver}/build\"\n"
-    "  \n"
-    "  DESTDIR=\"${pkgdir}\" ${MINGW_PREFIX}/bin/cmake.exe --install .\n"
-    "  \n"
-    "  # Install license\n"
-    "  install -Dm644 \"${srcdir}/${_realname}-${pkgver}/LICENSE\" \\\n"
-    "    \"${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE\"\n"
-    "}\n";
+    std::string pkgbuildContent =
+            "# Maintainer: Your Name <your.email@example.com>\n"
+            "_realname=" +
+            options_.projectName +
+            "\n"
+            "pkgbase=mingw-w64-${_realname}\n"
+            "pkgname=\"${MINGW_PACKAGE_PREFIX}-${_realname}\"\n"
+            "pkgver=1.0.0\n"
+            "pkgrel=1\n"
+            "pkgdesc=\"A C++ console application (mingw-w64)\"\n"
+            "arch=(\"any\")\n"
+            "mingw_arch=(\"mingw32\" \"mingw64\" \"ucrt64\" \"clang64\" \"clangarm64\")\n"
+            "url=\"https://github.com/yourname/" +
+            options_.projectName +
+            "\"\n"
+            "license=(\"MIT\")\n"
+            "makedepends=(\n"
+            "  \"${MINGW_PACKAGE_PREFIX}-cc\"\n"
+            "  \"${MINGW_PACKAGE_PREFIX}-cmake\"\n"
+            "  \"${MINGW_PACKAGE_PREFIX}-ninja\"\n"
+            ")\n"
+            "depends=(\n"
+            "  \"${MINGW_PACKAGE_PREFIX}-gcc-libs\"\n" +
+            testDependencies +
+            "\n"
+            ")\n"
+            "source=(\"${_realname}-${pkgver}.tar.gz\")\n"
+            "sha256sums=(\"SKIP\")\n\n"
+            "build() {\n"
+            "  cd \"${srcdir}/${_realname}-${pkgver}\"\n"
+            "  \n"
+            "  mkdir -p build && cd build\n"
+            "  \n"
+            "  MSYS2_ARG_CONV_EXCL=\"-DCMAKE_INSTALL_PREFIX=\" \\\n"
+            "  ${MINGW_PREFIX}/bin/cmake.exe \\\n"
+            "    -GNinja \\\n"
+            "    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \\\n"
+            "    -DCMAKE_BUILD_TYPE=Release \\\n"
+            "    ..\n"
+            "  \n"
+            "  ${MINGW_PREFIX}/bin/cmake.exe --build .\n"
+            "}\n\n"
+            "check() {\n"
+            "  cd \"${srcdir}/${_realname}-${pkgver}/build\"\n"
+            "  \n"
+            "  # Run tests if available\n"
+            "  if [ -f \"test_" +
+            options_.projectName +
+            "\" ]; then\n"
+            "    ./test_" +
+            options_.projectName +
+            "\n"
+            "  fi\n"
+            "}\n\n"
+            "package() {\n"
+            "  cd \"${srcdir}/${_realname}-${pkgver}/build\"\n"
+            "  \n"
+            "  DESTDIR=\"${pkgdir}\" ${MINGW_PREFIX}/bin/cmake.exe --install .\n"
+            "  \n"
+            "  # Install license\n"
+            "  install -Dm644 \"${srcdir}/${_realname}-${pkgver}/LICENSE\" \\\n"
+            "    \"${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE\"\n"
+            "}\n";
 
-  return pkgbuildContent;
+    return pkgbuildContent;
 }
 
 std::string ConsoleTemplate::getGTestContent() {
-  return R"(#include <gtest/gtest.h>
+    return R"(#include <gtest/gtest.h>
 
 // Simple test case example
 TEST(ExampleTest, SimpleTest) {
@@ -953,7 +939,7 @@ int main(int argc, char **argv) {
 }
 
 std::string ConsoleTemplate::getCatch2Content() {
-  return R"(#define CATCH_CONFIG_MAIN
+    return R"(#define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
 TEST_CASE("Basic tests", "[example]") {
@@ -978,7 +964,7 @@ TEST_CASE("Parameterized tests", "[example]") {
 }
 
 std::string ConsoleTemplate::getDocTestContent() {
-  return R"(#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+    return R"(#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
 TEST_CASE("Basic tests") {
@@ -1003,19 +989,19 @@ TEST_CASE("Parameterized tests") {
 }
 
 std::string ConsoleTemplate::getXMakeContent() {
-  std::string testSection;
-  if (options_.includeTests) {
-    std::string testFramework;
-    if (to_string(options_.testFramework) == "gtest") {
-      testFramework = "gtest";
-    } else if (to_string(options_.testFramework) == "catch2") {
-      testFramework = "catch2";
-    } else if (to_string(options_.testFramework) == "doctest") {
-      testFramework = "doctest";
-    }
+    std::string testSection;
+    if (options_.includeTests) {
+        std::string testFramework;
+        if (to_string(options_.testFramework) == "gtest") {
+            testFramework = "gtest";
+        } else if (to_string(options_.testFramework) == "catch2") {
+            testFramework = "catch2";
+        } else if (to_string(options_.testFramework) == "doctest") {
+            testFramework = "doctest";
+        }
 
-    if (!testFramework.empty()) {
-      testSection = fmt::format(R"(
+        if (!testFramework.empty()) {
+            testSection = fmt::format(R"(
 add_requires("{}")
 
 target("{}_tests")
@@ -1023,11 +1009,13 @@ target("{}_tests")
     add_files("tests/test_main.cpp")
     add_packages("{}")
     add_deps("{}")
-)", testFramework, options_.projectName, testFramework, options_.projectName);
+)",
+                                      testFramework, options_.projectName, testFramework,
+                                      options_.projectName);
+        }
     }
-  }
 
-  return fmt::format(R"(set_project("{}")
+    return fmt::format(R"(set_project("{}")
 set_version("1.0.0")
 
 set_languages("cxx17")
@@ -1038,13 +1026,14 @@ target("{}")
     set_kind("binary")
     add_files("src/main.cpp")
     add_packages("spdlog")
-{})", options_.projectName, options_.projectName, testSection);
+{})",
+                       options_.projectName, options_.projectName, testSection);
 }
 
 std::string ConsoleTemplate::getPremakeContent() {
-  std::string testSection;
-  if (options_.includeTests) {
-    testSection = fmt::format(R"(
+    std::string testSection;
+    if (options_.includeTests) {
+        testSection = fmt::format(R"(
 project "{}_tests"
     kind "ConsoleApp"
     language "C++"
@@ -1062,10 +1051,11 @@ project "{}_tests"
     }}
 
     links {{ "{}" }}
-)", options_.projectName, options_.projectName);
-  }
+)",
+                                  options_.projectName, options_.projectName);
+    }
 
-  return fmt::format(R"(workspace "{}"
+    return fmt::format(R"(workspace "{}"
     configurations {{ "Debug", "Release" }}
     platforms {{ "x64" }}
 
@@ -1091,5 +1081,6 @@ project "{}"
     filter "configurations:Release"
         defines {{ "NDEBUG" }}
         optimize "On"
-{})", options_.projectName, options_.projectName, testSection);
+{})",
+                       options_.projectName, options_.projectName, testSection);
 }

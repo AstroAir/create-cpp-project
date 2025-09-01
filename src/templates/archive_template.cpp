@@ -1,13 +1,16 @@
 #include "archive_template.h"
-#include "../utils/file_utils.h"
-#include "../utils/terminal_utils.h"
-#include "../utils/git_utils.h"
+
 #include <spdlog/spdlog.h>
+
 #include <filesystem>
+#include <iostream>
+
+#include "../utils/file_utils.h"
+#include "../utils/git_utils.h"
+#include "../utils/terminal_utils.h"
 
 ArchiveTemplate::ArchiveTemplate(const CliOptions& options)
     : TemplateBase(options), archiveDownloaded_(false), archiveExtracted_(false) {
-
     // Determine if source is remote or local
     isRemoteSource_ = isRemoteArchive();
 
@@ -20,7 +23,7 @@ ArchiveTemplate::ArchiveTemplate(const CliOptions& options)
     }
 
     tempExtractPath_ = std::filesystem::temp_directory_path() /
-                      ("cpp_scaffold_extract_" + std::to_string(std::time(nullptr)));
+                       ("cpp_scaffold_extract_" + std::to_string(std::time(nullptr)));
     finalProjectPath_ = std::filesystem::current_path() / options.projectName;
 }
 
@@ -121,7 +124,7 @@ bool ArchiveTemplate::setupTestFramework() {
 
 bool ArchiveTemplate::downloadArchive() {
     if (!isRemoteSource_) {
-        return true; // Nothing to download
+        return true;  // Nothing to download
     }
 
     try {
@@ -137,10 +140,10 @@ bool ArchiveTemplate::downloadArchive() {
         auto progressCallback = [](size_t downloaded, size_t total) -> bool {
             if (total > 0) {
                 double percentage = (double)downloaded / total * 100.0;
-                spdlog::info("Download progress: {:.1f}% ({} / {} bytes)",
-                           percentage, downloaded, total);
+                spdlog::info("Download progress: {:.1f}% ({} / {} bytes)", percentage, downloaded,
+                             total);
             }
-            return true; // Continue download
+            return true;  // Continue download
         };
 
         auto result = utils::HttpClient::downloadFile(url, archivePath_, progressCallback);
@@ -181,13 +184,14 @@ bool ArchiveTemplate::extractArchive() {
         auto progressCallback = [](size_t current, size_t total) -> bool {
             if (total > 0) {
                 double percentage = (double)current / total * 100.0;
-                spdlog::info("Extraction progress: {:.1f}% ({} / {} files)",
-                           percentage, current, total);
+                spdlog::info("Extraction progress: {:.1f}% ({} / {} files)", percentage, current,
+                             total);
             }
-            return true; // Continue extraction
+            return true;  // Continue extraction
         };
 
-        auto result = utils::ArchiveUtils::extractArchive(archivePath_, tempExtractPath_, progressCallback);
+        auto result = utils::ArchiveUtils::extractArchive(archivePath_, tempExtractPath_,
+                                                          progressCallback);
 
         if (result.success) {
             archiveExtracted_ = true;
@@ -277,9 +281,8 @@ bool ArchiveTemplate::setupProjectFromArchive() {
 
                 // Configure Git if user info provided
                 if (!options_.gitUserName.empty() || !options_.gitUserEmail.empty()) {
-                    utils::GitUtils::configureRepository(finalProjectPath_,
-                                                        options_.gitUserName,
-                                                        options_.gitUserEmail);
+                    utils::GitUtils::configureRepository(finalProjectPath_, options_.gitUserName,
+                                                         options_.gitUserEmail);
                 }
 
                 // Add remote if provided
@@ -348,7 +351,8 @@ bool ArchiveTemplate::extractToTemporaryLocation() {
     return extractArchive();
 }
 
-bool ArchiveTemplate::findProjectRoot(const std::filesystem::path& extractPath, std::filesystem::path& projectRoot) {
+bool ArchiveTemplate::findProjectRoot(const std::filesystem::path& extractPath,
+                                      std::filesystem::path& projectRoot) {
     try {
         // Check if extract path itself is the project root
         if (isCppProject(extractPath)) {
@@ -387,9 +391,8 @@ bool ArchiveTemplate::moveProjectToFinalLocation(const std::filesystem::path& pr
 
 bool ArchiveTemplate::isCppProject(const std::filesystem::path& projectPath) const {
     // Check for common C++ project indicators
-    std::vector<std::string> cppIndicators = {
-        "CMakeLists.txt", "Makefile", "meson.build", "BUILD", "WORKSPACE"
-    };
+    std::vector<std::string> cppIndicators = {"CMakeLists.txt", "Makefile", "meson.build", "BUILD",
+                                              "WORKSPACE"};
 
     for (const auto& indicator : cppIndicators) {
         if (std::filesystem::exists(projectPath / indicator)) {
@@ -402,8 +405,8 @@ bool ArchiveTemplate::isCppProject(const std::filesystem::path& projectPath) con
         for (const auto& entry : std::filesystem::recursive_directory_iterator(projectPath)) {
             if (entry.is_regular_file()) {
                 std::string ext = entry.path().extension().string();
-                if (ext == ".cpp" || ext == ".hpp" || ext == ".cc" ||
-                    ext == ".h" || ext == ".cxx") {
+                if (ext == ".cpp" || ext == ".hpp" || ext == ".cc" || ext == ".h" ||
+                    ext == ".cxx") {
                     return true;
                 }
             }
@@ -431,19 +434,19 @@ bool ArchiveTemplate::hasValidStructure(const std::filesystem::path& projectPath
 }
 
 bool ArchiveTemplate::adaptProjectName(const std::filesystem::path& projectPath) {
-    (void)projectPath; // TODO: Implement project name adaptation logic
+    (void)projectPath;  // TODO: Implement project name adaptation logic
     spdlog::info("Adapting project name to: {}", options_.projectName);
     return true;
 }
 
 bool ArchiveTemplate::updateProjectConfiguration(const std::filesystem::path& projectPath) {
-    (void)projectPath; // TODO: Implement project configuration update logic
+    (void)projectPath;  // TODO: Implement project configuration update logic
     spdlog::info("Updating project configuration based on CLI options");
     return true;
 }
 
 bool ArchiveTemplate::mergeWithTemplateOptions(const std::filesystem::path& projectPath) {
-    (void)projectPath; // TODO: Implement template options merging logic
+    (void)projectPath;  // TODO: Implement template options merging logic
     spdlog::info("Merging template options with existing project configuration");
     return true;
 }
