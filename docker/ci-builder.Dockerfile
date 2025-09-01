@@ -1,7 +1,7 @@
 # CI-optimized builder image for fast automated builds
 # This container is optimized for CI/CD pipelines with minimal size and maximum speed
 
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # Set environment variables for CI
 ENV DEBIAN_FRONTEND=noninteractive

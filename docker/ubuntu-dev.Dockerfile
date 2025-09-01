@@ -1,7 +1,7 @@
 # Ubuntu development environment for C++ builds
 # This container provides a complete C++ development environment with modern tools
 
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
