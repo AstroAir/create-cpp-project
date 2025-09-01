@@ -315,7 +315,7 @@ jobs:
       # Upload coverage to Codecov
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.compiler == 'gcc'
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: ./build/coverage.xml,./build/coverage.info
           flags: unittests
