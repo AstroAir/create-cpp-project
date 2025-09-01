@@ -1,0 +1,8 @@
+{
+  "name": "test-xmake-modules",
+  "version": "1.0.0",
+  "description": "A C++20 modules project",
+  "dependencies": [
+    "fmt"
+  ]
+}
