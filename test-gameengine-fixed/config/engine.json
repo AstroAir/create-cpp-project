@@ -1,0 +1,28 @@
+{
+  "engine": {
+    "name": "test-gameengine-fixed",
+    "version": "1.0.0",
+    "window": {
+      "title": "test-gameengine-fixed Game Engine",
+      "width": 1280,
+      "height": 720,
+      "fullscreen": false,
+      "vsync": true
+    },
+    "renderer": {
+      "api": "OpenGL",
+      "version": "3.3",
+      "debug": true
+    },
+    "audio": {
+      "enabled": true,
+      "masterVolume": 1.0,
+      "channels": 32
+    },
+    "physics": {
+      "enabled": true,
+      "gravity": [0.0, -9.81, 0.0],
+      "timestep": 0.016667
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "name": "test-gameengine-fixed",
+  "version": "1.0.0",
+  "description": "A modern C++ game engine",
+  "homepage": "https://github.com/yourname/test-gameengine-fixed",
+  "dependencies": [
+    "opengl",
+    "glfw3",
+    "glm",
+    "stb",
+    "assimp",
+    "openal-soft"
+  ],
+  "features": {
+    "audio": {
+      "description": "Audio support",
+      "dependencies": [
+        "openal-soft"
+      ]
+    },
+    "physics": {
+      "description": "Physics engine support",
+      "dependencies": [
+        "bullet3"
+      ]
+    },
+    "scripting": {
+      "description": "Scripting support",
+      "dependencies": [
+        "lua"
+      ]
+    }
+  }
+}

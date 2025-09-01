@@ -1,0 +1,23 @@
+{
+  "graphics": {
+    "clearColor": [0.2, 0.3, 0.3, 1.0],
+    "wireframe": false,
+    "culling": {
+      "enabled": true,
+      "face": "back"
+    },
+    "depth": {
+      "test": true,
+      "write": true
+    },
+    "blending": {
+      "enabled": false,
+      "srcFactor": "SRC_ALPHA",
+      "dstFactor": "ONE_MINUS_SRC_ALPHA"
+    },
+    "multisampling": {
+      "enabled": true,
+      "samples": 4
+    }
+  }
+}

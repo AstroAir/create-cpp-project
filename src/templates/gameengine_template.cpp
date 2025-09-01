@@ -109,6 +109,7 @@ bool GameEngineTemplate::createProjectStructure() {
                                             projectPath + "/assets/shaders",
                                             projectPath + "/assets/fonts",
                                             projectPath + "/assets/scenes",
+                                            projectPath + "/config",
                                             projectPath + "/tools",
                                             projectPath + "/tools/asset_pipeline",
                                             projectPath + "/tools/shader_compiler",
