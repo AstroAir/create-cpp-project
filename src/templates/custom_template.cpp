@@ -1,13 +1,17 @@
 #include "custom_template.h"
+
+#include <spdlog/spdlog.h>
+
+#include <chrono>
+#include <fstream>
+
 #include "../utils/file_utils.h"
 #include "../utils/string_utils.h"
+
 #include "console_template.h"
-#include "library_template.h"
 #include "gui_template.h"
+#include "library_template.h"
 #include "network_template.h"
-#include <spdlog/spdlog.h>
-#include <fstream>
-#include <chrono>
 
 CustomTemplate::CustomTemplate(const CliOptions& options) : TemplateBase(options) {
     m_metadata.name = "custom";
@@ -51,11 +55,11 @@ bool CustomTemplate::createBuildSystem() {
 }
 
 bool CustomTemplate::setupPackageManager() {
-    return true; // No package manager setup needed for basic custom template
+    return true;  // No package manager setup needed for basic custom template
 }
 
 bool CustomTemplate::setupTestFramework() {
-    return true; // No test framework setup needed for basic custom template
+    return true;  // No test framework setup needed for basic custom template
 }
 
 bool CustomTemplate::createTemplate() {
@@ -166,7 +170,7 @@ bool CustomTemplate::addCustomFile(const std::string& relativePath, const std::s
     FileEntry entry;
     entry.relativePath = relativePath;
     entry.content = content;
-    entry.isTemplate = content.find("{{") != std::string::npos; // Simple template detection
+    entry.isTemplate = content.find("{{") != std::string::npos;  // Simple template detection
 
     m_customFiles.push_back(entry);
     return true;
@@ -241,8 +245,10 @@ std::string CustomTemplate::replaceTemplateVariables(const std::string& content)
 
     // Replace standard variables
     result = utils::StringUtils::replace(result, "{{PROJECT_NAME}}", options_.projectName);
-    result = utils::StringUtils::replace(result, "{{PROJECT_NAME_UPPER}}", utils::StringUtils::toUpper(options_.projectName));
-    result = utils::StringUtils::replace(result, "{{PROJECT_NAME_LOWER}}", utils::StringUtils::toLower(options_.projectName));
+    result = utils::StringUtils::replace(result, "{{PROJECT_NAME_UPPER}}",
+                                         utils::StringUtils::toUpper(options_.projectName));
+    result = utils::StringUtils::replace(result, "{{PROJECT_NAME_LOWER}}",
+                                         utils::StringUtils::toLower(options_.projectName));
 
     // Replace custom variables
     for (const auto& [name, value] : m_metadata.variables) {
@@ -417,7 +423,7 @@ std::unique_ptr<TemplateBase> CustomTemplate::createBaseTemplate() const {
 bool CustomTemplate::mergeWithBaseTemplate(const TemplateBase& baseTemplate) {
     // This is a simplified merge - in a full implementation,
     // you would merge files, directories, and other template properties
-    (void)baseTemplate; // TODO: Implement actual merging logic
+    (void)baseTemplate;  // TODO: Implement actual merging logic
     spdlog::info("Merging with base template: {}", m_metadata.baseTemplate);
     return true;
 }
@@ -446,32 +452,34 @@ std::vector<std::string> CustomTemplateManager::listAvailableTemplates() const {
     return templates;
 }
 
-std::optional<CustomTemplate> CustomTemplateManager::loadTemplate(const std::string& templateName) const {
+std::unique_ptr<CustomTemplate> CustomTemplateManager::loadTemplate(
+        const std::string& templateName) const {
     try {
         auto templatePath = getTemplateFilePath(templateName);
 
         if (!std::filesystem::exists(templatePath)) {
             spdlog::error("Template not found: {}", templateName);
-            return std::nullopt;
+            return nullptr;
         }
 
-        CliOptions dummyOptions; // Will be overridden when used
-        CustomTemplate customTemplate(dummyOptions);
+        CliOptions dummyOptions;  // Will be overridden when used
+        auto customTemplate = std::make_unique<CustomTemplate>(dummyOptions);
 
-        if (!customTemplate.loadFromFile(templatePath)) {
+        if (!customTemplate->loadFromFile(templatePath)) {
             spdlog::error("Failed to load template: {}", templateName);
-            return std::nullopt;
+            return nullptr;
         }
 
         return customTemplate;
 
     } catch (const std::exception& e) {
         spdlog::error("Error loading template {}: {}", templateName, e.what());
-        return std::nullopt;
+        return nullptr;
     }
 }
 
-bool CustomTemplateManager::saveTemplate(const CustomTemplate& customTemplate, const std::string& templateName) {
+bool CustomTemplateManager::saveTemplate(const CustomTemplate& customTemplate,
+                                         const std::string& templateName) {
     try {
         if (!ensureTemplateDirectoriesExist()) {
             return false;
@@ -534,7 +542,8 @@ std::filesystem::path CustomTemplateManager::getSystemTemplatesDirectory() const
 #endif
 }
 
-std::filesystem::path CustomTemplateManager::getTemplateFilePath(const std::string& templateName) const {
+std::filesystem::path CustomTemplateManager::getTemplateFilePath(
+        const std::string& templateName) const {
     return getUserTemplatesDirectory() / (templateName + ".json");
 }
 
@@ -564,7 +573,8 @@ std::vector<std::filesystem::path> CustomTemplateManager::scanTemplateFiles() co
     return templateFiles;
 }
 
-std::vector<std::filesystem::path> CustomTemplateManager::scanDirectory(const std::filesystem::path& directory) const {
+std::vector<std::filesystem::path> CustomTemplateManager::scanDirectory(
+        const std::filesystem::path& directory) const {
     std::vector<std::filesystem::path> templateFiles;
 
     try {

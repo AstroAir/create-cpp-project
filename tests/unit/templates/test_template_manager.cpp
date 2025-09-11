@@ -185,7 +185,7 @@ TEST_F(TemplateManagerTest, CreateProjectWithXMakeBuildSystem) {
     EXPECT_TRUE(FileUtils::fileExists("test-xmake/xmake.lua"));
 
     // Verify XMake content contains expected elements
-    std::string content = FileUtils::readFile("test-xmake/xmake.lua");
+    std::string content = FileUtils::readFromFile("test-xmake/xmake.lua");
     EXPECT_TRUE(content.find("set_project(\"test-xmake\")") != std::string::npos);
     EXPECT_TRUE(content.find("set_languages(\"c++17\")") != std::string::npos);
     EXPECT_TRUE(content.find("target(\"test-xmake\")") != std::string::npos);
@@ -203,7 +203,7 @@ TEST_F(TemplateManagerTest, CreateProjectWithPremakeBuildSystem) {
     EXPECT_TRUE(FileUtils::fileExists("test-premake/premake5.lua"));
 
     // Verify Premake content contains expected elements
-    std::string content = FileUtils::readFile("test-premake/premake5.lua");
+    std::string content = FileUtils::readFromFile("test-premake/premake5.lua");
     EXPECT_TRUE(content.find("workspace \"test-premake\"") != std::string::npos);
     EXPECT_TRUE(content.find("project \"test-premake\"") != std::string::npos);
     EXPECT_TRUE(content.find("cppdialect \"C++17\"") != std::string::npos);

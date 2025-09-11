@@ -8,7 +8,9 @@
 #include "terminal_utils.h"
 
 #ifdef _WIN32
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <conio.h>
 #include <windows.h>
 #else

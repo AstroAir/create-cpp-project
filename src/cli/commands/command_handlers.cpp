@@ -8,8 +8,7 @@
 #include "../../config/config_validator.h"
 #include "../../config/interactive_config.h"
 #include "../../config/project_profiles.h"
-#include "../../utils/enhanced_terminal.h"
-#include "../../utils/enhanced_wizard.h"
+#include "../../utils/context_sensitive_error_system.h"
 #include "../../utils/file_utils.h"
 #include "../../utils/string_utils.h"
 #include "../../utils/terminal_utils.h"
@@ -22,11 +21,21 @@ namespace cli_commands {
 // Show help information
 void showHelp(Language lang) {
     (void)lang;  // TODO: Implement localization support
-    std::cout << TerminalUtils::colorize("**CPP-Scaffold - C++ Project Scaffolding Tool**",
-                                         utils::Color::BrightCyan)
-              << "\n\n";
 
-    std::cout << TerminalUtils::colorize("Usage:", utils::Color::BrightYellow) << "\n";
+    // Header with visual appeal
+    TerminalUtils::showBrandedHeader("CPP-Scaffold", "Modern C++ Project Scaffolding Tool");
+
+    std::cout << "\n";
+    TerminalUtils::showCard("Quick Start",
+                            {"🚀 Create a new project:     cpp-scaffold create my-project",
+                             "⚡ Interactive mode:         cpp-scaffold",
+                             "📋 List templates:           cpp-scaffold list-templates",
+                             "❓ Get help:                 cpp-scaffold --help"});
+
+    std::cout << "\n";
+    std::cout << TerminalUtils::colorAndStyle("Usage:", utils::Color::BrightYellow,
+                                              {TextStyle::Bold})
+              << "\n";
     std::cout << "  cpp-scaffold create <project-name> [options]\n";
     std::cout << "  cpp-scaffold new <project-name> [options]\n";
     std::cout << "  cpp-scaffold interactive\n";
@@ -34,118 +43,118 @@ void showHelp(Language lang) {
     std::cout << "  cpp-scaffold list-templates\n";
     std::cout << "  cpp-scaffold validate [project-path]\n\n";
 
-    std::cout << TerminalUtils::colorize("**Options:**", utils::Color::BrightYellow) << "\n";
-    fmt::print(
-            "  -t, --template <type>        Project template type: console, lib, header-only-lib, "
-            "modules, multi-executable, gui, network, embedded, webservice, gameengine, "
-            "qt-app, sfml-app, boost-app, test-project\n");
-    fmt::print(
-            "  -b, --build <system>         Build system: cmake, meson, bazel, "
-            "xmake, premake, make, ninja\n");
-    fmt::print(
-            "  -p, --package <manager>      Package manager: vcpkg, conan, none, "
-            "spack, hunter, cpm, fetchcontent, msys2\n");
-    fmt::print(
-            "  --std <standard>             C++ standard: cpp11, cpp14, cpp17, cpp20, cpp23 "
-            "(modules require cpp20+)\n");
-    fmt::print(
-            "  --network-lib <library>      Network library for network projects: asio, boost, "
-            "poco\n");
-    fmt::print(
-            "  --tests [framework]          Include test framework: gtest, catch2, "
-            "doctest, boost, none\n");
-    fmt::print("  --docs, --documentation      Include documentation configuration\n");
-    fmt::print("  --code-style                 Include code style and static analysis tools\n");
-    fmt::print(
-            "  --editor <editor>            Configure editor support: vscode, clion, "
-            "vs, vim, emacs, sublime\n");
-    fmt::print("                               (can be used multiple times)\n");
-    fmt::print(
-            "  --ci, --cicd <system>        Configure CI/CD: github, gitlab, "
-            "travis, appveyor, azure, circleci\n");
-    fmt::print("                               (can be used multiple times)\n");
-    fmt::print("  --no-git                     Don't initialize Git repository\n");
-    fmt::print(
-            "  --git-workflow <type>        Git workflow: none, gitflow, github-flow, gitlab-flow, "
-            "custom\n");
-    fmt::print(
-            "  --git-branch-strategy <strategy> Git branch strategy: single, feature, gitflow, "
-            "custom\n");
-    fmt::print(
-            "  --license <type>             License type: mit, apache2, gpl3, bsd3, bsd2, "
-            "unlicense, custom, none\n");
-    fmt::print("  --git-remote <URL>           Git remote repository URL\n");
-    fmt::print("  --git-user <username>        Git username\n");
-    fmt::print("  --git-email <email>          Git user email\n");
-    fmt::print("  --git-hooks                  Setup Git hooks\n");
-    fmt::print("  --no-initial-commit          Don't create initial commit\n");
-    fmt::print(
-            "  --doc-formats <formats>      Documentation output formats: markdown,html,pdf "
-            "(comma-separated)\n");
-    fmt::print(
-            "  --doc-types <types>          Documentation types: readme,api,user,developer "
-            "(comma-separated)\n");
-    fmt::print("  --doxygen                    Generate Doxygen configuration\n");
-    fmt::print("  --doxygen-theme <theme>      Doxygen theme\n");
-    fmt::print("  --no-code-examples           Don't include code examples\n");
-    fmt::print("  --changelog                  Generate changelog\n");
-    fmt::print(
-            "  --gui-frameworks <frameworks> GUI frameworks: qt,gtk,fltk,imgui,wxwidgets "
-            "(comma-separated)\n");
-    fmt::print(
-            "  --game-frameworks <frameworks> Game frameworks: sdl2,sfml,allegro "
-            "(comma-separated)\n");
-    fmt::print(
-            "  --graphics-libs <libraries>  Graphics libraries: opengl,vulkan,directx "
-            "(comma-separated)\n");
-    fmt::print("  --include-shaders            Include shader templates\n");
-    fmt::print("  --profile <name>             Use saved configuration profile\n");
-    fmt::print("  --template-path <path>       Use custom project template\n");
-    fmt::print("  -l, --language <language>    Interface language: en, zh, es, jp, de, fr\n");
-    fmt::print("  --verbose                    Show verbose output\n");
-    fmt::print("  -h, --help                   Show this help information\n");
-    fmt::print("  -v, --version                Show version information\n\n");
+    // Core Options Section
+    TerminalUtils::showCard(
+            "Core Options",
+            {"-t, --template <type>        Project template (console, lib, header-only-lib, "
+             "modules, etc.)",
+             "-b, --build <system>         Build system (cmake, meson, bazel, xmake, etc.)",
+             "-p, --package <manager>      Package manager (vcpkg, conan, none, etc.)",
+             "--std <standard>             C++ standard (cpp11, cpp14, cpp17, cpp20, cpp23)",
+             "--tests [framework]          Test framework (gtest, catch2, doctest, boost, none)"});
 
-    std::cout << TerminalUtils::colorize("**Remote Source Options:**", utils::Color::BrightYellow)
-              << "\n";
-    fmt::print("  --from-git <url>             Create project from Git repository\n");
-    fmt::print("  --from-archive <path/url>    Create project from archive file or URL\n");
-    fmt::print("  --branch <name>              Git branch to checkout (default: main/master)\n");
-    fmt::print("  --tag <name>                 Git tag to checkout\n");
-    fmt::print("  --commit <hash>              Git commit to checkout\n");
-    fmt::print("  --shallow                    Use shallow clone (default, faster)\n");
-    fmt::print("  --no-shallow                 Use full clone (slower, complete history)\n");
-    fmt::print("  --preserve-git               Keep .git directory after cloning\n");
-    fmt::print("  --git-username <name>        Git authentication username\n");
-    fmt::print("  --git-password <token>       Git authentication password/token\n");
-    fmt::print("  --ssh-key <path>             SSH key path for Git authentication\n\n");
+    std::cout << "\n";
 
-    fmt::print("**Examples:**\n");
-    fmt::print(
-            "  cpp-scaffold create my-app --template console --build cmake "
-            "--package vcpkg --tests\n");
-    fmt::print(
-            "  cpp-scaffold new my-lib -t lib -b cmake -p none --docs "
-            "--code-style\n");
-    fmt::print(
-            "  cpp-scaffold create my-modules-app --template modules --build cmake "
-            "--package vcpkg --tests\n");
-    fmt::print("  cpp-scaffold create my-app --ci github --ci gitlab --editor vscode\n");
-    fmt::print("  cpp-scaffold create my-app --profile webservice\n");
-    fmt::print(
-            "  cpp-scaffold create my-game --template gui --gui-frameworks sdl2,opengl "
-            "--include-shaders\n");
-    fmt::print("  cpp-scaffold create my-project --git-workflow gitflow --license mit --doxygen\n");
-    fmt::print(
-            "  cpp-scaffold create my-lib --doc-formats markdown,html --doc-types "
-            "readme,api,user\n");
-    fmt::print(
-            "  cpp-scaffold create my-project --from-git https://github.com/user/template.git "
-            "--branch develop\n");
-    fmt::print("  cpp-scaffold create my-app --from-archive https://example.com/template.zip\n");
-    fmt::print(
-            "  cpp-scaffold create my-lib --from-git git@github.com:user/template.git --tag v1.0.0 "
-            "--ssh-key ~/.ssh/id_rsa\n");
+    // Development Tools Section
+    TerminalUtils::showCard(
+            "Development Tools",
+            {"--docs, --documentation      Include documentation configuration",
+             "--code-style                 Include code style and static analysis tools",
+             "--editor <editor>            Configure editor support (vscode, clion, vs, vim, etc.)",
+             "--ci, --cicd <system>        Configure CI/CD (github, gitlab, travis, etc.)",
+             "--doxygen                    Generate Doxygen configuration"});
+
+    std::cout << "\n";
+
+    // Git Integration Section
+    TerminalUtils::showCard(
+            "Git Integration",
+            {"--no-git                     Don't initialize Git repository",
+             "--git-workflow <type>        Git workflow (gitflow, github-flow, gitlab-flow)",
+             "--git-branch-strategy <strategy> Git branch strategy (single, feature, gitflow)",
+             "--license <type>             License type (mit, apache2, gpl3, bsd3, etc.)",
+             "--git-remote <URL>           Git remote repository URL",
+             "--git-hooks                  Setup Git hooks"});
+
+    std::cout << "\n";
+
+    // Specialized Options Section
+    TerminalUtils::showCard(
+            "Specialized Options",
+            {"--network-lib <library>      Network library (asio, boost, poco)",
+             "--gui-frameworks <frameworks> GUI frameworks (qt, gtk, fltk, imgui, wxwidgets)",
+             "--game-frameworks <frameworks> Game frameworks (sdl2, sfml, allegro)",
+             "--graphics-libs <libraries>  Graphics libraries (opengl, vulkan, directx)",
+             "--doc-formats <formats>      Documentation formats (markdown, html, pdf)"});
+
+    std::cout << "\n";
+
+    // Additional Options Section
+    TerminalUtils::showCard(
+            "Additional Options",
+            {"--include-shaders            Include shader templates",
+             "--profile <name>             Use saved configuration profile",
+             "--template-path <path>       Use custom project template",
+             "-l, --language <language>    Interface language (en, zh, es, jp, de, fr)",
+             "--verbose                    Show verbose output",
+             "-h, --help                   Show this help information",
+             "-v, --version                Show version information"});
+
+    std::cout << "\n";
+
+    // Remote Source Options Section
+    TerminalUtils::showCard(
+            "Remote Source Options",
+            {"--from-git <url>             Create project from Git repository",
+             "--from-archive <path/url>    Create project from archive file or URL",
+             "--branch <name>              Git branch to checkout (default: main/master)",
+             "--tag <name>                 Git tag to checkout",
+             "--commit <hash>              Git commit to checkout",
+             "--shallow                    Use shallow clone (default, faster)",
+             "--preserve-git               Keep .git directory after cloning"});
+
+    std::cout << "\n";
+
+    // Examples Section
+    TerminalUtils::showCard(
+            "Common Examples",
+            {"🏗️  Basic console app:         cpp-scaffold create my-app --template console --build "
+             "cmake",
+             "📚 Library with docs:         cpp-scaffold create my-lib -t lib --docs --code-style",
+             "🎮 Game project:              cpp-scaffold create my-game --template gui "
+             "--gui-frameworks sdl2",
+             "🌐 Web service:               cpp-scaffold create my-service --profile webservice",
+             "🧪 Test-driven project:       cpp-scaffold create my-project --tests gtest --ci "
+             "github"});
+
+    std::cout << "\n";
+
+    // Advanced Examples Section
+    TerminalUtils::showCard("Advanced Examples",
+                            {"📦 From Git repository:       cpp-scaffold create my-project "
+                             "--from-git https://github.com/user/template.git",
+                             "🏷️  Specific Git tag:          cpp-scaffold create my-lib --from-git "
+                             "repo.git --tag v1.0.0",
+                             "🔧 Multiple CI systems:       cpp-scaffold create my-app --ci github "
+                             "--ci gitlab --editor vscode",
+                             "📖 Full documentation:        cpp-scaffold create my-lib "
+                             "--doc-formats markdown,html --doxygen"});
+
+    std::cout << "\n";
+
+    // Footer with helpful information
+    TerminalUtils::showCard("💡 Pro Tips",
+                            {"Use 'cpp-scaffold' without arguments for interactive mode",
+                             "Run 'cpp-scaffold list-templates' to see all available templates",
+                             "Use '--profile <name>' to save and reuse common configurations",
+                             "Add '--verbose' to see detailed progress information"});
+
+    std::cout
+            << "\n"
+            << TerminalUtils::colorAndStyle(
+                       "For more information, visit: https://github.com/cpp-scaffold/cpp-scaffold",
+                       utils::Color::BrightBlue, {TextStyle::Underline})
+            << "\n\n";
 }
 
 // Show version information
@@ -448,9 +457,11 @@ CliOptions getSystemSuggestedDefaults() {
 
 // Run interactive mode
 CliOptions runInteractiveMode() {
-    // Use the enhanced wizard for a better user experience
-    auto& wizard = utils::EnhancedWizard::getInstance();
-    return wizard.runInteractiveWizard();
+    // Use basic interactive functionality
+    CliOptions options;
+    // TODO: Implement basic interactive wizard
+    std::cout << "Interactive mode not yet implemented. Please use command line options.\n";
+    return options;
 }
 
 }  // namespace cli_commands

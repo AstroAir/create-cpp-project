@@ -1811,13 +1811,13 @@ std::string LibraryTemplate::getXMakeContent() {
 
         if (!testFramework.empty()) {
             testSection = fmt::format(R"(
-add_requires("{}")
+add_requires("{0}")
 
-target("{}_tests")
+target("{1}_tests")
     set_kind("binary")
     add_files("tests/test_main.cpp")
-    add_packages("{}")
-    add_deps("{}")
+    add_packages("{2}")
+    add_deps("{3}")
     set_targetdir("tests/bin")
 )",
                                       testFramework, options_.projectName, testFramework,
@@ -1825,7 +1825,7 @@ target("{}_tests")
         }
     }
 
-    return fmt::format(R"(set_project("{}")
+    return fmt::format(R"(set_project("{0}")
 set_version("1.0.0")
 
 -- Set C++ standard
@@ -1835,14 +1835,14 @@ set_languages("c++17")
 add_rules("mode.debug", "mode.release")
 
 -- Library target
-target("{0}")
+target("{1}")
     set_kind("static")
     add_files("src/*.cpp")
-    add_headerfiles("include/{1}/*.h")
+    add_headerfiles("include/{2}/*.h")
     add_includedirs("include", {{public = true}})
 
     -- Install headers
-    add_installfiles("include/{2}/*.h")
+    add_installfiles("include/{3}/*.h")
 
     -- Set output directory
     set_targetdir("lib")
@@ -1862,12 +1862,12 @@ target("{0}")
     end
 
 -- Example executable
-target("{3}_example")
+target("{4}_example")
     set_kind("binary")
     add_files("examples/example.cpp")
-    add_deps("{4}")
+    add_deps("{5}")
     set_targetdir("bin")
-{5})",
+{6})",
                        options_.projectName, options_.projectName, options_.projectName,
                        options_.projectName, options_.projectName, options_.projectName,
                        testSection);

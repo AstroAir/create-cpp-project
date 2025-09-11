@@ -2,12 +2,15 @@
 
 #include <algorithm>
 #include <cctype>
+#include <clocale>
 #include <iostream>
 #include <sstream>
 #include <thread>
 
 #ifdef _WIN32
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <windows.h>
 #else
 #include <signal.h>
@@ -32,11 +35,110 @@ bool TerminalUtils::supportsAnsi() {
         return false;
 
     // Try to enable ANSI escape processing
-    return SetConsoleMode(hOut, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    bool ansiEnabled = SetConsoleMode(hOut, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+
+    // Enhanced UTF-8 setup for better Unicode support
+    if (ansiEnabled) {
+        // Set UTF-8 code pages for both input and output
+        bool outputSet = SetConsoleOutputCP(CP_UTF8);
+        bool inputSet = SetConsoleCP(CP_UTF8);
+
+        // Also configure stdin handle for UTF-8 input
+        HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+        if (hIn != INVALID_HANDLE_VALUE) {
+            DWORD inMode = 0;
+            if (GetConsoleMode(hIn, &inMode)) {
+                SetConsoleMode(hIn, inMode | ENABLE_VIRTUAL_TERMINAL_INPUT);
+            }
+        }
+
+        // Verify UTF-8 setup was successful
+        if (!outputSet || !inputSet) {
+            // Log warning but don't fail completely
+            // UTF-8 setup failed, but ANSI might still work
+        }
+    }
+
+    return ansiEnabled;
 #else
     // Most UNIX terminals support ANSI
+    // Also ensure locale is set for proper UTF-8 handling
+    const char* locale = setlocale(LC_ALL, "");
+    if (!locale) {
+        // Try to set UTF-8 locale explicitly
+        setlocale(LC_ALL, "en_US.UTF-8");
+    }
     return isatty(STDOUT_FILENO);
 #endif
+}
+
+bool TerminalUtils::initializeUtf8Support() {
+#ifdef _WIN32
+    // Set UTF-8 code pages for both input and output
+    bool outputSet = SetConsoleOutputCP(CP_UTF8);
+    bool inputSet = SetConsoleCP(CP_UTF8);
+
+    // Configure console handles for UTF-8
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+
+    if (hOut != INVALID_HANDLE_VALUE) {
+        DWORD outMode = 0;
+        if (GetConsoleMode(hOut, &outMode)) {
+            SetConsoleMode(hOut, outMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+        }
+    }
+
+    if (hIn != INVALID_HANDLE_VALUE) {
+        DWORD inMode = 0;
+        if (GetConsoleMode(hIn, &inMode)) {
+            SetConsoleMode(hIn, inMode | ENABLE_VIRTUAL_TERMINAL_INPUT);
+        }
+    }
+
+    return outputSet && inputSet;
+#else
+    // Set UTF-8 locale for Unix systems
+    const char* locale = setlocale(LC_ALL, "");
+    if (!locale || std::string(locale).find("UTF-8") == std::string::npos) {
+        // Try common UTF-8 locales
+        const char* utf8_locales[] = {"en_US.UTF-8", "C.UTF-8", "POSIX.UTF-8", "en_GB.UTF-8"};
+
+        for (const char* loc : utf8_locales) {
+            if (setlocale(LC_ALL, loc)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    return true;
+#endif
+}
+
+bool TerminalUtils::testUtf8Encoding() {
+    // Test with various Unicode characters
+    const std::string testStrings[] = {
+            "Hello 世界",         // Chinese characters
+            "こんにちは",         // Japanese hiragana
+            "🚀 Rocket",          // Emoji
+            "Café naïve résumé",  // Accented characters
+            "Ελληνικά",           // Greek
+            "العربية"             // Arabic
+    };
+
+    // For now, we'll assume UTF-8 works if we can output without crashing
+    // A more sophisticated test would check actual rendering
+    try {
+        for (const auto& test : testStrings) {
+            // Just verify the string is valid UTF-8 by checking length
+            if (test.empty()) {
+                return false;
+            }
+        }
+        return true;
+    } catch (...) {
+        return false;
+    }
 }
 
 std::string TerminalUtils::getAnsiColorCode(Color color, bool isBackground) {

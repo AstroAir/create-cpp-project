@@ -5,8 +5,8 @@
 
 #include <iostream>
 
-#include "../utils/enhanced_terminal.h"
 #include "../utils/file_utils.h"
+#include "../utils/terminal_utils.h"
 
 using namespace utils;
 using namespace cli_enums;
@@ -16,42 +16,40 @@ ConsoleTemplate::ConsoleTemplate(const CliOptions& options) : TemplateBase(optio
 bool ConsoleTemplate::create() {
     std::string projectPath = options_.projectName;
 
-    // Check if project directory already exists
-    if (FileUtils::directoryExists(projectPath)) {
-        spdlog::error("Directory '{}' already exists.", projectPath);
-        return false;
-    }
+    spdlog::info("🚀 Creating console project: {}", projectPath);
 
-    spdlog::info("🚀 Creating project...");
-
-    // Create basic structure
+    // Create basic structure with enhanced error handling
+    startProgressStep("Project Structure", "Creating directory structure");
     if (!createProjectStructure()) {
-        spdlog::error("Failed to create project structure");
+        failProgressStep("Failed to create project structure");
         return false;
     }
-    spdlog::info("�?Project structure created");
+    completeProgressStep("Project structure created");
 
-    // Create build system
+    // Create build system with progress tracking
+    startProgressStep("Build System", "Configuring build system");
     if (!createBuildSystem()) {
-        spdlog::error("Failed to configure build system");
+        failProgressStep("Failed to configure build system");
         return false;
     }
-    spdlog::info("�?Build system configured");
+    completeProgressStep("Build system configured");
 
-    // Setup package manager
+    // Setup package manager with validation
+    startProgressStep("Package Manager", "Setting up package manager");
     if (!setupPackageManager()) {
-        spdlog::error("Failed to setup package manager");
+        failProgressStep("Failed to setup package manager");
         return false;
     }
-    spdlog::info("�?Package manager setup");
+    completeProgressStep("Package manager configured");
 
-    // Setup test framework
+    // Setup test framework if requested
     if (options_.includeTests) {
+        startProgressStep("Test Framework", "Configuring test framework");
         if (!setupTestFramework()) {
-            spdlog::error("Failed to setup test framework");
+            failProgressStep("Failed to setup test framework");
             return false;
         }
-        spdlog::info("�?Test framework configured");
+        completeProgressStep("Test framework configured");
     }
 
     // Initialize Git
@@ -89,38 +87,37 @@ bool ConsoleTemplate::create() {
 }
 
 bool ConsoleTemplate::createProjectStructure() {
-    std::string projectPath = options_.projectName;
+    std::filesystem::path projectPath = options_.projectName;
 
-    // Create main directory
-    if (!FileUtils::createDirectory(projectPath)) {
+    // Create main directory with enhanced validation
+    if (!createDirectoryWithValidation(projectPath)) {
         return false;
     }
 
     // Create src directory
-    std::string srcPath = FileUtils::combinePath(projectPath, "src");
-    if (!FileUtils::createDirectory(srcPath)) {
+    std::filesystem::path srcPath = projectPath / "src";
+    if (!createDirectoryWithValidation(srcPath)) {
         return false;
     }
 
     // Create include directory
-    std::string includePath = FileUtils::combinePath(projectPath, "include");
-    if (!FileUtils::createDirectory(includePath)) {
+    std::filesystem::path includePath = projectPath / "include";
+    if (!createDirectoryWithValidation(includePath)) {
         return false;
     }
 
-    std::string includeProjectPath = FileUtils::combinePath(includePath, options_.projectName);
-    if (!FileUtils::createDirectory(includeProjectPath)) {
+    std::filesystem::path includeProjectPath = includePath / options_.projectName;
+    if (!createDirectoryWithValidation(includeProjectPath)) {
         return false;
     }
 
-    // Write main.cpp
-    if (!FileUtils::writeToFile(FileUtils::combinePath(srcPath, "main.cpp"), getMainCppContent())) {
+    // Write main.cpp with enhanced error handling
+    if (!createFileWithValidation(srcPath / "main.cpp", getMainCppContent())) {
         return false;
     }
 
-    // Create README.md
-    if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "README.md"),
-                                getReadmeContent())) {
+    // Create README.md with enhanced error handling
+    if (!createFileWithValidation(projectPath / "README.md", getReadmeContent())) {
         return false;
     }
 
@@ -128,37 +125,32 @@ bool ConsoleTemplate::createProjectStructure() {
 }
 
 bool ConsoleTemplate::createBuildSystem() {
-    std::string projectPath = options_.projectName;
+    std::filesystem::path projectPath = options_.projectName;
 
     if (options_.buildSystem == BuildSystem::CMake) {
-        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "CMakeLists.txt"),
-                                    getCMakeContent())) {
+        if (!createFileWithValidation(projectPath / "CMakeLists.txt", getCMakeContent())) {
             return false;
         }
     } else if (options_.buildSystem == BuildSystem::Meson) {
-        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "meson.build"),
-                                    getMesonContent())) {
+        if (!createFileWithValidation(projectPath / "meson.build", getMesonContent())) {
             return false;
         }
     } else if (options_.buildSystem == BuildSystem::Bazel) {
-        if (!FileUtils::writeToFile(
-                    FileUtils::combinePath(projectPath, "WORKSPACE"),
+        if (!createFileWithValidation(
+                    projectPath / "WORKSPACE",
                     fmt::format("workspace(name = \"{}\")\n", options_.projectName))) {
             return false;
         }
 
-        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "BUILD"),
-                                    getBazelContent())) {
+        if (!createFileWithValidation(projectPath / "BUILD", getBazelContent())) {
             return false;
         }
     } else if (options_.buildSystem == BuildSystem::XMake) {
-        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "xmake.lua"),
-                                    getXMakeContent())) {
+        if (!createFileWithValidation(projectPath / "xmake.lua", getXMakeContent())) {
             return false;
         }
     } else if (options_.buildSystem == BuildSystem::Premake) {
-        if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "premake5.lua"),
-                                    getPremakeContent())) {
+        if (!createFileWithValidation(projectPath / "premake5.lua", getPremakeContent())) {
             return false;
         }
     }
@@ -1002,31 +994,31 @@ std::string ConsoleTemplate::getXMakeContent() {
 
         if (!testFramework.empty()) {
             testSection = fmt::format(R"(
-add_requires("{}")
+add_requires("{0}")
 
-target("{}_tests")
+target("{1}_tests")
     set_kind("binary")
     add_files("tests/test_main.cpp")
-    add_packages("{}")
-    add_deps("{}")
+    add_packages("{2}")
+    add_deps("{3}")
 )",
                                       testFramework, options_.projectName, testFramework,
                                       options_.projectName);
         }
     }
 
-    return fmt::format(R"(set_project("{}")
+    return fmt::format(R"(set_project("{0}")
 set_version("1.0.0")
 
-set_languages("cxx17")
+set_languages("c++17")
 
 add_requires("spdlog")
 
-target("{}")
+target("{1}")
     set_kind("binary")
     add_files("src/main.cpp")
     add_packages("spdlog")
-{})",
+{2})",
                        options_.projectName, options_.projectName, testSection);
 }
 

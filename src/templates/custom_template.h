@@ -1,11 +1,12 @@
 #pragma once
 
-#include "template_base.h"
-#include <nlohmann/json.hpp>
 #include <filesystem>
 #include <map>
-#include <vector>
+#include <nlohmann/json.hpp>
 #include <optional>
+#include <vector>
+
+#include "template_base.h"
 
 using json = nlohmann::json;
 
@@ -14,7 +15,7 @@ class CustomTemplate : public TemplateBase {
     friend class CustomTemplateManager;
     friend class TemplateManager;
 
-public:
+   public:
     explicit CustomTemplate(const CliOptions& options);
 
     // TemplateBase interface implementation
@@ -24,7 +25,7 @@ public:
     bool createTemplate();
     std::string getDescription() const;
 
-protected:
+   protected:
     // TemplateBase pure virtual methods
     bool createProjectStructure() override;
     bool createBuildSystem() override;
@@ -56,7 +57,7 @@ protected:
     bool validateTemplate() const;
     std::vector<std::string> getValidationErrors() const;
 
-private:
+   private:
     // Template metadata
     struct TemplateMetadata {
         std::string name;
@@ -73,7 +74,7 @@ private:
     struct FileEntry {
         std::string relativePath;
         std::string content;
-        bool isTemplate; // Whether content contains template variables
+        bool isTemplate;  // Whether content contains template variables
         std::map<std::string, std::string> metadata;
     };
 
@@ -106,12 +107,12 @@ private:
 
 // Custom template manager for handling multiple templates
 class CustomTemplateManager {
-public:
+   public:
     static CustomTemplateManager& getInstance();
 
     // Template discovery and loading
     std::vector<std::string> listAvailableTemplates() const;
-    std::optional<CustomTemplate> loadTemplate(const std::string& templateName) const;
+    std::unique_ptr<CustomTemplate> loadTemplate(const std::string& templateName) const;
 
     // Template creation and saving
     bool saveTemplate(const CustomTemplate& customTemplate, const std::string& templateName);
@@ -125,7 +126,8 @@ public:
     // Template validation and import/export
     bool validateTemplateFile(const std::filesystem::path& templatePath) const;
     bool importTemplate(const std::filesystem::path& templatePath, const std::string& templateName);
-    bool exportTemplate(const std::string& templateName, const std::filesystem::path& exportPath) const;
+    bool exportTemplate(const std::string& templateName,
+                        const std::filesystem::path& exportPath) const;
 
     // Template search and filtering
     std::vector<std::string> searchTemplates(const std::string& query) const;
@@ -146,7 +148,7 @@ public:
     std::vector<TemplateInfo> getTemplateInfoList() const;
     std::optional<TemplateInfo> getTemplateInfo(const std::string& templateName) const;
 
-private:
+   private:
     CustomTemplateManager() = default;
 
     // Template file operations
@@ -160,7 +162,7 @@ private:
 
 // Template builder for creating custom templates interactively
 class CustomTemplateBuilder {
-public:
+   public:
     CustomTemplateBuilder();
 
     // Interactive template creation
@@ -179,13 +181,14 @@ public:
 
     // Variable management
     void addVariableInteractively();
-    void addVariable(const std::string& name, const std::string& defaultValue, const std::string& description = "");
+    void addVariable(const std::string& name, const std::string& defaultValue,
+                     const std::string& description = "");
 
     // Template finalization
     CustomTemplate build();
     bool saveTemplate(const std::string& templateName);
 
-private:
+   private:
     CustomTemplate m_template;
 
     // Interactive helpers
@@ -201,10 +204,11 @@ private:
 
 // Template inheritance system
 class TemplateInheritance {
-public:
+   public:
     // Inheritance operations
     static bool canInheritFrom(const std::string& baseTemplateName);
-    static std::unique_ptr<TemplateBase> createBaseTemplate(const std::string& baseTemplateName, const CliOptions& options);
+    static std::unique_ptr<TemplateBase> createBaseTemplate(const std::string& baseTemplateName,
+                                                            const CliOptions& options);
 
     // Inheritance chain
     static std::vector<std::string> getInheritanceChain(const std::string& templateName);
@@ -215,9 +219,10 @@ public:
     static bool mergeFiles(CustomTemplate& derived, const TemplateBase& base);
     static bool mergeDirectories(CustomTemplate& derived, const TemplateBase& base);
 
-private:
+   private:
     // Built-in template mapping
-    static std::map<std::string, std::function<std::unique_ptr<TemplateBase>(const CliOptions&)>> s_builtinTemplates;
+    static std::map<std::string, std::function<std::unique_ptr<TemplateBase>(const CliOptions&)>>
+            s_builtinTemplates;
 
     // Inheritance validation
     static bool validateInheritance(const std::string& derived, const std::string& base);
@@ -225,17 +230,9 @@ private:
 
 // Template variable system
 class TemplateVariables {
-public:
+   public:
     // Variable types
-    enum class VariableType {
-        String,
-        Integer,
-        Boolean,
-        Choice,
-        Path,
-        Email,
-        URL
-    };
+    enum class VariableType { String, Integer, Boolean, Choice, Path, Email, URL };
 
     // Variable definition
     struct VariableDefinition {
@@ -243,7 +240,7 @@ public:
         VariableType type;
         std::string description;
         std::string defaultValue;
-        std::vector<std::string> choices; // For Choice type
+        std::vector<std::string> choices;  // For Choice type
         bool required;
         std::string validationRegex;
     };
@@ -266,7 +263,7 @@ public:
     // Interactive variable collection
     bool collectValuesInteractively();
 
-private:
+   private:
     std::map<std::string, VariableDefinition> m_variables;
     std::map<std::string, std::string> m_values;
 
@@ -280,4 +277,3 @@ private:
     bool validateURL(const std::string& value) const;
     bool validateRegex(const std::string& value, const std::string& regex) const;
 };
-
