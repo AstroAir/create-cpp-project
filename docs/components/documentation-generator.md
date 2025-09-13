@@ -15,6 +15,7 @@ This component handles:
 ## Features
 
 ### README Generation
+
 - **Project badges** - Build status, version, license badges
 - **Installation instructions** - Platform-specific installation guides
 - **Usage examples** - Code examples and tutorials
@@ -22,6 +23,7 @@ This component handles:
 - **License information** - License details and attribution
 
 ### API Documentation
+
 - **Doxygen integration** - Comprehensive C++ API documentation
 - **Code examples** - Inline code examples and usage patterns
 - **Cross-references** - Automatic linking between related components
@@ -29,6 +31,7 @@ This component handles:
 - **Multiple themes** - Professional documentation themes
 
 ### Documentation Formats
+
 - **HTML** - Web-based documentation with navigation
 - **PDF** - Printable documentation for offline use
 - **Markdown** - GitHub/GitLab compatible documentation
@@ -45,19 +48,19 @@ namespace cpp_scaffold::documentation {
         bool generate_user_guide(const ProjectOptions& options);
         bool setup_documentation_build(const ProjectOptions& options);
     };
-    
+
     class DoxygenIntegration {
     public:
         bool setup_doxygen(const ProjectOptions& options);
         bool generate_doxyfile(const ProjectOptions& options);
         bool build_documentation();
     };
-    
+
     class TemplateEngine {
     public:
-        std::string render_template(const std::string& template_name, 
+        std::string render_template(const std::string& template_name,
                                   const TemplateContext& context);
-        bool register_template(const std::string& name, 
+        bool register_template(const std::string& name,
                              const std::string& content);
     };
 }
@@ -66,6 +69,7 @@ namespace cpp_scaffold::documentation {
 ## Generated Documentation Structure
 
 ### Basic Structure
+
 ```
 docs/
 ├── README.md               # Main project documentation
@@ -83,6 +87,7 @@ docs/
 ```
 
 ### Advanced Structure (with MkDocs)
+
 ```
 docs/
 ├── index.md              # Documentation homepage
@@ -98,6 +103,7 @@ mkdocs.yml              # MkDocs configuration
 ## README Template
 
 ### Generated README.md
+
 ```markdown
 # {{project_name}}
 
@@ -108,27 +114,34 @@ mkdocs.yml              # MkDocs configuration
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 {{prerequisites}}
 
 ### Installation
+
 {{installation_instructions}}
 
 ### Usage
+
 {{usage_examples}}
 
 ## 📚 Documentation
+
 {{documentation_links}}
 
 ## 🤝 Contributing
+
 {{contributing_info}}
 
 ## 📄 License
+
 {{license_info}}
 ```
 
 ## Doxygen Integration
 
 ### Doxyfile Configuration
+
 ```doxygen
 # Project information
 PROJECT_NAME           = "{{project_name}}"
@@ -156,26 +169,28 @@ USE_MATHJAX           = YES
 ```
 
 ### Custom CSS Styling
+
 ```css
 /* Custom Doxygen styling */
 .header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 
 .contents {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .memitem {
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 ```
 
 ## MkDocs Integration
 
 ### MkDocs Configuration
+
 ```yaml
 site_name: {{project_name}} Documentation
 site_description: {{description}}
@@ -205,6 +220,7 @@ plugins:
 ## Build System Integration
 
 ### CMake Documentation Target
+
 ```cmake
 # Find Doxygen
 find_package(Doxygen)
@@ -216,7 +232,7 @@ if(DOXYGEN_FOUND)
         ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
         @ONLY
     )
-    
+
     # Add documentation target
     add_custom_target(docs
         ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
@@ -228,39 +244,41 @@ endif()
 ```
 
 ### GitHub Actions Documentation
+
 ```yaml
 name: Documentation
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup Doxygen
-      run: sudo apt-get install doxygen graphviz
-    
-    - name: Generate Documentation
-      run: |
-        mkdir build
-        cd build
-        cmake ..
-        make docs
-    
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./build/docs/html
+      - uses: actions/checkout@v3
+
+      - name: Setup Doxygen
+        run: sudo apt-get install doxygen graphviz
+
+      - name: Generate Documentation
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make docs
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/docs/html
 ```
 
 ## Configuration Options
 
 ### Documentation Generation
+
 ```bash
 # Enable documentation generation
 cpp-scaffold MyProject --docs
@@ -276,6 +294,7 @@ cpp-scaffold MyProject --docs --doc-theme material
 ```
 
 ### Advanced Options
+
 ```bash
 # Generate comprehensive documentation
 cpp-scaffold MyProject --docs --api-docs --user-guide --tutorials
@@ -290,6 +309,7 @@ cpp-scaffold MyProject --docs --doc-dir documentation
 ## Template Customization
 
 ### Custom README Template
+
 ```markdown
 # {{project_name}}
 
@@ -299,18 +319,23 @@ cpp-scaffold MyProject --docs --doc-dir documentation
 {{project_description}}
 
 ## Features
+
 {{#features}}
+
 - {{.}}
-{{/features}}
+  {{/features}}
 
 ## Installation
+
 {{installation_section}}
 
 ## Usage
+
 {{usage_section}}
 ```
 
 ### Template Variables
+
 - `{{project_name}}` - Project name
 - `{{description}}` - Project description
 - `{{version}}` - Project version
@@ -322,18 +347,21 @@ cpp-scaffold MyProject --docs --doc-dir documentation
 ## Best Practices
 
 ### Documentation Writing
+
 1. **Clear and concise** - Write clear, concise documentation
 2. **Code examples** - Include practical code examples
 3. **Keep updated** - Maintain documentation with code changes
 4. **User-focused** - Write from the user's perspective
 
 ### API Documentation
+
 1. **Document public APIs** - Focus on public interfaces
 2. **Include examples** - Provide usage examples
 3. **Explain parameters** - Document all parameters and return values
 4. **Link related functions** - Cross-reference related functionality
 
 ### Maintenance
+
 1. **Automated generation** - Use automated tools where possible
 2. **Version control** - Track documentation changes
 3. **Review process** - Include documentation in code reviews

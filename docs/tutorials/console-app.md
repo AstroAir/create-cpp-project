@@ -34,6 +34,7 @@ cpp-scaffold FileProcessor \
 ```
 
 This creates a console application with:
+
 - CMake build system
 - vcpkg package management
 - Google Test for unit testing
@@ -96,21 +97,21 @@ Look at the main application entry point:
 int main(int argc, char* argv[]) {
     try {
         cli::ArgumentParser parser("FileProcessor", "A powerful file processing utility");
-        
+
         // Add command-line options
         parser.add_argument("files")
             .help("Input files to process")
             .nargs(argparse::nargs_pattern::at_least_one);
-            
+
         parser.add_argument("-c", "--count")
             .help("Count lines, words, and characters")
             .default_value(false)
             .implicit_value(true);
-            
+
         parser.add_argument("-s", "--search")
             .help("Search for pattern in files")
             .default_value(std::string{});
-            
+
         parser.add_argument("-v", "--verbose")
             .help("Enable verbose output")
             .default_value(false)
@@ -118,16 +119,16 @@ int main(int argc, char* argv[]) {
 
         // Parse arguments
         parser.parse_args(argc, argv);
-        
+
         // Get parsed values
         auto files = parser.get<std::vector<std::string>>("files");
         auto count_mode = parser.get<bool>("--count");
         auto search_pattern = parser.get<std::string>("--search");
         auto verbose = parser.get<bool>("--verbose");
-        
+
         // Create file processor
         core::FileProcessor processor(verbose);
-        
+
         // Process files based on options
         if (count_mode) {
             processor.count_files(files);
@@ -136,7 +137,7 @@ int main(int argc, char* argv[]) {
         } else {
             processor.process_files(files);
         }
-        
+
         return 0;
     }
     catch (const std::exception& e) {
@@ -168,14 +169,14 @@ namespace core {
     class FileProcessor {
     public:
         explicit FileProcessor(bool verbose = false);
-        
+
         void process_files(const std::vector<std::string>& files);
         void count_files(const std::vector<std::string>& files);
         void search_files(const std::vector<std::string>& files, const std::string& pattern);
-        
+
     private:
         bool verbose_;
-        
+
         FileStats count_file(const std::string& filename);
         std::vector<std::string> search_file(const std::string& filename, const std::string& pattern);
         void log(const std::string& message);
@@ -193,59 +194,59 @@ And the implementation:
 
 namespace core {
     FileProcessor::FileProcessor(bool verbose) : verbose_(verbose) {}
-    
+
     void FileProcessor::process_files(const std::vector<std::string>& files) {
         log("Processing " + std::to_string(files.size()) + " files...");
-        
+
         for (const auto& file : files) {
             log("Processing: " + file);
             auto stats = count_file(file);
-            
+
             std::cout << file << ":\n";
             std::cout << "  Lines: " << stats.lines << "\n";
             std::cout << "  Words: " << stats.words << "\n";
             std::cout << "  Characters: " << stats.characters << "\n\n";
         }
     }
-    
+
     void FileProcessor::count_files(const std::vector<std::string>& files) {
         log("Counting statistics for " + std::to_string(files.size()) + " files...");
-        
+
         FileStats total{};
-        
-        std::cout << std::left << std::setw(20) << "File" 
-                  << std::setw(10) << "Lines" 
-                  << std::setw(10) << "Words" 
+
+        std::cout << std::left << std::setw(20) << "File"
+                  << std::setw(10) << "Lines"
+                  << std::setw(10) << "Words"
                   << std::setw(12) << "Characters" << "\n";
         std::cout << std::string(52, '-') << "\n";
-        
+
         for (const auto& file : files) {
             auto stats = count_file(file);
             total.lines += stats.lines;
             total.words += stats.words;
             total.characters += stats.characters;
-            
+
             std::cout << std::left << std::setw(20) << file
                       << std::setw(10) << stats.lines
                       << std::setw(10) << stats.words
                       << std::setw(12) << stats.characters << "\n";
         }
-        
+
         std::cout << std::string(52, '-') << "\n";
         std::cout << std::left << std::setw(20) << "TOTAL"
                   << std::setw(10) << total.lines
                   << std::setw(10) << total.words
                   << std::setw(12) << total.characters << "\n";
     }
-    
+
     void FileProcessor::search_files(const std::vector<std::string>& files, const std::string& pattern) {
         log("Searching for pattern '" + pattern + "' in " + std::to_string(files.size()) + " files...");
-        
+
         std::regex search_regex(pattern);
-        
+
         for (const auto& file : files) {
             auto matches = search_file(file, pattern);
-            
+
             if (!matches.empty()) {
                 std::cout << file << " (" << matches.size() << " matches):\n";
                 for (size_t i = 0; i < matches.size(); ++i) {
@@ -255,49 +256,49 @@ namespace core {
             }
         }
     }
-    
+
     FileStats FileProcessor::count_file(const std::string& filename) {
         std::ifstream file(filename);
         if (!file.is_open()) {
             throw std::runtime_error("Cannot open file: " + filename);
         }
-        
+
         FileStats stats{};
         std::string line;
-        
+
         while (std::getline(file, line)) {
             stats.lines++;
             stats.characters += line.length() + 1; // +1 for newline
-            
+
             std::istringstream iss(line);
             std::string word;
             while (iss >> word) {
                 stats.words++;
             }
         }
-        
+
         return stats;
     }
-    
+
     std::vector<std::string> FileProcessor::search_file(const std::string& filename, const std::string& pattern) {
         std::ifstream file(filename);
         if (!file.is_open()) {
             throw std::runtime_error("Cannot open file: " + filename);
         }
-        
+
         std::vector<std::string> matches;
         std::string line;
         std::regex search_regex(pattern);
-        
+
         while (std::getline(file, line)) {
             if (std::regex_search(line, search_regex)) {
                 matches.push_back(line);
             }
         }
-        
+
         return matches;
     }
-    
+
     void FileProcessor::log(const std::string& message) {
         if (verbose_) {
             std::cout << "[LOG] " << message << std::endl;
@@ -353,7 +354,7 @@ protected:
         file << "Final line\n";
         file.close();
     }
-    
+
     void TearDown() override {
         std::filesystem::remove("test_file.txt");
     }
@@ -361,11 +362,11 @@ protected:
 
 TEST_F(FileProcessorTest, CountFile) {
     core::FileProcessor processor;
-    
+
     // This would require making count_file public or adding a friend class
     // For now, test through the public interface
     std::vector<std::string> files = {"test_file.txt"};
-    
+
     // Test that it doesn't throw
     EXPECT_NO_THROW(processor.count_files(files));
 }
@@ -373,7 +374,7 @@ TEST_F(FileProcessorTest, CountFile) {
 TEST_F(FileProcessorTest, SearchFile) {
     core::FileProcessor processor;
     std::vector<std::string> files = {"test_file.txt"};
-    
+
     // Test that search doesn't throw
     EXPECT_NO_THROW(processor.search_files(files, "Line"));
 }
@@ -381,7 +382,7 @@ TEST_F(FileProcessorTest, SearchFile) {
 TEST_F(FileProcessorTest, ProcessFiles) {
     core::FileProcessor processor;
     std::vector<std::string> files = {"test_file.txt"};
-    
+
     // Test that process doesn't throw
     EXPECT_NO_THROW(processor.process_files(files));
 }
@@ -418,7 +419,7 @@ Your file processor is now ready! Here are some usage examples:
 ✅ Built file processing functionality  
 ✅ Added comprehensive error handling  
 ✅ Created unit tests  
-✅ Used modern C++ features and best practices  
+✅ Used modern C++ features and best practices
 
 ## Next Steps
 

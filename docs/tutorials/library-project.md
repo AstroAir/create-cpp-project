@@ -49,31 +49,31 @@ namespace StringUtils {
     constexpr int VERSION_MAJOR = 1;
     constexpr int VERSION_MINOR = 0;
     constexpr int VERSION_PATCH = 0;
-    
+
     // Trimming functions
     std::string trim_left(const std::string& str);
     std::string trim_right(const std::string& str);
     std::string trim(const std::string& str);
-    
+
     // Padding functions
     std::string pad_left(const std::string& str, size_t width, char fill = ' ');
     std::string pad_right(const std::string& str, size_t width, char fill = ' ');
     std::string pad_center(const std::string& str, size_t width, char fill = ' ');
-    
+
     // Case conversion
     std::string to_upper(const std::string& str);
     std::string to_lower(const std::string& str);
     std::string to_title_case(const std::string& str);
-    
+
     // String splitting and joining
     std::vector<std::string> split(const std::string& str, const std::string& delimiter);
     std::string join(const std::vector<std::string>& strings, const std::string& separator);
-    
+
     // Pattern operations
     bool contains(const std::string& str, const std::string& pattern);
     std::string replace_all(const std::string& str, const std::string& from, const std::string& to);
     std::vector<std::string> find_matches(const std::string& str, const std::regex& pattern);
-    
+
     // Utility functions
     bool starts_with(const std::string& str, const std::string& prefix);
     bool ends_with(const std::string& str, const std::string& suffix);
@@ -94,89 +94,89 @@ namespace StringUtils {
         auto start = str.find_first_not_of(" \t\n\r\f\v");
         return (start == std::string::npos) ? "" : str.substr(start);
     }
-    
+
     std::string trim_right(const std::string& str) {
         auto end = str.find_last_not_of(" \t\n\r\f\v");
         return (end == std::string::npos) ? "" : str.substr(0, end + 1);
     }
-    
+
     std::string trim(const std::string& str) {
         return trim_left(trim_right(str));
     }
-    
+
     std::string pad_left(const std::string& str, size_t width, char fill) {
         if (str.length() >= width) return str;
         return std::string(width - str.length(), fill) + str;
     }
-    
+
     std::string pad_right(const std::string& str, size_t width, char fill) {
         if (str.length() >= width) return str;
         return str + std::string(width - str.length(), fill);
     }
-    
+
     std::string to_upper(const std::string& str) {
         std::string result = str;
         std::transform(result.begin(), result.end(), result.begin(), ::toupper);
         return result;
     }
-    
+
     std::string to_lower(const std::string& str) {
         std::string result = str;
         std::transform(result.begin(), result.end(), result.begin(), ::tolower);
         return result;
     }
-    
+
     std::vector<std::string> split(const std::string& str, const std::string& delimiter) {
         std::vector<std::string> tokens;
         size_t start = 0;
         size_t end = str.find(delimiter);
-        
+
         while (end != std::string::npos) {
             tokens.push_back(str.substr(start, end - start));
             start = end + delimiter.length();
             end = str.find(delimiter, start);
         }
-        
+
         tokens.push_back(str.substr(start));
         return tokens;
     }
-    
+
     std::string join(const std::vector<std::string>& strings, const std::string& separator) {
         if (strings.empty()) return "";
-        
+
         std::ostringstream result;
         result << strings[0];
-        
+
         for (size_t i = 1; i < strings.size(); ++i) {
             result << separator << strings[i];
         }
-        
+
         return result.str();
     }
-    
+
     bool contains(const std::string& str, const std::string& pattern) {
         return str.find(pattern) != std::string::npos;
     }
-    
+
     std::string replace_all(const std::string& str, const std::string& from, const std::string& to) {
         std::string result = str;
         size_t pos = 0;
-        
+
         while ((pos = result.find(from, pos)) != std::string::npos) {
             result.replace(pos, from.length(), to);
             pos += to.length();
         }
-        
+
         return result;
     }
-    
+
     bool starts_with(const std::string& str, const std::string& prefix) {
-        return str.length() >= prefix.length() && 
+        return str.length() >= prefix.length() &&
                str.substr(0, prefix.length()) == prefix;
     }
-    
+
     bool ends_with(const std::string& str, const std::string& suffix) {
-        return str.length() >= suffix.length() && 
+        return str.length() >= suffix.length() &&
                str.substr(str.length() - suffix.length()) == suffix;
     }
 }
@@ -221,7 +221,7 @@ TEST_F(StringUtilsTest, SplitAndJoin) {
     EXPECT_EQ(parts[0], "a");
     EXPECT_EQ(parts[1], "b");
     EXPECT_EQ(parts[2], "c");
-    
+
     EXPECT_EQ(StringUtils::join({"a", "b", "c"}, ","), "a,b,c");
     EXPECT_EQ(StringUtils::join({}, ","), "");
     EXPECT_EQ(StringUtils::join({"single"}, ","), "single");
@@ -230,7 +230,7 @@ TEST_F(StringUtilsTest, SplitAndJoin) {
 TEST_F(StringUtilsTest, PatternOperations) {
     EXPECT_TRUE(StringUtils::contains("hello world", "world"));
     EXPECT_FALSE(StringUtils::contains("hello world", "xyz"));
-    
+
     EXPECT_EQ(StringUtils::replace_all("hello hello", "hello", "hi"), "hi hi");
     EXPECT_EQ(StringUtils::replace_all("test", "xyz", "abc"), "test");
 }
@@ -238,7 +238,7 @@ TEST_F(StringUtilsTest, PatternOperations) {
 TEST_F(StringUtilsTest, UtilityFunctions) {
     EXPECT_TRUE(StringUtils::starts_with("hello world", "hello"));
     EXPECT_FALSE(StringUtils::starts_with("hello world", "world"));
-    
+
     EXPECT_TRUE(StringUtils::ends_with("hello world", "world"));
     EXPECT_FALSE(StringUtils::ends_with("hello world", "hello"));
 }
@@ -267,30 +267,30 @@ ctest --verbose
 int main() {
     std::cout << "StringUtils Library Demo\n";
     std::cout << "========================\n\n";
-    
+
     // Trimming
     std::string text = "  Hello, World!  ";
     std::cout << "Original: '" << text << "'\n";
     std::cout << "Trimmed: '" << StringUtils::trim(text) << "'\n\n";
-    
+
     // Case conversion
     std::cout << "Uppercase: " << StringUtils::to_upper("hello world") << "\n";
     std::cout << "Lowercase: " << StringUtils::to_lower("HELLO WORLD") << "\n\n";
-    
+
     // Splitting and joining
     auto parts = StringUtils::split("apple,banana,cherry", ",");
     std::cout << "Split result:\n";
     for (const auto& part : parts) {
         std::cout << "  - " << part << "\n";
     }
-    
+
     std::cout << "Joined: " << StringUtils::join(parts, " | ") << "\n\n";
-    
+
     // Pattern operations
     std::string sentence = "The quick brown fox jumps over the lazy dog";
     std::cout << "Contains 'fox': " << StringUtils::contains(sentence, "fox") << "\n";
     std::cout << "Replaced: " << StringUtils::replace_all(sentence, "fox", "cat") << "\n";
-    
+
     return 0;
 }
 ```
@@ -315,7 +315,7 @@ target_link_libraries(my_app StringUtils::StringUtils)
 ✅ Created thorough unit tests  
 ✅ Built proper library packaging  
 ✅ Generated usage examples  
-✅ Followed modern C++ best practices  
+✅ Followed modern C++ best practices
 
 ## Next Steps
 

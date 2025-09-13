@@ -106,30 +106,30 @@ using namespace web::http::experimental::listener;
 
 int main() {
     spdlog::info("Starting {{service_name}} microservice");
-    
+
     try {
         // Create HTTP listener
         http_listener listener("http://0.0.0.0:8080");
-        
+
         // Setup routes
         api::Router router;
         router.setup_routes(listener);
-        
+
         // Start listening
         listener.open().wait();
         spdlog::info("{{service_name}} listening on port 8080");
-        
+
         // Keep running
         std::string line;
         std::getline(std::cin, line);
-        
+
         listener.close().wait();
     }
     catch (const std::exception& e) {
         spdlog::error("Error: {}", e.what());
         return 1;
     }
-    
+
     return 0;
 }
 ```
@@ -172,31 +172,31 @@ cpp-scaffold MyEmbeddedProject --profile embedded --package conan
 
 ```json title="~/.config/cpp-scaffold/profiles.json"
 {
-    "webdev": {
-        "template": "microservice",
-        "build_system": "cmake",
-        "package_manager": "vcpkg",
-        "test_framework": "gtest",
-        "ci_system": "github",
-        "editor": "vscode",
-        "options": {
-            "enable_docker": true,
-            "api_version": "v1",
-            "database_type": "postgresql"
-        }
-    },
-    "embedded": {
-        "template": "embedded",
-        "build_system": "cmake",
-        "package_manager": "none",
-        "test_framework": "catch2",
-        "ci_system": "gitlab",
-        "editor": "clion",
-        "options": {
-            "target_platform": "arm-cortex-m4",
-            "optimization": "size"
-        }
+  "webdev": {
+    "template": "microservice",
+    "build_system": "cmake",
+    "package_manager": "vcpkg",
+    "test_framework": "gtest",
+    "ci_system": "github",
+    "editor": "vscode",
+    "options": {
+      "enable_docker": true,
+      "api_version": "v1",
+      "database_type": "postgresql"
     }
+  },
+  "embedded": {
+    "template": "embedded",
+    "build_system": "cmake",
+    "package_manager": "none",
+    "test_framework": "catch2",
+    "ci_system": "gitlab",
+    "editor": "clion",
+    "options": {
+      "target_platform": "arm-cortex-m4",
+      "optimization": "size"
+    }
+  }
 }
 ```
 
@@ -209,9 +209,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build-and-test:
@@ -231,38 +231,38 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
-    - name: Setup vcpkg
-      uses: lukka/run-vcpkg@v11
-      with:
-        vcpkgGitCommitId: 'latest'
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: "latest"
 
-    - name: Configure CMake
-      run: |
-        cmake -B build \
-          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-          -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 
-    - name: Build
-      run: cmake --build build --config ${{ matrix.build_type }}
+      - name: Build
+        run: cmake --build build --config ${{ matrix.build_type }}
 
-    - name: Test
-      run: ctest --test-dir build --build-config ${{ matrix.build_type }}
+      - name: Test
+        run: ctest --test-dir build --build-config ${{ matrix.build_type }}
 
-    - name: Package
-      if: matrix.build_type == 'Release'
-      run: |
-        cmake --build build --target package
-        
-    - name: Upload Artifacts
-      if: matrix.build_type == 'Release'
-      uses: actions/upload-artifact@v3
-      with:
-        name: packages-${{ matrix.os }}
-        path: build/packages/*
+      - name: Package
+        if: matrix.build_type == 'Release'
+        run: |
+          cmake --build build --target package
+
+      - name: Upload Artifacts
+        if: matrix.build_type == 'Release'
+        uses: actions/upload-artifact@v3
+        with:
+          name: packages-${{ matrix.os }}
+          path: build/packages/*
 ```
 
 ### Docker Integration
@@ -317,44 +317,41 @@ CMD ["{{service_name}}"]
 
 ```json title="vcpkg.json"
 {
-    "name": "{{project_name}}",
-    "version": "1.0.0",
-    "description": "{{project_description}}",
-    "dependencies": [
-        {
-            "name": "cpprestsdk",
-            "features": ["websockets"]
-        },
-        {
-            "name": "nlohmann-json",
-            "version>=": "3.11.0"
-        },
-        {
-            "name": "spdlog",
-            "features": ["fmt_external"]
-        }
-    ],
-    "features": {
-        "database": {
-            "description": "Database support",
-            "dependencies": [
-                {
-                    "name": "libpqxx",
-                    "platform": "!windows"
-                },
-                {
-                    "name": "sqlite3"
-                }
-            ]
-        },
-        "testing": {
-            "description": "Testing support",
-            "dependencies": [
-                "gtest",
-                "gmock"
-            ]
-        }
+  "name": "{{project_name}}",
+  "version": "1.0.0",
+  "description": "{{project_description}}",
+  "dependencies": [
+    {
+      "name": "cpprestsdk",
+      "features": ["websockets"]
+    },
+    {
+      "name": "nlohmann-json",
+      "version>=": "3.11.0"
+    },
+    {
+      "name": "spdlog",
+      "features": ["fmt_external"]
     }
+  ],
+  "features": {
+    "database": {
+      "description": "Database support",
+      "dependencies": [
+        {
+          "name": "libpqxx",
+          "platform": "!windows"
+        },
+        {
+          "name": "sqlite3"
+        }
+      ]
+    },
+    "testing": {
+      "description": "Testing support",
+      "dependencies": ["gtest", "gmock"]
+    }
+  }
 }
 ```
 
@@ -367,7 +364,7 @@ from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout
 class {{ProjectName}}Conan(ConanFile):
     name = "{{project_name}}"
     version = "1.0.0"
-    
+
     settings = "os", "compiler", "build_type", "arch"
     options = {
         "shared": [True, False],
@@ -379,31 +376,31 @@ class {{ProjectName}}Conan(ConanFile):
         "fPIC": True,
         "with_database": True
     }
-    
+
     def requirements(self):
         self.requires("cpprestsdk/2.10.18")
         self.requires("nlohmann_json/3.11.2")
         self.requires("spdlog/1.12.0")
-        
+
         if self.options.with_database:
             self.requires("libpqxx/7.7.4")
-    
+
     def build_requirements(self):
         self.test_requires("gtest/1.14.0")
-    
+
     def layout(self):
         cmake_layout(self)
-    
+
     def generate(self):
         tc = CMakeToolchain(self)
         tc.variables["WITH_DATABASE"] = self.options.with_database
         tc.generate()
-    
+
     def build(self):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
-    
+
     def package(self):
         cmake = CMake(self)
         cmake.install()
@@ -415,18 +412,18 @@ class {{ProjectName}}Conan(ConanFile):
 
 ```json title=".vscode/settings.json"
 {
-    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-    "C_Cpp.default.cppStandard": "c++17",
-    "C_Cpp.default.intelliSenseMode": "gcc-x64",
-    "cmake.configureOnOpen": true,
-    "cmake.buildDirectory": "${workspaceFolder}/build",
-    "cmake.generator": "Ninja",
-    "files.associations": {
-        "*.template": "cpp"
-    },
-    "editor.formatOnSave": true,
-    "C_Cpp.clang_format_style": "file",
-    "cpptools.formatting": "clangFormat"
+  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+  "C_Cpp.default.cppStandard": "c++17",
+  "C_Cpp.default.intelliSenseMode": "gcc-x64",
+  "cmake.configureOnOpen": true,
+  "cmake.buildDirectory": "${workspaceFolder}/build",
+  "cmake.generator": "Ninja",
+  "files.associations": {
+    "*.template": "cpp"
+  },
+  "editor.formatOnSave": true,
+  "C_Cpp.clang_format_style": "file",
+  "cpptools.formatting": "clangFormat"
 }
 ```
 
@@ -437,7 +434,7 @@ class {{ProjectName}}Conan(ConanFile):
 ✅ Set up advanced CI/CD pipelines  
 ✅ Integrated with package managers  
 ✅ Configured IDE integrations  
-✅ Implemented Docker containerization  
+✅ Implemented Docker containerization
 
 ## Next Steps
 

@@ -15,24 +15,28 @@ This component handles:
 ## Supported Testing Frameworks
 
 ### Google Test (gtest)
+
 - **Description**: Google's C++ testing framework
 - **Features**: Rich assertion macros, test fixtures, parameterized tests
 - **Best for**: Most C++ projects, comprehensive testing needs
 - **CMake Integration**: `find_package(GTest REQUIRED)`
 
 ### Catch2
+
 - **Description**: Modern, header-only C++ testing framework
 - **Features**: BDD-style tests, self-contained, easy setup
 - **Best for**: Header-only libraries, rapid prototyping
 - **CMake Integration**: `find_package(Catch2 REQUIRED)`
 
 ### Doctest
+
 - **Description**: Lightweight, fast-compiling testing framework
 - **Features**: Fast compilation, minimal overhead, header-only
 - **Best for**: Large codebases where compile time matters
 - **CMake Integration**: `find_package(doctest REQUIRED)`
 
 ### Boost.Test
+
 - **Description**: Part of the Boost C++ libraries
 - **Features**: Mature framework, extensive features, XML output
 - **Best for**: Projects already using Boost libraries
@@ -51,13 +55,13 @@ namespace cpp_scaffold::testing {
         virtual bool generate_test_files(const ProjectOptions& options) = 0;
         virtual bool configure_build_system(const ProjectOptions& options) = 0;
     };
-    
+
     class TestFrameworkFactory {
     public:
         static std::unique_ptr<TestFrameworkInterface> create(const std::string& framework);
         static std::vector<std::string> available_frameworks();
     };
-    
+
     class TestGenerator {
     public:
         bool generate_test_structure(const ProjectOptions& options);
@@ -70,6 +74,7 @@ namespace cpp_scaffold::testing {
 ## Generated Test Structure
 
 ### Basic Test Structure
+
 ```
 tests/
 ├── CMakeLists.txt          # Test build configuration
@@ -84,6 +89,7 @@ tests/
 ```
 
 ### Google Test Example
+
 ```cpp
 #include <gtest/gtest.h>
 #include "MyProject/MyClass.h"
@@ -93,11 +99,11 @@ protected:
     void SetUp() override {
         // Setup code
     }
-    
+
     void TearDown() override {
         // Cleanup code
     }
-    
+
     MyClass obj;
 };
 
@@ -112,17 +118,18 @@ TEST_F(MyClassTest, EdgeCases) {
 ```
 
 ### Catch2 Example
+
 ```cpp
 #include <catch2/catch_test_macros.hpp>
 #include "MyProject/MyClass.h"
 
 TEST_CASE("MyClass basic functionality", "[MyClass]") {
     MyClass obj;
-    
+
     SECTION("getValue returns correct value") {
         REQUIRE(obj.getValue() == 42);
     }
-    
+
     SECTION("isValid returns true for valid objects") {
         REQUIRE(obj.isValid());
     }
@@ -130,7 +137,7 @@ TEST_CASE("MyClass basic functionality", "[MyClass]") {
 
 TEST_CASE("MyClass edge cases", "[MyClass][edge]") {
     MyClass obj;
-    
+
     REQUIRE_THROWS_AS(obj.setInvalidValue(-1), std::invalid_argument);
 }
 ```
@@ -138,6 +145,7 @@ TEST_CASE("MyClass edge cases", "[MyClass][edge]") {
 ## Build System Integration
 
 ### CMake Configuration
+
 ```cmake
 # Enable testing
 enable_testing()
@@ -166,6 +174,7 @@ gtest_discover_tests(tests)
 ```
 
 ### Meson Configuration
+
 ```meson
 # Testing framework dependency
 gtest_dep = dependency('gtest', main: true)
@@ -185,6 +194,7 @@ test('unit_tests', test_exe)
 ## CI/CD Integration
 
 ### GitHub Actions
+
 ```yaml
 - name: Run Tests
   run: |
@@ -193,6 +203,7 @@ test('unit_tests', test_exe)
 ```
 
 ### GitLab CI
+
 ```yaml
 test:
   stage: test
@@ -207,6 +218,7 @@ test:
 ## Configuration Options
 
 ### Framework Selection
+
 ```bash
 # Google Test
 cpp-scaffold MyProject --test gtest
@@ -222,6 +234,7 @@ cpp-scaffold MyProject --test boost
 ```
 
 ### Advanced Options
+
 ```bash
 # Enable code coverage
 cpp-scaffold MyProject --test gtest --coverage
@@ -236,18 +249,21 @@ cpp-scaffold MyProject --test gtest --test-dir custom_tests
 ## Best Practices
 
 ### Test Organization
+
 1. **Separate unit and integration tests**
 2. **Use descriptive test names**
 3. **Group related tests in test suites**
 4. **Keep tests independent and isolated**
 
 ### Test Writing
+
 1. **Follow AAA pattern** (Arrange, Act, Assert)
 2. **Test one thing at a time**
 3. **Use meaningful assertions**
 4. **Include edge cases and error conditions**
 
 ### Performance
+
 1. **Use test fixtures for expensive setup**
 2. **Avoid file I/O in unit tests when possible**
 3. **Consider test execution time**

@@ -7,6 +7,7 @@ This guide covers package management strategies and tools for C++ project depend
 ## Supported Package Managers
 
 ### vcpkg
+
 Microsoft's C++ package manager with extensive library support.
 
 ```bash
@@ -21,6 +22,7 @@ cd vcpkg
 ```
 
 ### Conan
+
 Decentralized package manager with binary packages.
 
 ```bash
@@ -35,6 +37,7 @@ conan install . --build=missing
 ```
 
 ### MSYS2 (Windows)
+
 Native package manager for MSYS2 environment.
 
 ```bash
@@ -54,6 +57,7 @@ pacman -S mingw-w64-x86_64-qt6
 ### System Package Managers
 
 #### Ubuntu/Debian
+
 ```bash
 # Install build tools
 sudo apt update
@@ -64,6 +68,7 @@ sudo apt install libboost-all-dev libfmt-dev nlohmann-json3-dev
 ```
 
 #### macOS (Homebrew)
+
 ```bash
 # Install build tools
 brew install cmake ninja pkg-config
@@ -75,6 +80,7 @@ brew install boost fmt nlohmann-json
 ## Integration with Build Systems
 
 ### XMake Integration
+
 ```lua
 -- xmake.lua
 add_requires("nlohmann_json", "spdlog", "fmt")
@@ -86,13 +92,14 @@ target("myapp")
 ```
 
 ### CMake Integration
+
 ```cmake
 # CMakeLists.txt
 find_package(nlohmann_json REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(fmt REQUIRED)
 
-target_link_libraries(myapp 
+target_link_libraries(myapp
     nlohmann_json::nlohmann_json
     spdlog::spdlog
     fmt::fmt
@@ -102,16 +109,19 @@ target_link_libraries(myapp
 ## Best Practices
 
 ### Version Management
+
 - Pin specific versions in production
 - Use version ranges for development
 - Document minimum required versions
 
 ### Dependency Resolution
+
 - Prefer system packages when available
 - Use package managers for missing dependencies
 - Provide fallback build instructions
 
 ### Cross-Platform Compatibility
+
 - Test package resolution on all target platforms
 - Handle platform-specific dependencies
 - Use conditional dependencies when needed
@@ -119,11 +129,13 @@ target_link_libraries(myapp
 ## Troubleshooting
 
 ### Common Issues
+
 - **Package not found**: Update package database
 - **Version conflicts**: Check dependency constraints
 - **Build failures**: Verify compiler compatibility
 
 ### Debug Commands
+
 ```bash
 # vcpkg
 ./vcpkg list

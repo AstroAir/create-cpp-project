@@ -46,6 +46,7 @@ Create a new project with MSYS2 package manager:
 ```
 
 Available options:
+
 - `--package msys2` - Use MSYS2 package manager
 - `--type` - Project type (console, library, gui, etc.)
 - `--test-framework` - Testing framework (gtest, catch2)
@@ -60,6 +61,7 @@ Run the interactive wizard and select MSYS2 when prompted for package manager:
 ```
 
 The wizard will guide you through:
+
 1. Project name and type selection
 2. Package manager selection (choose MSYS2)
 3. Testing framework options
@@ -98,22 +100,22 @@ sha256sums=('SKIP')
 
 build() {
   cd "${srcdir}/${_realname}-${pkgver}"
-  
+
   mkdir -p build && cd build
-  
+
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
   ${MINGW_PREFIX}/bin/cmake.exe \
     -GNinja \
     -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
     -DCMAKE_BUILD_TYPE=Release \
     ..
-  
+
   ${MINGW_PREFIX}/bin/cmake.exe --build .
 }
 
 check() {
   cd "${srcdir}/${_realname}-${pkgver}/build"
-  
+
   # Run tests if available
   if [ -f "test_myproject" ]; then
     ./test_myproject
@@ -122,9 +124,9 @@ check() {
 
 package() {
   cd "${srcdir}/${_realname}-${pkgver}/build"
-  
+
   DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install .
-  
+
   # Install license
   install -Dm644 "${srcdir}/${_realname}-${pkgver}/LICENSE" \
     "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
@@ -156,11 +158,13 @@ ninja
 To create an MSYS2 package for distribution:
 
 1. Create a source archive:
+
    ```bash
    tar -czf myproject-1.0.0.tar.gz --exclude=build --exclude=.git .
    ```
 
 2. Build the package:
+
    ```bash
    makepkg -s
    ```
@@ -198,14 +202,17 @@ For GUI applications, common dependencies include:
 ### Common Issues
 
 1. **Path Conversion Problems**
+
    - Use `MSYS2_ARG_CONV_EXCL` to prevent automatic path conversion
    - Always use forward slashes in CMake paths
 
 2. **Missing Dependencies**
+
    - Check if packages are installed: `pacman -Q package-name`
    - Install missing packages: `pacman -S package-name`
 
 3. **Build Failures**
+
    - Ensure you're using the correct MinGW shell (not MSYS2 shell)
    - Check that `MINGW_PREFIX` environment variable is set
 

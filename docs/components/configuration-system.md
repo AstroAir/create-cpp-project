@@ -5,6 +5,7 @@ The Configuration System component manages persistent settings, user preferences
 ## 📋 Overview
 
 The Configuration System component provides:
+
 - Persistent configuration storage and retrieval
 - User preference management with hierarchical settings
 - Project profile creation, storage, and management
@@ -52,13 +53,13 @@ class ConfigManager {
 public:
     // Singleton access
     static ConfigManager& getInstance();
-    
+
     // Configuration file management
     bool loadConfiguration();
     bool saveConfiguration();
     bool resetToDefaults();
     bool validateConfiguration();
-    
+
     // Profile management
     bool saveProfile(const std::string& profileName, const CliOptions& options);
     std::optional<CliOptions> loadProfile(const std::string& profileName);
@@ -66,22 +67,22 @@ public:
     bool deleteProfile(const std::string& profileName);
     bool exportProfile(const std::string& profileName, const std::filesystem::path& exportPath);
     bool importProfile(const std::filesystem::path& importPath);
-    
+
     // User preferences
     template<typename T>
     bool setUserPreference(const std::string& key, const T& value);
-    
+
     template<typename T>
     std::optional<T> getUserPreference(const std::string& key);
-    
+
     bool removeUserPreference(const std::string& key);
     std::vector<std::string> getUserPreferenceKeys();
-    
+
     // Environment integration
     void loadEnvironmentVariables();
     bool setEnvironmentOverride(const std::string& key, const std::string& value);
     std::optional<std::string> getEnvironmentOverride(const std::string& key);
-    
+
     // Configuration paths
     std::filesystem::path getConfigDirectory();
     std::filesystem::path getConfigFilePath();
@@ -89,17 +90,17 @@ public:
     std::filesystem::path getCustomTemplatesDirectory();
     std::filesystem::path getCacheDirectory();
     std::filesystem::path getLogsDirectory();
-    
+
     // Configuration queries
     template<typename T>
     std::optional<T> getValue(const std::string& key, ConfigScope scope = ConfigScope::Global);
-    
+
     template<typename T>
     bool setValue(const std::string& key, const T& value, ConfigScope scope = ConfigScope::User);
-    
+
     bool hasKey(const std::string& key, ConfigScope scope = ConfigScope::Any);
     std::vector<std::string> getKeys(ConfigScope scope = ConfigScope::All);
-    
+
     // Configuration migration
     bool migrateConfiguration(int fromVersion, int toVersion);
     int getCurrentConfigVersion();
@@ -107,13 +108,13 @@ public:
 
 private:
     ConfigManager() = default;
-    
+
     // Configuration data
     nlohmann::json globalConfig_;
     nlohmann::json userConfig_;
     std::map<std::string, nlohmann::json> profiles_;
     std::map<std::string, std::string> environmentOverrides_;
-    
+
     // Internal methods
     bool ensureConfigDirectoryExists();
     bool loadGlobalConfiguration();
@@ -125,7 +126,7 @@ private:
     void initializeDefaultConfiguration();
     bool validateConfigurationStructure(const nlohmann::json& config);
     std::string getCurrentTimestamp();
-    
+
     // Migration helpers
     bool migrateFromVersion1To2();
     bool migrateFromVersion2To3();
@@ -184,43 +185,43 @@ Manages user-specific preferences and settings.
 class UserPreferences {
 public:
     UserPreferences();
-    
+
     // Preference management
     bool loadPreferences();
     bool savePreferences();
     bool resetToDefaults();
-    
+
     // Default values
     TemplateType getDefaultTemplateType() const;
     BuildSystem getDefaultBuildSystem() const;
     PackageManager getDefaultPackageManager() const;
     TestFramework getDefaultTestFramework() const;
     Language getDefaultLanguage() const;
-    
+
     void setDefaultTemplateType(TemplateType type);
     void setDefaultBuildSystem(BuildSystem system);
     void setDefaultPackageManager(PackageManager manager);
     void setDefaultTestFramework(TestFramework framework);
     void setDefaultLanguage(Language language);
-    
+
     // UI preferences
     bool getVerboseOutput() const;
     bool getColorOutput() const;
     bool getInteractiveMode() const;
     bool getAutoSaveProfiles() const;
-    
+
     void setVerboseOutput(bool verbose);
     void setColorOutput(bool color);
     void setInteractiveMode(bool interactive);
     void setAutoSaveProfiles(bool autoSave);
-    
+
     // Development preferences
     std::vector<EditorConfig> getPreferredEditors() const;
     std::vector<CiSystem> getPreferredCiSystems() const;
     std::string getDefaultAuthor() const;
     std::string getDefaultEmail() const;
     std::string getDefaultLicense() const;
-    
+
     void setPreferredEditors(const std::vector<EditorConfig>& editors);
     void setPreferredCiSystems(const std::vector<CiSystem>& systems);
     void setDefaultAuthor(const std::string& author);
@@ -230,7 +231,7 @@ public:
 private:
     nlohmann::json preferences_;
     std::filesystem::path preferencesPath_;
-    
+
     void initializeDefaults();
     bool validatePreferences();
 };
@@ -259,6 +260,7 @@ private:
 ### Configuration File Locations
 
 #### Windows
+
 ```
 Global Config:    %PROGRAMDATA%\CPP-Scaffold\config.json
 User Config:      %APPDATA%\CPP-Scaffold\config.json
@@ -269,6 +271,7 @@ Logs:             %LOCALAPPDATA%\CPP-Scaffold\logs\
 ```
 
 #### Linux/macOS
+
 ```
 Global Config:    /etc/cpp-scaffold/config.json
 User Config:      ~/.config/cpp-scaffold/config.json
@@ -375,25 +378,25 @@ Logs:             ~/.local/share/cpp-scaffold/logs/
 
 int main() {
     auto& config = ConfigManager::getInstance();
-    
+
     // Load configuration
     if (!config.loadConfiguration()) {
         std::cerr << "Failed to load configuration" << std::endl;
         return 1;
     }
-    
+
     // Get user preference
     auto defaultTemplate = config.getUserPreference<std::string>("defaults.templateType");
     if (defaultTemplate.has_value()) {
         std::cout << "Default template: " << defaultTemplate.value() << std::endl;
     }
-    
+
     // Set user preference
     config.setUserPreference("defaults.buildSystem", "cmake");
-    
+
     // Save configuration
     config.saveConfiguration();
-    
+
     return 0;
 }
 ```
@@ -405,7 +408,7 @@ int main() {
 
 void manageProfiles() {
     auto& config = ConfigManager::getInstance();
-    
+
     // Create a new profile
     CliOptions webDevOptions;
     webDevOptions.templateType = TemplateType::WebService;
@@ -414,19 +417,19 @@ void manageProfiles() {
     webDevOptions.testFramework = TestFramework::GTest;
     webDevOptions.includeTests = true;
     webDevOptions.ciOptions = {CiSystem::GitHub, CiSystem::GitLab};
-    
+
     // Save profile
     if (config.saveProfile("web-dev", webDevOptions)) {
         std::cout << "Profile 'web-dev' saved successfully" << std::endl;
     }
-    
+
     // List all profiles
     auto profiles = config.listProfiles();
     std::cout << "Available profiles:" << std::endl;
     for (const auto& profile : profiles) {
         std::cout << "  - " << profile << std::endl;
     }
-    
+
     // Load profile
     auto loadedOptions = config.loadProfile("web-dev");
     if (loadedOptions.has_value()) {
@@ -443,16 +446,16 @@ void manageProfiles() {
 
 void setupEnvironmentIntegration() {
     auto& config = ConfigManager::getInstance();
-    
+
     // Load environment variables
     config.loadEnvironmentVariables();
-    
+
     // Check for environment overrides
     auto envTemplate = config.getEnvironmentOverride("CPP_SCAFFOLD_TEMPLATE");
     if (envTemplate.has_value()) {
         std::cout << "Using template from environment: " << envTemplate.value() << std::endl;
     }
-    
+
     // Set environment override
     config.setEnvironmentOverride("CPP_SCAFFOLD_BUILD_SYSTEM", "ninja");
 }
@@ -472,19 +475,19 @@ TEST(ConfigManagerTest, LoadConfiguration) {
 // Test profile management
 TEST(ConfigManagerTest, ProfileManagement) {
     auto& config = ConfigManager::getInstance();
-    
+
     CliOptions testOptions;
     testOptions.projectName = "TestProject";
     testOptions.templateType = TemplateType::Console;
-    
+
     // Save profile
     EXPECT_TRUE(config.saveProfile("test-profile", testOptions));
-    
+
     // Load profile
     auto loaded = config.loadProfile("test-profile");
     ASSERT_TRUE(loaded.has_value());
     EXPECT_EQ(loaded->templateType, TemplateType::Console);
-    
+
     // Delete profile
     EXPECT_TRUE(config.deleteProfile("test-profile"));
 }
@@ -493,10 +496,10 @@ TEST(ConfigManagerTest, ProfileManagement) {
 TEST(UserPreferencesTest, DefaultValues) {
     UserPreferences prefs;
     prefs.loadPreferences();
-    
+
     EXPECT_EQ(prefs.getDefaultTemplateType(), TemplateType::Console);
     EXPECT_EQ(prefs.getDefaultBuildSystem(), BuildSystem::CMake);
-    
+
     prefs.setDefaultTemplateType(TemplateType::Library);
     EXPECT_EQ(prefs.getDefaultTemplateType(), TemplateType::Library);
 }
@@ -505,11 +508,13 @@ TEST(UserPreferencesTest, DefaultValues) {
 ## 🔗 Dependencies
 
 ### External Dependencies
+
 - **nlohmann/json**: JSON parsing and generation
 - **std::filesystem**: File system operations
 - **spdlog**: Logging and error reporting
 
 ### Internal Dependencies
+
 - **Utility Classes**: File operations, string processing
 - **CLI Parser**: Option validation and conversion
 
@@ -534,7 +539,7 @@ TEST(UserPreferencesTest, DefaultValues) {
 
 ```cpp
 // Register custom format handler
-config.registerFormatHandler(ConfigFormat::YAML, 
+config.registerFormatHandler(ConfigFormat::YAML,
     std::make_unique<YamlConfigHandler>());
 ```
 

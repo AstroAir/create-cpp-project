@@ -9,6 +9,7 @@ This section provides comprehensive documentation for all public APIs, interface
 ## What's in This Section
 
 ### [API Documentation](api.md)
+
 Complete reference for all public classes, methods, and interfaces including:
 
 - **Core API** - Main application interfaces
@@ -82,17 +83,17 @@ namespace cpp_scaffold::utils {
 
 int main() {
     cpp_scaffold::Application app;
-    
+
     // Configure application
     app.set_verbose(true);
     app.set_output_directory("./projects");
-    
+
     // Create project
     cpp_scaffold::ProjectOptions options;
     options.name = "MyProject";
     options.template_type = "console";
     options.build_system = "cmake";
-    
+
     return app.create_project(options) ? 0 : 1;
 }
 ```
@@ -106,15 +107,15 @@ class MyCustomTemplate : public cpp_scaffold::templates::TemplateBase {
 public:
     bool create() override {
         // Implement template creation logic
-        return create_project_structure() && 
-               setup_build_system() && 
+        return create_project_structure() &&
+               setup_build_system() &&
                generate_documentation();
     }
-    
+
     std::string get_name() const override {
         return "my-custom-template";
     }
-    
+
     std::string get_description() const override {
         return "My custom project template";
     }
@@ -128,14 +129,14 @@ public:
 
 void setup_configuration() {
     auto& config = cpp_scaffold::config::ConfigManager::instance();
-    
+
     // Set default values
     config.set_default("build_system", "cmake");
     config.set_default("package_manager", "vcpkg");
-    
+
     // Load user preferences
     config.load_user_preferences();
-    
+
     // Save profile
     config.save_profile("my-profile", current_settings);
 }
@@ -153,7 +154,7 @@ cpp_scaffold::templates::TemplateRegistry::register_template<MyCustomTemplate>()
 
 // Register template factory
 cpp_scaffold::templates::TemplateRegistry::register_factory(
-    "my-template", 
+    "my-template",
     []() { return std::make_unique<MyCustomTemplate>(); }
 );
 ```
@@ -170,7 +171,7 @@ config.add_section("my_extension", {
 });
 
 // Register validation
-config.add_validator("my_extension.custom_setting", 
+config.add_validator("my_extension.custom_setting",
     [](const auto& value) { return !value.empty(); });
 ```
 
@@ -185,7 +186,7 @@ cli_parser.add_argument("--my-option")
     .default_value(false);
 
 // Register option handler
-cli_parser.add_handler("--my-option", 
+cli_parser.add_handler("--my-option",
     [](const auto& value) { handle_my_option(value); });
 ```
 
@@ -220,11 +221,13 @@ enum class ErrorCode {
 ## Thread Safety
 
 ### Thread-Safe Components
+
 - **ConfigurationManager** - Thread-safe singleton
 - **TemplateRegistry** - Thread-safe registration
 - **Logger** - Thread-safe logging
 
 ### Non-Thread-Safe Components
+
 - **TemplateBase** instances - Single-threaded usage
 - **ProjectGenerator** - Single-threaded project creation
 - **CLI Parser** - Single-threaded argument parsing
@@ -232,11 +235,13 @@ enum class ErrorCode {
 ## Performance Considerations
 
 ### Memory Management
+
 - **RAII** - Automatic resource management
 - **Smart pointers** - Shared and unique ownership
 - **Move semantics** - Efficient object transfer
 
 ### I/O Operations
+
 - **Async file operations** - Non-blocking file I/O where possible
 - **Batch operations** - Efficient bulk file operations
 - **Caching** - Template and configuration caching
@@ -244,11 +249,13 @@ enum class ErrorCode {
 ## Versioning and Compatibility
 
 ### API Versioning
+
 - **Semantic versioning** - Major.Minor.Patch
 - **Backward compatibility** - Within major versions
 - **Deprecation policy** - Gradual deprecation with warnings
 
 ### ABI Stability
+
 - **Stable ABI** - Within minor versions
 - **Symbol versioning** - For shared library usage
 - **Header compatibility** - Forward compatibility
@@ -256,6 +263,7 @@ enum class ErrorCode {
 ## Examples and Samples
 
 ### Complete Examples
+
 See the [API Documentation](api.md) for complete code examples including:
 
 - **Basic project creation**
@@ -265,6 +273,7 @@ See the [API Documentation](api.md) for complete code examples including:
 - **Error handling patterns**
 
 ### Sample Projects
+
 The `examples/` directory contains:
 
 - **api_usage/** - Basic API usage examples
@@ -275,11 +284,13 @@ The `examples/` directory contains:
 ## Migration Guides
 
 ### Upgrading from v1.x to v2.x
+
 - **Breaking changes** - API changes and removals
 - **Migration steps** - Step-by-step upgrade guide
 - **Compatibility layer** - Temporary compatibility support
 
 ### Best Practices
+
 - **Modern C++** - Use C++17 features appropriately
 - **Error handling** - Prefer exceptions for error conditions
 - **Resource management** - Use RAII and smart pointers

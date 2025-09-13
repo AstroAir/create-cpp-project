@@ -5,6 +5,7 @@ This guide explains how to test packages created by the cpp-scaffold build syste
 ## Overview
 
 The package testing framework provides comprehensive validation of:
+
 - Package creation and integrity
 - Installation procedures
 - Executable functionality
@@ -14,18 +15,21 @@ The package testing framework provides comprehensive validation of:
 ## Testing Framework Components
 
 ### 1. Package Validation
+
 - File integrity checks
 - Format-specific validation
 - Size and structure verification
 - Metadata validation
 
 ### 2. Installation Testing
+
 - Installation to test directories
 - File placement verification
 - Executable functionality testing
 - Dependency resolution
 
 ### 3. Signature Verification
+
 - Code signing validation
 - Certificate chain verification
 - Timestamp validation
@@ -34,6 +38,7 @@ The package testing framework provides comprehensive validation of:
 ## Running Tests
 
 ### Quick Testing
+
 ```bash
 # Linux/macOS
 ./scripts/test_packages.sh --platform current --install-test
@@ -43,6 +48,7 @@ The package testing framework provides comprehensive validation of:
 ```
 
 ### Comprehensive Testing
+
 ```bash
 # Linux/macOS
 ./scripts/test_packages.sh \
@@ -60,6 +66,7 @@ The package testing framework provides comprehensive validation of:
 ```
 
 ### CMake Integration
+
 ```bash
 # Build and test packages
 cmake --build build --target test_packages
@@ -74,6 +81,7 @@ cmake --build build --target signature_tests
 ## Test Configuration
 
 ### Enable Testing in CMake
+
 ```cmake
 # Enable package testing
 set(ENABLE_PACKAGE_TESTING ON)
@@ -83,6 +91,7 @@ set(PACKAGE_TEST_TIMEOUT 600)  # 10 minutes
 ```
 
 ### Environment Variables
+
 ```bash
 # Enable comprehensive testing
 export ENABLE_PACKAGE_TESTING=1
@@ -96,6 +105,7 @@ export PACKAGE_TEST_VERBOSE=1
 ## Platform-Specific Testing
 
 ### Windows Testing
+
 Tests Windows-specific package formats and features:
 
 ```powershell
@@ -108,6 +118,7 @@ $env:ENABLE_PACKAGE_SIGNING = "1"
 ```
 
 **Validated Features:**
+
 - Authenticode signatures
 - MSI package integrity
 - Registry entries
@@ -115,6 +126,7 @@ $env:ENABLE_PACKAGE_SIGNING = "1"
 - Uninstaller functionality
 
 ### macOS Testing
+
 Tests macOS-specific package formats and features:
 
 ```bash
@@ -127,6 +139,7 @@ export ENABLE_PACKAGE_SIGNING=1
 ```
 
 **Validated Features:**
+
 - Code signing and notarization
 - DMG integrity and layout
 - Bundle structure
@@ -134,6 +147,7 @@ export ENABLE_PACKAGE_SIGNING=1
 - Keychain integration
 
 ### Linux Testing
+
 Tests Linux-specific package formats and features:
 
 ```bash
@@ -146,6 +160,7 @@ export ENABLE_PACKAGE_SIGNING=1
 ```
 
 **Validated Features:**
+
 - Package dependencies
 - GPG signatures
 - Desktop integration
@@ -155,21 +170,27 @@ export ENABLE_PACKAGE_SIGNING=1
 ## Test Types
 
 ### 1. Package Creation Tests
+
 Verify that packages are created successfully:
+
 - Build system integration
 - Package generator functionality
 - Output file generation
 - Error handling
 
 ### 2. Package Integrity Tests
+
 Validate package structure and content:
+
 - File format validation
 - Archive integrity
 - Metadata verification
 - Size and checksum validation
 
 ### 3. Installation Tests
+
 Test installation procedures:
+
 - Installation to test directories
 - File placement verification
 - Permission handling
@@ -177,14 +198,18 @@ Test installation procedures:
 - Post-installation scripts
 
 ### 4. Functionality Tests
+
 Verify installed software works:
+
 - Executable launches
 - Basic functionality
 - Command-line interface
 - Configuration file handling
 
 ### 5. Signature Tests
+
 Validate code signing:
+
 - Certificate validation
 - Signature integrity
 - Timestamp verification
@@ -193,6 +218,7 @@ Validate code signing:
 ## Continuous Integration
 
 ### GitHub Actions Example
+
 ```yaml
 name: Package Testing
 
@@ -203,30 +229,32 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-    
+
     runs-on: ${{ matrix.os }}
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Configure CMake
-      run: cmake --preset default
-    
-    - name: Build packages
-      run: cmake --build --preset default --target package
-    
-    - name: Test packages
-      run: |
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          .\scripts\test_packages.ps1 -InstallTest
-        else
-          ./scripts/test_packages.sh --install-test
-        fi
-      shell: bash
+      - uses: actions/checkout@v3
+
+      - name: Configure CMake
+        run: cmake --preset default
+
+      - name: Build packages
+        run: cmake --build --preset default --target package
+
+      - name: Test packages
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            .\scripts\test_packages.ps1 -InstallTest
+          else
+            ./scripts/test_packages.sh --install-test
+          fi
+        shell: bash
 ```
 
 ### Test Matrix
+
 Configure testing across multiple dimensions:
+
 - **Platforms**: Windows, macOS, Linux
 - **Package Types**: Native packages, archives
 - **Build Types**: Debug, Release
@@ -238,6 +266,7 @@ Configure testing across multiple dimensions:
 ### Common Issues
 
 #### Package Creation Failures
+
 ```bash
 # Check build logs
 cmake --build build --verbose
@@ -247,6 +276,7 @@ cmake --build build --target package --verbose
 ```
 
 #### Installation Test Failures
+
 ```bash
 # Check installation logs
 cmake --install build --prefix test_install --verbose
@@ -256,6 +286,7 @@ ls -la test_install/bin/
 ```
 
 #### Signature Verification Failures
+
 ```bash
 # Check signing configuration
 ./scripts/setup_signing.sh --verify
@@ -267,7 +298,9 @@ gpg --verify package.deb.sig     # Linux
 ```
 
 ### Debug Mode
+
 Enable verbose testing output:
+
 ```bash
 # Environment variable
 export PACKAGE_TEST_VERBOSE=1
@@ -277,7 +310,9 @@ export PACKAGE_TEST_VERBOSE=1
 ```
 
 ### Test Isolation
+
 Run tests in isolated environments:
+
 ```bash
 # Use containers
 docker run --rm -v $(pwd):/src ubuntu:20.04 \
@@ -290,6 +325,7 @@ vagrant up && vagrant ssh -c "cd /vagrant && ./scripts/test_packages.sh"
 ## Custom Tests
 
 ### Adding New Tests
+
 Extend the testing framework:
 
 ```cmake
@@ -304,7 +340,9 @@ endfunction()
 ```
 
 ### Test Scripts
+
 Create custom test scripts:
+
 ```cmake
 # tests/custom_test.cmake
 message(STATUS "Running custom package test...")
@@ -333,6 +371,7 @@ endif()
 ## Support
 
 For testing-related issues:
+
 1. Check test logs and output
 2. Verify platform requirements
 3. Test with minimal configurations

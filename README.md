@@ -60,7 +60,7 @@ xmake config --mode=release --msys2_optimizations=true
 xmake build
 ```
 
-📖 **[Complete Installation Guide](docs/installation/README.md)**
+📖 **[Complete Installation Guide](docs/getting-started/installation.md)**
 
 ### Create Your First Project
 
@@ -118,7 +118,7 @@ mkdocs build
 - **[User Guide](docs/user-guide/index.md)** - Complete usage documentation
 - **[Tutorials](docs/tutorials/index.md)** - Step-by-step examples
 - **[Developer Guide](docs/developer-guide/index.md)** - Contributing and extending
-- **[API Reference](docs/api-reference/index.md)** - Complete API documentation
+- **[API Reference](docs/api-reference/api.md)** - Complete API documentation
 
 ### 🔗 Documentation Links
 
@@ -128,7 +128,7 @@ mkdocs build
 | **XMake Users**     | [XMake Build System](docs/developer-guide/xmake-build-system.md)     | Modern Lua-based build system  |
 | **Windows Users**   | [MSYS2 Integration](docs/developer-guide/xmake-msys2-integration.md) | Windows development with MSYS2 |
 | **All Users**       | [User Guide](docs/user-guide/index.md)                               | Complete usage documentation   |
-| **Developers**      | [API Reference](docs/api-reference/index.md)                         | Complete API documentation     |
+| **Developers**      | [API Reference](docs/api-reference/api.md)                           | Complete API documentation     |
 | **Contributors**    | [Developer Guide](docs/developer-guide/index.md)                     | Contributing and extending     |
 | **Build Systems**   | [Build System Docs](docs/developer-guide/build-system.md)            | CMake and XMake documentation  |
 | **Troubleshooting** | [Troubleshooting](docs/user-guide/troubleshooting.md)                | Common issues and solutions    |
@@ -501,7 +501,7 @@ All build systems support:
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](documents/developer-guide/CONTRIBUTING.md) for details on:
+We welcome contributions! Please see our [Contributing Guide](docs/developer-guide/contributing.md) for details on:
 
 - Code of conduct
 - Development setup
@@ -515,7 +515,7 @@ This project is licensed under the GPL v3 License - see the [LICENSE](LICENSE) f
 
 ## 🔗 Links
 
-- **📖 [Documentation](documents/README.md)** - Complete documentation
+- **📖 [Documentation](docs/index.md)** - Complete documentation
 - **🐛 [Issues](https://github.com/cpp-scaffold/cpp-scaffold/issues)** - Bug reports and feature requests
 - **💬 [Discussions](https://github.com/cpp-scaffold/cpp-scaffold/discussions)** - Questions and community support
 - **🚀 [Releases](https://github.com/cpp-scaffold/cpp-scaffold/releases)** - Latest releases and changelogs
@@ -532,4 +532,4 @@ If you find CPP-Scaffold useful, please consider:
 
 ---
 
-**Get started today**: [Installation Guide](documents/user-guide/INSTALLATION.md) → [Usage Guide](documents/user-guide/USAGE.md) → [Create your first project!](documents/user-guide/USAGE.md#your-first-project)
+**Get started today**: [Installation Guide](docs/getting-started/installation.md) → [Usage Guide](docs/user-guide/usage.md) → [Create your first project!](docs/getting-started/first-project.md)

@@ -23,6 +23,7 @@ We are committed to making participation in our project a harassment-free experi
 ### Our Standards
 
 **Positive behavior includes:**
+
 - Using welcoming and inclusive language
 - Being respectful of differing viewpoints and experiences
 - Gracefully accepting constructive criticism
@@ -30,6 +31,7 @@ We are committed to making participation in our project a harassment-free experi
 - Showing empathy towards other community members
 
 **Unacceptable behavior includes:**
+
 - The use of sexualized language or imagery
 - Trolling, insulting/derogatory comments, and personal or political attacks
 - Public or private harassment
@@ -53,26 +55,31 @@ Before contributing, ensure you have:
 We welcome contributions in the following areas:
 
 1. **New Project Templates**
+
    - Additional project types (game engines, mobile apps, etc.)
    - Framework-specific templates
    - Domain-specific templates
 
 2. **Build System Support**
+
    - Additional build systems (Bazel, XMake, etc.)
    - Build system optimizations
    - Cross-compilation support
 
 3. **Package Manager Integration**
+
    - New package managers
    - Improved dependency resolution
    - Package manager optimizations
 
 4. **IDE Integration**
+
    - Additional IDE support
    - Enhanced project configurations
    - Plugin development
 
 5. **Documentation**
+
    - User guides and tutorials
    - API documentation
    - Example projects
@@ -125,6 +132,7 @@ brew install llvm               # macOS (includes clang-tidy)
 ### 4. IDE Configuration
 
 #### Visual Studio Code
+
 ```bash
 # Install recommended extensions
 code --install-extension ms-vscode.cpptools
@@ -133,6 +141,7 @@ code --install-extension xaver.clang-format
 ```
 
 #### CLion
+
 - Open the project directory
 - CLion will automatically detect CMake configuration
 - Enable clang-format integration in settings
@@ -154,6 +163,7 @@ git checkout -b fix/issue-description
 ### 2. Commit Guidelines
 
 #### Commit Message Format
+
 ```
 type(scope): brief description
 
@@ -163,6 +173,7 @@ Fixes #issue_number
 ```
 
 #### Commit Types
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -172,6 +183,7 @@ Fixes #issue_number
 - `chore`: Maintenance tasks
 
 #### Examples
+
 ```bash
 feat(templates): add embedded system template
 
@@ -195,16 +207,17 @@ Fixes #456
 #### Adding New Templates
 
 1. **Create template class**:
+
    ```cpp
    // src/templates/my_template.h
    #pragma once
    #include "template_base.h"
-   
+
    class MyTemplate : public TemplateBase {
    public:
        MyTemplate(const CliOptions& options);
        bool create() override;
-   
+
    protected:
        bool createProjectStructure() override;
        bool createBuildSystem() override;
@@ -214,21 +227,23 @@ Fixes #456
    ```
 
 2. **Implement template**:
+
    ```cpp
    // src/templates/my_template.cpp
    #include "my_template.h"
-   
-   MyTemplate::MyTemplate(const CliOptions& options) 
+
+   MyTemplate::MyTemplate(const CliOptions& options)
        : TemplateBase(options) {}
-   
+
    bool MyTemplate::create() {
        return TemplateBase::create();
    }
-   
+
    // Implement other methods...
    ```
 
 3. **Register template**:
+
    ```cpp
    // In template_manager.cpp
    templateFactories_["my-template"] = [](const CliOptions& opts) {
@@ -237,16 +252,17 @@ Fixes #456
    ```
 
 4. **Add tests**:
+
    ```cpp
    // tests/test_my_template.cpp
    #include <gtest/gtest.h>
    #include "templates/my_template.h"
-   
+
    TEST(MyTemplateTest, CreateBasicProject) {
        CliOptions options;
        options.projectName = "TestProject";
        options.templateType = TemplateType::MyTemplate;
-       
+
        MyTemplate template(options);
        EXPECT_TRUE(template.create());
    }
@@ -259,6 +275,7 @@ Fixes #456
 We follow a modified version of the Google C++ Style Guide:
 
 #### Naming Conventions
+
 ```cpp
 // Classes: PascalCase
 class TemplateManager {};
@@ -285,6 +302,7 @@ enum class TemplateType {
 ```
 
 #### File Organization
+
 ```cpp
 // Header file structure
 #pragma once
@@ -306,7 +324,7 @@ class TemplateBase;
 class MyClass {
 public:
     // Public interface first
-    
+
 private:
     // Private members last
 };
@@ -349,6 +367,7 @@ endif()
 ### Writing Tests
 
 #### Unit Tests
+
 ```cpp
 #include <gtest/gtest.h>
 #include "utils/string_utils.h"
@@ -358,7 +377,7 @@ protected:
     void SetUp() override {
         // Setup code
     }
-    
+
     void TearDown() override {
         // Cleanup code
     }
@@ -380,23 +399,24 @@ TEST_F(StringUtilsTest, SplitHandlesDelimiters) {
 ```
 
 #### Integration Tests
+
 ```cpp
 TEST(IntegrationTest, CreateAndBuildConsoleProject) {
     // Create temporary directory
     auto tempDir = std::filesystem::temp_directory_path() / "test_project";
-    
+
     // Create project
     CliOptions options;
     options.projectName = "TestProject";
     options.templateType = TemplateType::Console;
-    
+
     TemplateManager manager;
     ASSERT_TRUE(manager.createProject(options));
-    
+
     // Verify project structure
     EXPECT_TRUE(std::filesystem::exists(tempDir / "CMakeLists.txt"));
     EXPECT_TRUE(std::filesystem::exists(tempDir / "src" / "main.cpp"));
-    
+
     // Cleanup
     std::filesystem::remove_all(tempDir);
 }
@@ -428,22 +448,22 @@ Use Doxygen-style comments for public APIs:
 ```cpp
 /**
  * @brief Creates a new C++ project from the specified template
- * 
+ *
  * This function creates a complete C++ project structure including
  * source files, build system configuration, and development tools.
- * 
+ *
  * @param options Project configuration options
  * @return true if project creation succeeded, false otherwise
- * 
+ *
  * @throws std::filesystem::filesystem_error if directory creation fails
  * @throws std::runtime_error if template is invalid
- * 
+ *
  * @example
  * @code
  * CliOptions options;
  * options.projectName = "MyProject";
  * options.templateType = TemplateType::Console;
- * 
+ *
  * TemplateManager manager;
  * if (manager.createProject(options)) {
  *     std::cout << "Project created successfully!" << std::endl;
@@ -495,20 +515,24 @@ When creating a pull request, include:
 
 ```markdown
 ## Description
+
 Brief description of changes
 
 ## Type of Change
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Breaking change
 - [ ] Documentation update
 
 ## Testing
+
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
 - [ ] Manual testing performed
 
 ## Checklist
+
 - [ ] Code follows style guidelines
 - [ ] Self-review completed
 - [ ] Documentation updated
@@ -533,6 +557,7 @@ Use the bug report template:
 Clear description of the bug
 
 **Steps to Reproduce**
+
 1. Step one
 2. Step two
 3. Step three
@@ -544,6 +569,7 @@ What should happen
 What actually happens
 
 **Environment**
+
 - OS: [e.g., Ubuntu 20.04]
 - Compiler: [e.g., GCC 9.3]
 - CMake Version: [e.g., 3.18]
@@ -577,6 +603,7 @@ Any other relevant information
 ## 🏆 Recognition
 
 Contributors will be recognized in:
+
 - `CONTRIBUTORS.md` file
 - Release notes
 - Project documentation

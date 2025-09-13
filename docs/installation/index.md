@@ -7,11 +7,13 @@ This guide provides comprehensive instructions for installing cpp-scaffold acros
 ### One-Line Install (Recommended)
 
 **Linux/macOS:**
+
 ```bash
 curl -sSL https://raw.githubusercontent.com/cpp-scaffold/cpp-scaffold/main/scripts/web-install.sh | bash
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 iwr -useb https://raw.githubusercontent.com/cpp-scaffold/cpp-scaffold/main/scripts/install.ps1 | iex
 ```
@@ -19,21 +21,25 @@ iwr -useb https://raw.githubusercontent.com/cpp-scaffold/cpp-scaffold/main/scrip
 ### Package Managers
 
 **Homebrew (macOS/Linux):**
+
 ```bash
 brew install cpp-scaffold
 ```
 
 **Chocolatey (Windows):**
+
 ```cmd
 choco install cpp-scaffold
 ```
 
 **Winget (Windows):**
+
 ```cmd
 winget install cpp-scaffold
 ```
 
 **Scoop (Windows):**
+
 ```cmd
 scoop install cpp-scaffold
 ```
@@ -45,6 +51,7 @@ scoop install cpp-scaffold
 The automated installer scripts provide the most user-friendly installation experience with support for multiple installation methods and platforms.
 
 #### Features
+
 - **Cross-platform**: Works on Windows, macOS, and Linux
 - **Multiple methods**: Package manager, binary, or source installation
 - **GUI support**: Optional graphical installation interface
@@ -54,6 +61,7 @@ The automated installer scripts provide the most user-friendly installation expe
 #### Usage
 
 **Download and run:**
+
 ```bash
 # Linux/macOS
 curl -O https://raw.githubusercontent.com/cpp-scaffold/cpp-scaffold/main/scripts/install.sh
@@ -66,6 +74,7 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/cpp-scaffold/cpp-scaff
 ```
 
 **Common options:**
+
 ```bash
 # Install to custom directory
 ./install.sh --dir ~/.local
@@ -88,6 +97,7 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/cpp-scaffold/cpp-scaff
 Package managers provide the easiest installation and update experience.
 
 #### Homebrew (macOS/Linux)
+
 ```bash
 # Install
 brew install cpp-scaffold
@@ -100,6 +110,7 @@ brew uninstall cpp-scaffold
 ```
 
 #### Chocolatey (Windows)
+
 ```cmd
 # Install
 choco install cpp-scaffold
@@ -112,6 +123,7 @@ choco uninstall cpp-scaffold
 ```
 
 #### APT (Debian/Ubuntu)
+
 ```bash
 # Add repository
 curl -fsSL https://packages.cpp-scaffold.org/gpg | sudo apt-key add -
@@ -123,6 +135,7 @@ sudo apt install cpp-scaffold
 ```
 
 #### YUM/DNF (RHEL/CentOS/Fedora)
+
 ```bash
 # Add repository
 sudo tee /etc/yum.repos.d/cpp-scaffold.repo << EOF
@@ -143,11 +156,13 @@ sudo yum install cpp-scaffold  # or dnf install cpp-scaffold
 Pre-compiled binaries are available for direct download and installation.
 
 #### Download Links
+
 - **Windows**: [cpp-scaffold-1.0.0-windows-x86_64.zip](https://github.com/cpp-scaffold/cpp-scaffold/releases/latest/download/cpp-scaffold-1.0.0-windows-x86_64.zip)
 - **macOS**: [cpp-scaffold-1.0.0-macos-x86_64.tar.gz](https://github.com/cpp-scaffold/cpp-scaffold/releases/latest/download/cpp-scaffold-1.0.0-macos-x86_64.tar.gz)
 - **Linux**: [cpp-scaffold-1.0.0-linux-x86_64.tar.gz](https://github.com/cpp-scaffold/cpp-scaffold/releases/latest/download/cpp-scaffold-1.0.0-linux-x86_64.tar.gz)
 
 #### Manual Installation
+
 ```bash
 # Download and extract
 wget https://github.com/cpp-scaffold/cpp-scaffold/releases/latest/download/cpp-scaffold-1.0.0-linux-x86_64.tar.gz
@@ -166,12 +181,14 @@ cpp-scaffold --version
 Building from source provides the most flexibility and ensures compatibility with your specific system.
 
 #### Prerequisites
+
 - **CMake** 3.20 or later
 - **Ninja** build system
 - **Git**
 - **C++17** compatible compiler (GCC 8+, Clang 7+, MSVC 2019+)
 
 #### Build Instructions
+
 ```bash
 # Clone repository
 git clone https://github.com/cpp-scaffold/cpp-scaffold.git
@@ -195,10 +212,12 @@ cpp-scaffold --version
 ### Windows
 
 #### System Requirements
+
 - Windows 10 or later
 - PowerShell 5.1 or later (PowerShell Core 6+ recommended)
 
 #### Installation Options
+
 1. **Chocolatey** (Recommended)
 2. **Winget**
 3. **Scoop**
@@ -206,7 +225,9 @@ cpp-scaffold --version
 5. **PowerShell installer script**
 
 #### PATH Configuration
+
 The installer automatically adds cpp-scaffold to your PATH. If needed, manually add:
+
 ```
 C:\Program Files\cpp-scaffold\bin
 ```
@@ -214,15 +235,18 @@ C:\Program Files\cpp-scaffold\bin
 ### macOS
 
 #### System Requirements
+
 - macOS 10.14 (Mojave) or later
 - Xcode Command Line Tools
 
 #### Installation Options
+
 1. **Homebrew** (Recommended)
 2. **Direct download**
 3. **Shell installer script**
 
 #### Installation via Homebrew
+
 ```bash
 # Install Homebrew if not already installed
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -234,16 +258,19 @@ brew install cpp-scaffold
 ### Linux
 
 #### System Requirements
+
 - Modern Linux distribution (Ubuntu 18.04+, CentOS 7+, etc.)
 - glibc 2.17 or later
 
 #### Installation Options
+
 1. **Package manager** (APT, YUM, DNF, Pacman)
 2. **AppImage** (Universal)
 3. **Direct download**
 4. **Shell installer script**
 
 #### AppImage Installation
+
 ```bash
 # Download AppImage
 wget https://github.com/cpp-scaffold/cpp-scaffold/releases/latest/download/cpp-scaffold-1.0.0-x86_64.AppImage
@@ -276,6 +303,7 @@ cpp-scaffold --list-templates
 ## Uninstallation
 
 ### Using Installer Scripts
+
 ```bash
 # Linux/macOS
 ./install.sh --uninstall
@@ -285,6 +313,7 @@ cpp-scaffold --list-templates
 ```
 
 ### Using Package Managers
+
 ```bash
 # Homebrew
 brew uninstall cpp-scaffold
@@ -300,6 +329,7 @@ sudo yum remove cpp-scaffold
 ```
 
 ### Manual Removal
+
 ```bash
 # Remove executable
 sudo rm /usr/local/bin/cpp-scaffold
@@ -317,6 +347,7 @@ rm -rf ~/.cache/cpp-scaffold
 ### Common Issues
 
 #### Permission Denied
+
 ```bash
 # Make sure the executable is in your PATH and has execute permissions
 which cpp-scaffold
@@ -324,6 +355,7 @@ ls -la $(which cpp-scaffold)
 ```
 
 #### Command Not Found
+
 ```bash
 # Check if installation directory is in PATH
 echo $PATH
@@ -336,6 +368,7 @@ $env:PATH += ";C:\Program Files\cpp-scaffold\bin"
 ```
 
 #### SSL/TLS Errors
+
 ```bash
 # Update certificates (Linux)
 sudo apt update && sudo apt install ca-certificates
@@ -354,6 +387,7 @@ brew install ca-certificates
 ## Advanced Configuration
 
 ### Environment Variables
+
 ```bash
 # Custom configuration directory
 export CPP_SCAFFOLD_CONFIG_DIR="$HOME/.config/cpp-scaffold"
@@ -366,7 +400,9 @@ export CPP_SCAFFOLD_DEBUG=1
 ```
 
 ### Configuration File
+
 Create `~/.config/cpp-scaffold/config.json`:
+
 ```json
 {
   "default_template": "console",
@@ -380,11 +416,14 @@ Create `~/.config/cpp-scaffold/config.json`:
 ## Updates
 
 ### Automatic Updates
+
 cpp-scaffold can check for updates automatically:
+
 ```bash
 cpp-scaffold --check-updates
 cpp-scaffold --update
 ```
 
 ### Manual Updates
+
 Follow the same installation process to update to the latest version. The installer will detect existing installations and offer to upgrade.

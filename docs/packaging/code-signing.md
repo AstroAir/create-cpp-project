@@ -15,17 +15,20 @@ Code signing provides authenticity and integrity verification for distributed pa
 ## Prerequisites
 
 ### Windows
+
 - Windows SDK or Visual Studio (for signtool)
 - Code signing certificate (.p12 or .pfx file)
 - Certificate password
 
 ### macOS
+
 - Xcode command line tools
 - Apple Developer account
 - Developer ID certificate installed in Keychain
 - App-specific password for notarization (optional)
 
 ### Linux
+
 - GnuPG installed
 - GPG key pair for signing
 - Key uploaded to public keyservers (recommended)
@@ -66,6 +69,7 @@ Use the provided setup scripts to configure signing:
 #### macOS
 
 1. Install Xcode command line tools:
+
    ```bash
    xcode-select --install
    ```
@@ -83,19 +87,21 @@ Use the provided setup scripts to configure signing:
 #### Linux
 
 1. Install GnuPG:
+
    ```bash
    # Ubuntu/Debian
    sudo apt install gnupg
-   
+
    # CentOS/RHEL
    sudo yum install gnupg2
    ```
 
 2. Generate or import GPG key:
+
    ```bash
    # Generate new key
    gpg --full-generate-key
-   
+
    # Or import existing key
    gpg --import private-key.asc
    ```
@@ -125,6 +131,7 @@ cmake --build build --target verify_signatures
 ## Verification
 
 ### Verify Setup
+
 ```bash
 # Linux/macOS
 ./scripts/setup_signing.sh --verify
@@ -136,6 +143,7 @@ cmake --build build --target verify_signatures
 ### Verify Package Signatures
 
 #### Windows
+
 ```cmd
 # Verify executable
 signtool verify /pa cpp-scaffold.exe
@@ -145,6 +153,7 @@ signtool verify /pa cpp-scaffold-1.0.0-win64.msi
 ```
 
 #### macOS
+
 ```bash
 # Verify application
 codesign --verify --verbose cpp-scaffold.app
@@ -157,6 +166,7 @@ spctl --assess --verbose cpp-scaffold.app
 ```
 
 #### Linux
+
 ```bash
 # Verify DEB package
 dpkg-sig --verify cpp-scaffold_1.0.0_amd64.deb
@@ -170,17 +180,20 @@ rpm --checksig cpp-scaffold-1.0.0-1.x86_64.rpm
 ### Common Issues
 
 #### Windows
+
 - **"signtool not found"**: Install Windows SDK or Visual Studio
 - **"Certificate not found"**: Check certificate path and format
 - **"Invalid password"**: Verify certificate password
 - **"Timestamp server unavailable"**: Try different timestamp server
 
 #### macOS
+
 - **"Identity not found"**: Import certificate into Keychain
 - **"Notarization failed"**: Check Apple ID credentials and app-specific password
 - **"Hardened runtime issues"**: Review entitlements.plist
 
 #### Linux
+
 - **"GPG key not found"**: Import or generate GPG key
 - **"Permission denied"**: Check GPG key permissions
 - **"Package signing failed"**: Verify GPG key has signing capability
@@ -213,6 +226,7 @@ cpack --config build/CPackConfig.cmake --verbose
 For automated builds, store signing credentials securely:
 
 ### GitHub Actions
+
 ```yaml
 env:
   WINDOWS_CERT_PATH: ${{ secrets.WINDOWS_CERT_PATH }}
@@ -225,6 +239,7 @@ env:
 ```
 
 ### Security Considerations
+
 - Use encrypted secrets for sensitive data
 - Limit signing to release branches only
 - Implement approval workflows for releases
@@ -233,6 +248,7 @@ env:
 ## Support
 
 For signing-related issues:
+
 1. Check this documentation
 2. Review error messages and logs
 3. Verify platform-specific requirements

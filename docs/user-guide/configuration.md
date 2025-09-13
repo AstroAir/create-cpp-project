@@ -18,11 +18,11 @@ CPP-Scaffold uses a hierarchical configuration system that allows you to:
 
 Configuration files are stored in platform-specific directories:
 
-| Platform | Location |
-|----------|----------|
-| **Linux** | `~/.config/cpp-scaffold/` |
-| **macOS** | `~/Library/Application Support/cpp-scaffold/` |
-| **Windows** | `%APPDATA%\cpp-scaffold\` |
+| Platform    | Location                                      |
+| ----------- | --------------------------------------------- |
+| **Linux**   | `~/.config/cpp-scaffold/`                     |
+| **macOS**   | `~/Library/Application Support/cpp-scaffold/` |
+| **Windows** | `%APPDATA%\cpp-scaffold\`                     |
 
 ### File Structure
 
@@ -44,27 +44,27 @@ The `config.json` file contains global defaults:
 
 ```json
 {
-    "defaults": {
-        "template": "console",
-        "build_system": "cmake",
-        "package_manager": "vcpkg",
-        "test_framework": "gtest",
-        "ci_system": "github",
-        "editor": "vscode",
-        "language": "english"
-    },
-    "preferences": {
-        "verbose": false,
-        "auto_git_init": true,
-        "auto_open_editor": false,
-        "check_updates": true,
-        "telemetry": false
-    },
-    "paths": {
-        "default_project_dir": "~/Projects",
-        "template_cache_dir": "~/.cache/cpp-scaffold",
-        "custom_templates_dir": "~/.local/share/cpp-scaffold/templates"
-    }
+  "defaults": {
+    "template": "console",
+    "build_system": "cmake",
+    "package_manager": "vcpkg",
+    "test_framework": "gtest",
+    "ci_system": "github",
+    "editor": "vscode",
+    "language": "english"
+  },
+  "preferences": {
+    "verbose": false,
+    "auto_git_init": true,
+    "auto_open_editor": false,
+    "check_updates": true,
+    "telemetry": false
+  },
+  "paths": {
+    "default_project_dir": "~/Projects",
+    "template_cache_dir": "~/.cache/cpp-scaffold",
+    "custom_templates_dir": "~/.local/share/cpp-scaffold/templates"
+  }
 }
 ```
 
@@ -141,49 +141,49 @@ Profiles are stored in `profiles.json`:
 
 ```json
 {
-    "webdev": {
-        "description": "Web development profile",
-        "template": "webservice",
-        "build_system": "cmake",
-        "package_manager": "vcpkg",
-        "test_framework": "gtest",
-        "ci_system": "github",
-        "editor": "vscode",
-        "options": {
-            "database": "postgresql",
-            "auth": "jwt",
-            "cors": true,
-            "docker": true
-        }
-    },
-    "embedded": {
-        "description": "Embedded development profile",
-        "template": "embedded",
-        "build_system": "cmake",
-        "package_manager": "none",
-        "test_framework": "catch2",
-        "ci_system": "gitlab",
-        "editor": "clion",
-        "options": {
-            "target": "arm-cortex-m4",
-            "optimization": "size",
-            "rtos": "freertos"
-        }
-    },
-    "gamedev": {
-        "description": "Game development profile",
-        "template": "gui",
-        "build_system": "cmake",
-        "package_manager": "vcpkg",
-        "test_framework": "gtest",
-        "ci_system": "github",
-        "editor": "vs",
-        "options": {
-            "framework": "sfml",
-            "graphics": "opengl",
-            "audio": true
-        }
+  "webdev": {
+    "description": "Web development profile",
+    "template": "webservice",
+    "build_system": "cmake",
+    "package_manager": "vcpkg",
+    "test_framework": "gtest",
+    "ci_system": "github",
+    "editor": "vscode",
+    "options": {
+      "database": "postgresql",
+      "auth": "jwt",
+      "cors": true,
+      "docker": true
     }
+  },
+  "embedded": {
+    "description": "Embedded development profile",
+    "template": "embedded",
+    "build_system": "cmake",
+    "package_manager": "none",
+    "test_framework": "catch2",
+    "ci_system": "gitlab",
+    "editor": "clion",
+    "options": {
+      "target": "arm-cortex-m4",
+      "optimization": "size",
+      "rtos": "freertos"
+    }
+  },
+  "gamedev": {
+    "description": "Game development profile",
+    "template": "gui",
+    "build_system": "cmake",
+    "package_manager": "vcpkg",
+    "test_framework": "gtest",
+    "ci_system": "github",
+    "editor": "vs",
+    "options": {
+      "framework": "sfml",
+      "graphics": "opengl",
+      "audio": true
+    }
+  }
 }
 ```
 
@@ -211,26 +211,26 @@ Configure behavior for specific templates:
 
 ```json
 {
-    "templates": {
-        "console": {
-            "default_namespace": "{{project_name}}",
-            "include_logging": true,
-            "include_config": true,
-            "argument_parser": "argparse"
-        },
-        "lib": {
-            "default_namespace": "{{project_name}}",
-            "generate_pkg_config": true,
-            "include_examples": true,
-            "api_documentation": "doxygen"
-        },
-        "webservice": {
-            "default_port": 8080,
-            "default_database": "postgresql",
-            "include_swagger": true,
-            "cors_enabled": true
-        }
+  "templates": {
+    "console": {
+      "default_namespace": "{{project_name}}",
+      "include_logging": true,
+      "include_config": true,
+      "argument_parser": "argparse"
+    },
+    "lib": {
+      "default_namespace": "{{project_name}}",
+      "generate_pkg_config": true,
+      "include_examples": true,
+      "api_documentation": "doxygen"
+    },
+    "webservice": {
+      "default_port": 8080,
+      "default_database": "postgresql",
+      "include_swagger": true,
+      "cors_enabled": true
     }
+  }
 }
 ```
 
@@ -255,26 +255,26 @@ cpp-scaffold --remove-template-path ~/old-templates
 
 ```json
 {
-    "ide_configs": {
-        "vscode": {
-            "extensions": [
-                "ms-vscode.cpptools",
-                "ms-vscode.cmake-tools",
-                "ms-vscode.cpptools-extension-pack"
-            ],
-            "settings": {
-                "C_Cpp.default.cppStandard": "c++17",
-                "cmake.configureOnOpen": true,
-                "files.associations": {
-                    "*.hpp": "cpp"
-                }
-            },
-            "launch_configs": {
-                "console": "launch_console.json",
-                "lib": "launch_tests.json"
-            }
+  "ide_configs": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "ms-vscode.cpptools-extension-pack"
+      ],
+      "settings": {
+        "C_Cpp.default.cppStandard": "c++17",
+        "cmake.configureOnOpen": true,
+        "files.associations": {
+          "*.hpp": "cpp"
         }
+      },
+      "launch_configs": {
+        "console": "launch_console.json",
+        "lib": "launch_tests.json"
+      }
     }
+  }
 }
 ```
 
@@ -282,14 +282,14 @@ cpp-scaffold --remove-template-path ~/old-templates
 
 ```json
 {
-    "ide_configs": {
-        "clion": {
-            "cmake_options": "-DCMAKE_BUILD_TYPE=Debug",
-            "toolchain": "default",
-            "build_directory": "cmake-build-debug",
-            "code_style": "Google"
-        }
+  "ide_configs": {
+    "clion": {
+      "cmake_options": "-DCMAKE_BUILD_TYPE=Debug",
+      "toolchain": "default",
+      "build_directory": "cmake-build-debug",
+      "code_style": "Google"
     }
+  }
 }
 ```
 
@@ -299,18 +299,18 @@ cpp-scaffold --remove-template-path ~/old-templates
 
 ```json
 {
-    "build_systems": {
-        "cmake": {
-            "minimum_version": "3.14",
-            "default_generator": "Ninja",
-            "default_build_type": "Release",
-            "options": {
-                "BUILD_TESTING": true,
-                "BUILD_SHARED_LIBS": false,
-                "CMAKE_EXPORT_COMPILE_COMMANDS": true
-            }
-        }
+  "build_systems": {
+    "cmake": {
+      "minimum_version": "3.14",
+      "default_generator": "Ninja",
+      "default_build_type": "Release",
+      "options": {
+        "BUILD_TESTING": true,
+        "BUILD_SHARED_LIBS": false,
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true
+      }
     }
+  }
 }
 ```
 
@@ -318,17 +318,17 @@ cpp-scaffold --remove-template-path ~/old-templates
 
 ```json
 {
-    "build_systems": {
-        "meson": {
-            "default_buildtype": "release",
-            "default_backend": "ninja",
-            "options": {
-                "warning_level": "3",
-                "werror": false,
-                "cpp_std": "c++17"
-            }
-        }
+  "build_systems": {
+    "meson": {
+      "default_buildtype": "release",
+      "default_backend": "ninja",
+      "options": {
+        "warning_level": "3",
+        "werror": false,
+        "cpp_std": "c++17"
+      }
     }
+  }
 }
 ```
 
@@ -338,19 +338,15 @@ cpp-scaffold --remove-template-path ~/old-templates
 
 ```json
 {
-    "package_managers": {
-        "vcpkg": {
-            "root": "/opt/vcpkg",
-            "default_triplet": "x64-linux",
-            "manifest_mode": true,
-            "binary_caching": true,
-            "common_dependencies": [
-                "spdlog",
-                "nlohmann-json",
-                "fmt"
-            ]
-        }
+  "package_managers": {
+    "vcpkg": {
+      "root": "/opt/vcpkg",
+      "default_triplet": "x64-linux",
+      "manifest_mode": true,
+      "binary_caching": true,
+      "common_dependencies": ["spdlog", "nlohmann-json", "fmt"]
     }
+  }
 }
 ```
 
@@ -358,18 +354,18 @@ cpp-scaffold --remove-template-path ~/old-templates
 
 ```json
 {
-    "package_managers": {
-        "conan": {
-            "profile": "default",
-            "build_missing": true,
-            "remote": "conancenter",
-            "common_dependencies": [
-                "spdlog/1.12.0",
-                "nlohmann_json/3.11.2",
-                "fmt/10.1.1"
-            ]
-        }
+  "package_managers": {
+    "conan": {
+      "profile": "default",
+      "build_missing": true,
+      "remote": "conancenter",
+      "common_dependencies": [
+        "spdlog/1.12.0",
+        "nlohmann_json/3.11.2",
+        "fmt/10.1.1"
+      ]
     }
+  }
 }
 ```
 
@@ -381,17 +377,17 @@ Configure pre/post generation hooks:
 
 ```json
 {
-    "hooks": {
-        "pre_generation": [
-            "echo 'Starting project generation...'",
-            "mkdir -p ~/Projects/{{project_name}}"
-        ],
-        "post_generation": [
-            "cd {{project_path}} && git init",
-            "cd {{project_path}} && git add .",
-            "cd {{project_path}} && git commit -m 'Initial commit'"
-        ]
-    }
+  "hooks": {
+    "pre_generation": [
+      "echo 'Starting project generation...'",
+      "mkdir -p ~/Projects/{{project_name}}"
+    ],
+    "post_generation": [
+      "cd {{project_path}} && git init",
+      "cd {{project_path}} && git add .",
+      "cd {{project_path}} && git commit -m 'Initial commit'"
+    ]
+  }
 }
 ```
 
@@ -401,13 +397,13 @@ Define custom variables for templates:
 
 ```json
 {
-    "variables": {
-        "company_name": "My Company",
-        "copyright_year": "2024",
-        "license_header": "// Copyright (c) {{copyright_year}} {{company_name}}",
-        "default_author": "John Doe",
-        "default_email": "john@example.com"
-    }
+  "variables": {
+    "company_name": "My Company",
+    "copyright_year": "2024",
+    "license_header": "// Copyright (c) {{copyright_year}} {{company_name}}",
+    "default_author": "John Doe",
+    "default_email": "john@example.com"
+  }
 }
 ```
 
@@ -456,12 +452,12 @@ cpp-scaffold --test-template console --profile webdev
 
 ### Common Issues
 
-| Issue | Solution |
-|-------|----------|
-| Configuration not found | Check file paths and permissions |
-| Profile not loading | Validate JSON syntax |
-| Template variables not working | Check variable names and syntax |
-| IDE integration failing | Verify IDE-specific settings |
+| Issue                          | Solution                         |
+| ------------------------------ | -------------------------------- |
+| Configuration not found        | Check file paths and permissions |
+| Profile not loading            | Validate JSON syntax             |
+| Template variables not working | Check variable names and syntax  |
+| IDE integration failing        | Verify IDE-specific settings     |
 
 ### Debug Configuration
 
@@ -492,18 +488,21 @@ cpp-scaffold --reset-all-profiles
 ## Best Practices
 
 ### Configuration Management
+
 1. **Use profiles** for different project types
 2. **Version control** your configuration files
 3. **Document custom settings** for team members
 4. **Test configurations** before sharing
 
 ### Profile Design
+
 1. **Meaningful names** - Use descriptive profile names
 2. **Logical grouping** - Group related settings together
 3. **Minimal overrides** - Only override necessary settings
 4. **Regular maintenance** - Keep profiles up to date
 
 ### Team Collaboration
+
 1. **Shared profiles** - Create team-specific profiles
 2. **Consistent settings** - Align on common configurations
 3. **Documentation** - Document custom configurations

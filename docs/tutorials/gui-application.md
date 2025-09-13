@@ -85,7 +85,7 @@ private:
     void updateWindowTitle();
     bool saveDocument();
     bool saveDocumentAs();
-    
+
     QTextEdit *textEdit;
     QLabel *statusLabel;
     QString currentFile;
@@ -115,30 +115,30 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::setupUI() {
     textEdit = new QTextEdit(this);
     setCentralWidget(textEdit);
-    
-    connect(textEdit, &QTextEdit::textChanged, 
+
+    connect(textEdit, &QTextEdit::textChanged,
             this, &MainWindow::documentModified);
-    
+
     resize(800, 600);
 }
 
 void MainWindow::setupMenus() {
     // File menu
     QMenu *fileMenu = menuBar()->addMenu("&File");
-    
-    fileMenu->addAction("&New", this, &MainWindow::newFile, 
+
+    fileMenu->addAction("&New", this, &MainWindow::newFile,
                        QKeySequence::New);
-    fileMenu->addAction("&Open...", this, &MainWindow::openFile, 
+    fileMenu->addAction("&Open...", this, &MainWindow::openFile,
                        QKeySequence::Open);
     fileMenu->addSeparator();
-    fileMenu->addAction("&Save", this, &MainWindow::saveFile, 
+    fileMenu->addAction("&Save", this, &MainWindow::saveFile,
                        QKeySequence::Save);
-    fileMenu->addAction("Save &As...", this, &MainWindow::saveAsFile, 
+    fileMenu->addAction("Save &As...", this, &MainWindow::saveAsFile,
                        QKeySequence::SaveAs);
     fileMenu->addSeparator();
-    fileMenu->addAction("E&xit", this, &MainWindow::exitApplication, 
+    fileMenu->addAction("E&xit", this, &MainWindow::exitApplication,
                        QKeySequence::Quit);
-    
+
     // Help menu
     QMenu *helpMenu = menuBar()->addMenu("&Help");
     helpMenu->addAction("&About", this, &MainWindow::aboutApplication);
@@ -150,14 +150,14 @@ void MainWindow::newFile() {
         auto reply = QMessageBox::question(this, "Save Changes",
             "Do you want to save changes to the current document?",
             QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-            
+
         if (reply == QMessageBox::Save) {
             if (!saveDocument()) return;
         } else if (reply == QMessageBox::Cancel) {
             return;
         }
     }
-    
+
     textEdit->clear();
     currentFile.clear();
     isModified = false;
@@ -167,7 +167,7 @@ void MainWindow::newFile() {
 void MainWindow::openFile() {
     QString fileName = QFileDialog::getOpenFileName(this,
         "Open File", "", "Text Files (*.txt);;All Files (*)");
-        
+
     if (!fileName.isEmpty()) {
         QFile file(fileName);
         if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -184,7 +184,7 @@ bool MainWindow::saveDocument() {
     if (currentFile.isEmpty()) {
         return saveDocumentAs();
     }
-    
+
     QFile file(currentFile);
     if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QTextStream out(&file);
@@ -226,11 +226,11 @@ protected:
         }
         window = new MainWindow();
     }
-    
+
     void TearDown() override {
         delete window;
     }
-    
+
     QApplication *app = nullptr;
     MainWindow *window = nullptr;
 };
@@ -252,7 +252,7 @@ TEST_F(MainWindowTest, ShowWindow) {
 ✅ Implemented file operations and menus  
 ✅ Used Qt framework for cross-platform GUI  
 ✅ Added keyboard shortcuts and status bar  
-✅ Created basic GUI tests  
+✅ Created basic GUI tests
 
 ## Next Steps
 

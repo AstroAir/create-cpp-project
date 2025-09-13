@@ -8,14 +8,14 @@ CPP-Scaffold is organized into several key components, each responsible for spec
 
 ### 🔧 Core Components
 
-| Component | Description | Location |
-|-----------|-------------|----------|
-| [CLI Parser](cli-parser.md) | Command-line argument parsing and validation | `src/cli/` |
-| [Template System](template-system.md) | Project template management and generation | `src/templates/` |
-| [Configuration System](configuration-system.md) | Settings, profiles, and preferences management | `src/config/` |
-| [Utility Classes](utility-classes.md) | Cross-platform utilities and helpers | `src/utils/` |
-| [Testing Framework](testing-framework.md) | Test framework integration and management | `src/testing/` |
-| [Documentation Generator](documentation-generator.md) | Automated documentation generation | `src/documentation/` |
+| Component                                             | Description                                    | Location             |
+| ----------------------------------------------------- | ---------------------------------------------- | -------------------- |
+| [CLI Parser](cli-parser.md)                           | Command-line argument parsing and validation   | `src/cli/`           |
+| [Template System](template-system.md)                 | Project template management and generation     | `src/templates/`     |
+| [Configuration System](configuration-system.md)       | Settings, profiles, and preferences management | `src/config/`        |
+| [Utility Classes](utility-classes.md)                 | Cross-platform utilities and helpers           | `src/utils/`         |
+| [Testing Framework](testing-framework.md)             | Test framework integration and management      | `src/testing/`       |
+| [Documentation Generator](documentation-generator.md) | Automated documentation generation             | `src/documentation/` |
 
 ### 🏗️ Component Architecture
 
@@ -61,24 +61,28 @@ graph TD
 ## 📚 Component Documentation
 
 ### [CLI Parser Component](cli-parser.md)
+
 - Command-line argument parsing
 - Option validation and type conversion
 - Interactive wizard functionality
 - Help and version information display
 
 ### [Template System Component](template-system.md)
+
 - Abstract template base class
 - Concrete template implementations
 - Template factory pattern
 - Project structure generation
 
 ### [Configuration System Component](configuration-system.md)
+
 - Global configuration management
 - User preference handling
 - Profile creation and management
 - Environment variable integration
 
 ### [Utility Classes Component](utility-classes.md)
+
 - Cross-platform file operations
 - String manipulation utilities
 - Terminal styling and interaction
@@ -86,12 +90,14 @@ graph TD
 - Framework integration helpers
 
 ### [Testing Framework Component](testing-framework.md)
+
 - Multiple testing framework support
 - Test project structure generation
 - CMake test integration
 - Test discovery and execution
 
 ### [Documentation Generator Component](documentation-generator.md)
+
 - Automated README generation
 - API documentation creation
 - Multiple output format support
@@ -100,11 +106,13 @@ graph TD
 ## 🔍 Component Dependencies
 
 ### External Dependencies
+
 - **spdlog**: Logging framework used across all components
 - **nlohmann/json**: JSON parsing for configuration files
 - **std::filesystem**: File system operations (C++17)
 
 ### Internal Dependencies
+
 ```
 CLI Parser
 ├── Configuration System
@@ -153,6 +161,7 @@ Documentation Generator
 ### Testing Strategy
 
 Each component should have:
+
 - **Unit tests** for individual functions
 - **Integration tests** for component interactions
 - **Mock interfaces** for external dependencies
@@ -170,11 +179,11 @@ Each component should have:
 int main(int argc, char* argv[]) {
     // Parse command line
     auto options = CliParser::parse(argc, argv);
-    
+
     // Load configuration
     auto& config = ConfigManager::getInstance();
     config.loadConfiguration();
-    
+
     // Create project
     TemplateManager manager;
     return manager.createProject(options) ? 0 : 1;
@@ -188,14 +197,14 @@ int main(int argc, char* argv[]) {
 class MyCustomTemplate : public TemplateBase {
 public:
     MyCustomTemplate(const CliOptions& options) : TemplateBase(options) {}
-    
+
     bool create() override {
         return createProjectStructure() &&
                createBuildSystem() &&
                setupPackageManager() &&
                setupTestFramework();
     }
-    
+
 protected:
     bool createProjectStructure() override;
     bool createBuildSystem() override;
@@ -213,14 +222,14 @@ protected:
 
 ## 📝 Component Status
 
-| Component | Status | Test Coverage | Documentation |
-|-----------|--------|---------------|---------------|
-| CLI Parser | ✅ Complete | 95% | ✅ Complete |
-| Template System | ✅ Complete | 90% | ✅ Complete |
-| Configuration | ✅ Complete | 85% | ✅ Complete |
-| Utilities | ✅ Complete | 92% | ✅ Complete |
-| Testing Framework | ✅ Complete | 88% | ✅ Complete |
-| Documentation | ✅ Complete | 80% | ✅ Complete |
+| Component         | Status      | Test Coverage | Documentation |
+| ----------------- | ----------- | ------------- | ------------- |
+| CLI Parser        | ✅ Complete | 95%           | ✅ Complete   |
+| Template System   | ✅ Complete | 90%           | ✅ Complete   |
+| Configuration     | ✅ Complete | 85%           | ✅ Complete   |
+| Utilities         | ✅ Complete | 92%           | ✅ Complete   |
+| Testing Framework | ✅ Complete | 88%           | ✅ Complete   |
+| Documentation     | ✅ Complete | 80%           | ✅ Complete   |
 
 ---
 

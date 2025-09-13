@@ -19,6 +19,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Improved project structure with modern development practices
 
+### Documentation
+
+- **MAJOR**: Updated all documentation to reflect current implementation status
+- **Interactive Mode**: Clarified that interactive mode is not yet implemented across all documentation
+- **Command Examples**: Updated all command examples to use correct `./cpp-scaffold` format
+- **Template Status**: Added status indicators (✅/⚠️) to template documentation
+- **Build Instructions**: Updated build system instructions to include CMake presets
+- **API Documentation**: Updated function descriptions to match current implementation
+- **Troubleshooting**: Added section for interactive mode issues
+- **Consistency**: Cross-checked and fixed inconsistencies across all documentation files
+
 ### Deprecated
 
 - Nothing

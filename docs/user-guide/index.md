@@ -9,15 +9,19 @@ CPP-Scaffold is designed to streamline C++ project creation with modern best pra
 ## What's in This Section
 
 ### [Usage](usage.md)
+
 Complete command-line reference and usage examples covering all available options and flags.
 
 ### [Project Templates](templates.md)
+
 Detailed information about all available project templates, their features, and when to use each one.
 
 ### [Configuration](configuration.md)
+
 Learn how to configure CPP-Scaffold, manage profiles, and customize default settings.
 
 ### [Troubleshooting](troubleshooting.md)
+
 Common issues and their solutions, plus debugging tips and best practices.
 
 ## Quick Reference
@@ -37,15 +41,15 @@ cpp-scaffold MyProject --type gui --build cmake --package vcpkg --test gtest --c
 
 ### Project Types
 
-| Template | Use Case | Key Features |
-|----------|----------|--------------|
-| `console` | CLI applications | Argument parsing, logging |
-| `lib` | Libraries | Export/import, versioning |
+| Template          | Use Case              | Key Features               |
+| ----------------- | --------------------- | -------------------------- |
+| `console`         | CLI applications      | Argument parsing, logging  |
+| `lib`             | Libraries             | Export/import, versioning  |
 | `header-only-lib` | Header-only libraries | Single-header distribution |
-| `gui` | Desktop applications | Framework integration |
-| `network` | Network services | Async I/O, protocols |
-| `webservice` | Web APIs | HTTP handling, JSON |
-| `embedded` | Embedded systems | Resource constraints |
+| `gui`             | Desktop applications  | Framework integration      |
+| `network`         | Network services      | Async I/O, protocols       |
+| `webservice`      | Web APIs              | HTTP handling, JSON        |
+| `embedded`        | Embedded systems      | Resource constraints       |
 
 ### Build Systems
 

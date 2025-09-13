@@ -21,11 +21,13 @@ CPP-Scaffold has been significantly enhanced with advanced features for modern C
 **Location**: `src/config/`
 
 **Key Components**:
+
 - `ConfigManager` - Singleton configuration manager with JSON storage
 - `UserPreferences` - Hierarchical preferences with validation
 - `InteractiveConfigWizard` - Menu-driven configuration interface
 
 **Features**:
+
 - ✅ Profile management (save, load, edit project profiles)
 - ✅ Environment variable integration
 - ✅ Configuration migration and versioning
@@ -33,6 +35,7 @@ CPP-Scaffold has been significantly enhanced with advanced features for modern C
 - ✅ Cross-platform configuration directories
 
 **Usage**:
+
 ```bash
 cpp-scaffold config                    # Launch configuration wizard
 cpp-scaffold create my-app --profile webdev
@@ -43,10 +46,12 @@ cpp-scaffold create my-app --profile webdev
 **Location**: `src/utils/git_utils.h`, `src/utils/git_utils.cpp`
 
 **Key Components**:
+
 - `GitUtils` - Git repository management
 - `CodeQualityTools` - Code formatting and analysis tools
 
 **Features**:
+
 - ✅ Comprehensive .gitignore generation (framework-specific)
 - ✅ .gitattributes for proper line ending handling
 - ✅ clang-format configuration and integration
@@ -55,6 +60,7 @@ cpp-scaffold create my-app --profile webdev
 - ✅ Git hooks for automated quality checks
 
 **Generated Files**:
+
 - `.gitignore` (template-specific)
 - `.gitattributes`
 - `.clang-format`
@@ -66,11 +72,13 @@ cpp-scaffold create my-app --profile webdev
 **Location**: `src/templates/custom_template.h`, `src/templates/custom_template.cpp`
 
 **Key Components**:
+
 - `CustomTemplate` - User-defined template implementation
 - `CustomTemplateManager` - Template discovery and management
 - `CustomTemplateBuilder` - Interactive template creation
 
 **Features**:
+
 - ✅ Template inheritance from built-in templates
 - ✅ Custom file and directory creation
 - ✅ Template variables with automatic replacement
@@ -78,6 +86,7 @@ cpp-scaffold create my-app --profile webdev
 - ✅ Template validation and error checking
 
 **Template Variables**:
+
 - `{{PROJECT_NAME}}`, `{{PROJECT_NAME_UPPER}}`, `{{PROJECT_NAME_LOWER}}`
 - `{{CURRENT_DATE}}`, `{{CURRENT_YEAR}}`
 - Custom user-defined variables
@@ -87,11 +96,13 @@ cpp-scaffold create my-app --profile webdev
 **Location**: `src/utils/framework_integration.h`, `src/utils/framework_integration.cpp`
 
 **Key Components**:
+
 - `FrameworkIntegration` - Framework setup and configuration
 - `DependencyResolver` - Dependency management
 - `FrameworkTemplateGenerator` - Framework-specific code generation
 
 **Supported Frameworks**:
+
 - ✅ Qt (GUI applications)
 - ✅ SFML (Game development)
 - ✅ Boost (Utility libraries)
@@ -103,6 +114,7 @@ cpp-scaffold create my-app --profile webdev
 - ✅ nlohmann/json (JSON processing)
 
 **Package Manager Support**:
+
 - ✅ vcpkg integration
 - ✅ Conan support
 - ✅ CPM (CMake Package Manager)
@@ -112,12 +124,14 @@ cpp-scaffold create my-app --profile webdev
 **Location**: `src/utils/progress_indicator.h`, `src/utils/interactive_menu.h`
 
 **Key Components**:
+
 - `SpinnerIndicator` - Animated progress spinner
 - `ProgressBarIndicator` - Visual progress bar
 - `MultiStepIndicator` - Multi-step process tracking
 - `InteractiveMenu` - Menu-driven user interface
 
 **Features**:
+
 - ✅ Multiple progress indicator types
 - ✅ Real-time progress updates with ETA
 - ✅ Interactive menu system with navigation
@@ -125,6 +139,7 @@ cpp-scaffold create my-app --profile webdev
 - ✅ Cross-platform terminal support
 
 **Progress Indicators**:
+
 ```cpp
 auto progress = utils::progress::spinner("Creating project");
 progress->update(0.5, "Setting up build system");
@@ -136,17 +151,20 @@ progress->finish("Project created successfully!");
 **Location**: `src/testing/test_framework_manager.h`, `src/testing/test_framework_manager.cpp`
 
 **Key Components**:
+
 - `TestFrameworkManager` - Multi-framework test setup
 - `TestGenerator` - Automatic test generation
 - `TestRunner` - Test execution and reporting
 
 **Supported Test Frameworks**:
+
 - ✅ Google Test (with Google Mock)
 - ✅ Catch2 (with benchmarking)
 - ✅ Doctest (lightweight testing)
 - ✅ Boost.Test (comprehensive testing)
 
 **Features**:
+
 - ✅ Automatic test structure generation
 - ✅ Code coverage integration (gcov/lcov)
 - ✅ Sanitizer support (AddressSanitizer, ThreadSanitizer, UBSan)
@@ -154,6 +172,7 @@ progress->finish("Project created successfully!");
 - ✅ Test discovery and execution
 
 **Test Types**:
+
 - Unit tests
 - Integration tests
 - Performance tests
@@ -165,11 +184,13 @@ progress->finish("Project created successfully!");
 **Location**: `src/documentation/doc_generator.h`, `src/documentation/doc_generator.cpp`
 
 **Key Components**:
+
 - `DocGenerator` - Multi-format documentation generation
 - `APIDocExtractor` - Automatic API documentation
 - `DocTemplateSystem` - Template-based documentation
 
 **Supported Formats**:
+
 - ✅ Markdown
 - ✅ HTML
 - ✅ PDF (via LaTeX)
@@ -177,6 +198,7 @@ progress->finish("Project created successfully!");
 - ✅ Doxygen
 
 **Generated Documentation**:
+
 - ✅ README.md with project overview
 - ✅ API documentation from source code
 - ✅ User guide with examples
@@ -186,6 +208,7 @@ progress->finish("Project created successfully!");
 - ✅ LICENSE file with proper formatting
 
 **Features**:
+
 - ✅ Automatic API extraction from C++ headers
 - ✅ Template variable replacement
 - ✅ Table of contents generation
@@ -224,6 +247,7 @@ src/
 ### Cross-Platform Support
 
 All enhancements are designed for cross-platform compatibility:
+
 - ✅ Windows (MSVC, MinGW)
 - ✅ Linux (GCC, Clang)
 - ✅ macOS (Clang, GCC)
@@ -231,6 +255,7 @@ All enhancements are designed for cross-platform compatibility:
 ## 📊 Usage Statistics
 
 The enhanced system provides:
+
 - **9 Built-in Frameworks** with automatic setup
 - **4 Test Frameworks** with full integration
 - **7 Documentation Formats** for comprehensive docs
@@ -251,6 +276,7 @@ The enhanced system provides:
 ## 🚀 Future Enhancements
 
 Potential areas for future development:
+
 - Package manager integration (Conan 2.0, vcpkg manifest mode)
 - IDE integration (VS Code extensions, CLion plugins)
 - Cloud deployment templates (Docker, Kubernetes)

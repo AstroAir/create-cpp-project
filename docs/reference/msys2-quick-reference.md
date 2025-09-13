@@ -207,14 +207,14 @@ sha256sums=('SKIP')
 build() {
   cd "${srcdir}/${_realname}-${pkgver}"
   mkdir -p build && cd build
-  
+
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
   ${MINGW_PREFIX}/bin/cmake.exe \
     -GNinja \
     -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
     -DCMAKE_BUILD_TYPE=Release \
     ..
-  
+
   ${MINGW_PREFIX}/bin/cmake.exe --build .
 }
 
@@ -233,16 +233,16 @@ package() {
 
 ### Common Issues and Solutions
 
-| Issue | Solution |
-|-------|----------|
-| `cmake: command not found` | `pacman -S mingw-w64-x86_64-cmake` |
-| `ninja: command not found` | `pacman -S mingw-w64-x86_64-ninja` |
-| `gcc: command not found` | `pacman -S mingw-w64-x86_64-toolchain` |
-| Path conversion errors | Use `MSYS2_ARG_CONV_EXCL` |
-| Wrong shell environment | Use MinGW64/MinGW32 shell, not MSYS2 |
-| Package not found | Update database: `pacman -Sy` |
-| Permission denied | Don't run as administrator |
-| DLL not found | Install runtime dependencies |
+| Issue                      | Solution                               |
+| -------------------------- | -------------------------------------- |
+| `cmake: command not found` | `pacman -S mingw-w64-x86_64-cmake`     |
+| `ninja: command not found` | `pacman -S mingw-w64-x86_64-ninja`     |
+| `gcc: command not found`   | `pacman -S mingw-w64-x86_64-toolchain` |
+| Path conversion errors     | Use `MSYS2_ARG_CONV_EXCL`              |
+| Wrong shell environment    | Use MinGW64/MinGW32 shell, not MSYS2   |
+| Package not found          | Update database: `pacman -Sy`          |
+| Permission denied          | Don't run as administrator             |
+| DLL not found              | Install runtime dependencies           |
 
 ### Validation Commands
 

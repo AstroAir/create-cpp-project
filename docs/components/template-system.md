@@ -5,6 +5,7 @@ The Template System component is the core of CPP-Scaffold, responsible for gener
 ## 📋 Overview
 
 The Template System component provides:
+
 - Abstract template base class with Template Method pattern
 - Concrete template implementations for different project types
 - Template factory for creating appropriate template instances
@@ -78,24 +79,24 @@ protected:
     bool setupCodeStyleConfig(const std::string& projectPath);
     bool setupDocConfig(const std::string& projectPath);
     bool initializeGit(const std::string& projectPath);
-    
+
     // Content generators
     std::string getGitignoreContent();
     std::string getLicenseContent(const std::string& projectName);
     std::string getClangFormatContent();
     std::string getClangTidyContent();
     std::string getEditorConfigContent();
-    
+
     // File creation utilities
     bool createFile(const std::string& path, const std::string& content);
     bool createDirectory(const std::string& path);
     bool copyTemplate(const std::string& templatePath, const std::string& targetPath);
-    
+
     // Template variable substitution
     std::string processTemplate(const std::string& templateContent);
     void setTemplateVariable(const std::string& key, const std::string& value);
     std::string getTemplateVariable(const std::string& key) const;
-    
+
     // Post-creation actions
     void printUsageGuide();
     bool executePostCreationActions();
@@ -103,7 +104,7 @@ protected:
 
 private:
     std::map<std::string, std::string> templateVariables_;
-    
+
     void initializeTemplateVariables();
     std::string replaceVariables(const std::string& content) const;
 };
@@ -117,36 +118,36 @@ Factory class for creating and managing template instances.
 class TemplateManager {
 public:
     TemplateManager();
-    
+
     // Main project creation method
     bool createProject(const CliOptions& options);
-    
+
     // Template management
     std::vector<std::string> getAvailableTemplates() const;
     bool isTemplateAvailable(const std::string& templateName) const;
     std::string getTemplateDescription(const std::string& templateName) const;
-    
+
     // Custom template support
-    bool registerCustomTemplate(const std::string& name, 
+    bool registerCustomTemplate(const std::string& name,
                                std::unique_ptr<TemplateBase> (*factory)(const CliOptions&));
     bool loadCustomTemplate(const std::filesystem::path& templatePath);
 
 private:
     // Template factory function type
     using TemplateFactory = std::function<std::unique_ptr<TemplateBase>(const CliOptions&)>;
-    
+
     // Template registry
     std::map<std::string, TemplateFactory> templateFactories_;
     std::map<std::string, std::string> templateDescriptions_;
-    
+
     // Template creation helpers
     std::unique_ptr<TemplateBase> createTemplate(const CliOptions& options);
     std::unique_ptr<TemplateBase> createFrameworkTemplate(const CliOptions& options);
-    
+
     // Initialization
     void initializeBuiltinTemplates();
-    void registerTemplate(const std::string& name, 
-                         TemplateFactory factory, 
+    void registerTemplate(const std::string& name,
+                         TemplateFactory factory,
                          const std::string& description);
 };
 ```
@@ -176,20 +177,20 @@ private:
     std::string getApplicationSourceContent();
     std::string getArgumentParserContent();
     std::string getReadmeContent();
-    
+
     // Build system generators
     std::string getCMakeListsContent();
     std::string getMesonBuildContent();
     std::string getBazelBuildContent();
-    
+
     // Package manager generators
     std::string getVcpkgJsonContent();
     std::string getConanfileContent();
-    
+
     // Test generators
     std::string getTestMainContent();
     std::string getUnitTestContent();
-    
+
     // Project structure
     bool createSourceStructure();
     bool createTestStructure();
@@ -198,6 +199,7 @@ private:
 ```
 
 **Generated Structure:**
+
 ```
 MyConsoleApp/
 ├── src/
@@ -248,21 +250,21 @@ private:
     std::string getExportHeaderContent();
     std::string getVersionHeaderContent();
     std::string getConfigHeaderContent();
-    
+
     // Build system generators
     std::string getCMakeListsContent();
     std::string getCMakeConfigContent();
     std::string getPkgConfigContent();
-    
+
     // Documentation generators
     std::string getAPIDocumentationContent();
     std::string getUsageExamplesContent();
-    
+
     // Installation and packaging
     bool setupInstallTargets();
     bool createPackageConfig();
     bool generateExamples();
-    
+
     // Library-specific setup
     bool setupSharedLibraryConfig();
     bool setupStaticLibraryConfig();
@@ -279,16 +281,16 @@ class CustomTemplate : public TemplateBase {
 public:
     CustomTemplate(const CliOptions& options);
     bool create() override;
-    
+
     // Template loading and management
     bool loadFromDirectory(const std::filesystem::path& templatePath);
     bool loadFromArchive(const std::filesystem::path& archivePath);
     bool saveToDirectory(const std::filesystem::path& outputPath) const;
-    
+
     // Template inheritance
     bool inheritFrom(const std::string& baseTemplateName);
     bool mergeWithTemplate(const CustomTemplate& other);
-    
+
     // Variable management
     void setVariable(const std::string& key, const std::string& value);
     std::string getVariable(const std::string& key) const;
@@ -313,20 +315,20 @@ private:
         std::vector<std::string> supportedBuildSystems;
         std::vector<std::string> supportedPackageManagers;
     };
-    
+
     TemplateMetadata metadata_;
     std::filesystem::path templatePath_;
     std::map<std::string, std::string> variables_;
-    
+
     // Template processing
     bool loadMetadata();
     bool validateTemplate() const;
     bool processTemplateFiles();
     std::string processTemplateContent(const std::string& content) const;
-    
+
     // File operations
     bool copyTemplateFiles();
-    bool processTemplateFile(const std::filesystem::path& source, 
+    bool processTemplateFile(const std::filesystem::path& source,
                            const std::filesystem::path& target);
 };
 ```
@@ -395,16 +397,16 @@ int main() {
     options.packageManager = PackageManager::Vcpkg;
     options.includeTests = true;
     options.testFramework = TestFramework::GTest;
-    
+
     TemplateManager manager;
     bool success = manager.createProject(options);
-    
+
     if (success) {
         std::cout << "Project created successfully!" << std::endl;
     } else {
         std::cerr << "Failed to create project" << std::endl;
     }
-    
+
     return success ? 0 : 1;
 }
 ```
@@ -426,7 +428,7 @@ customTemplate.setVariable("LICENSE_TYPE", "MIT");
 if (customTemplate.loadFromDirectory("./my-custom-template")) {
     // Create project using custom template
     bool success = customTemplate.create();
-    
+
     if (success) {
         std::cout << "Custom project created!" << std::endl;
     }
@@ -440,24 +442,24 @@ if (customTemplate.loadFromDirectory("./my-custom-template")) {
 class MySpecialTemplate : public ConsoleTemplate {
 public:
     MySpecialTemplate(const CliOptions& options) : ConsoleTemplate(options) {}
-    
+
 protected:
     bool createProjectStructure() override {
         // Call base implementation
         if (!ConsoleTemplate::createProjectStructure()) {
             return false;
         }
-        
+
         // Add custom directories
         createDirectory(options_.projectName + "/special");
         createDirectory(options_.projectName + "/plugins");
-        
+
         // Add custom files
         createFile(options_.projectName + "/special/config.json", getConfigContent());
-        
+
         return true;
     }
-    
+
 private:
     std::string getConfigContent() {
         return R"({
@@ -469,7 +471,7 @@ private:
 
 // Register custom template
 TemplateManager manager;
-manager.registerCustomTemplate("special-console", 
+manager.registerCustomTemplate("special-console",
     [](const CliOptions& opts) {
         return std::make_unique<MySpecialTemplate>(opts);
     });
@@ -485,10 +487,10 @@ TEST(TemplateSystemTest, CreateConsoleTemplate) {
     CliOptions options;
     options.projectName = "TestProject";
     options.templateType = TemplateType::Console;
-    
+
     ConsoleTemplate template(options);
     EXPECT_TRUE(template.create());
-    
+
     // Verify project structure
     EXPECT_TRUE(std::filesystem::exists("TestProject/src/main.cpp"));
     EXPECT_TRUE(std::filesystem::exists("TestProject/CMakeLists.txt"));
@@ -498,7 +500,7 @@ TEST(TemplateSystemTest, CreateConsoleTemplate) {
 // Test template validation
 TEST(TemplateSystemTest, ValidateTemplateStructure) {
     TemplateManager manager;
-    
+
     // Test all available templates
     auto templates = manager.getAvailableTemplates();
     for (const auto& templateName : templates) {
@@ -511,11 +513,13 @@ TEST(TemplateSystemTest, ValidateTemplateStructure) {
 ## 🔗 Dependencies
 
 ### External Dependencies
+
 - **std::filesystem**: File system operations
 - **spdlog**: Logging and error reporting
 - **nlohmann/json**: JSON configuration files
 
 ### Internal Dependencies
+
 - **Utility Classes**: File operations, string processing
 - **Configuration System**: Template preferences and defaults
 - **Testing Framework**: Test setup and configuration
@@ -540,6 +544,7 @@ TEST(TemplateSystemTest, ValidateTemplateStructure) {
 ### Template Customization
 
 Templates support extensive customization through:
+
 - **Template variables**: Dynamic content substitution
 - **Conditional generation**: Feature-based file creation
 - **Inheritance**: Building on existing templates

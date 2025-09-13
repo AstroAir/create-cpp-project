@@ -30,27 +30,27 @@ graph TD
     B --> C[Build & Test Matrix]
     B --> D[Code Quality Checks]
     B --> E[Security Scanning]
-    
+
     C --> F[Ubuntu Builds]
     C --> G[Windows Builds]
     C --> H[macOS Builds]
-    
+
     D --> I[Static Analysis]
     D --> J[Code Formatting]
     D --> K[Coverage Report]
-    
+
     E --> L[Dependency Scan]
     E --> M[Container Scan]
     E --> N[License Check]
-    
+
     F --> O[Performance Tests]
     G --> O
     H --> O
-    
+
     O --> P[Integration Tests]
     P --> Q[Docker Builds]
     Q --> R[Multi-Arch Builds]
-    
+
     R --> S[Release Automation]
     S --> T[Artifact Signing]
     T --> U[Distribution]
@@ -60,32 +60,35 @@ graph TD
 
 ### Core Workflows
 
-| Workflow | Trigger | Purpose | Duration |
-|----------|---------|---------|----------|
-| **CI** | Push, PR | Main build and test pipeline | ~15-20 min |
-| **Security** | Push, PR, Schedule | Security scanning and compliance | ~10-15 min |
-| **Performance** | Push, PR, Schedule | Performance benchmarks and regression detection | ~20-30 min |
-| **Integration** | Push, PR, Schedule | End-to-end integration testing | ~25-35 min |
-| **Docker Builds** | Push, PR, Schedule | Container image builds and testing | ~30-45 min |
-| **Multi-Arch** | Push, PR, Release | Multi-architecture binary builds | ~40-60 min |
-| **Release** | Tag creation | Automated release and distribution | ~20-30 min |
-| **Monitoring** | Workflow completion | Pipeline health monitoring | ~5-10 min |
+| Workflow          | Trigger             | Purpose                                         | Duration   |
+| ----------------- | ------------------- | ----------------------------------------------- | ---------- |
+| **CI**            | Push, PR            | Main build and test pipeline                    | ~15-20 min |
+| **Security**      | Push, PR, Schedule  | Security scanning and compliance                | ~10-15 min |
+| **Performance**   | Push, PR, Schedule  | Performance benchmarks and regression detection | ~20-30 min |
+| **Integration**   | Push, PR, Schedule  | End-to-end integration testing                  | ~25-35 min |
+| **Docker Builds** | Push, PR, Schedule  | Container image builds and testing              | ~30-45 min |
+| **Multi-Arch**    | Push, PR, Release   | Multi-architecture binary builds                | ~40-60 min |
+| **Release**       | Tag creation        | Automated release and distribution              | ~20-30 min |
+| **Monitoring**    | Workflow completion | Pipeline health monitoring                      | ~5-10 min  |
 
 ### Build Matrix
 
 The CI pipeline supports multiple configurations:
 
 #### Operating Systems
+
 - **Ubuntu**: 20.04, 22.04, latest
 - **Windows**: 2019, 2022, latest
 - **macOS**: 12, 13, latest
 
 #### Compilers
+
 - **GCC**: 9, 11, 12, 13
 - **Clang**: 12, 14, 15, 16
 - **MSVC**: 2019, 2022, latest
 
 #### Architectures
+
 - **x86_64**: All platforms
 - **ARM64**: Linux, macOS
 - **ARM32**: Linux (cross-compilation)
@@ -117,11 +120,13 @@ The following secrets must be configured in the repository:
 The pipeline uses multiple caching strategies:
 
 1. **Dependency Caching**
+
    - vcpkg packages
    - Conan dependencies
    - CMake dependencies
 
 2. **Build Caching**
+
    - ccache for compilation
    - CMake configuration cache
 
@@ -137,11 +142,13 @@ The pipeline uses multiple caching strategies:
 
 **Symptom**: Compilation errors in CI but builds locally
 **Causes**:
+
 - Different compiler versions
 - Missing dependencies
 - Environment differences
 
 **Solutions**:
+
 1. Check compiler matrix compatibility
 2. Verify dependency installation steps
 3. Use Docker builds for reproducibility
@@ -150,11 +157,13 @@ The pipeline uses multiple caching strategies:
 
 **Symptom**: Slow builds despite caching
 **Causes**:
+
 - Cache key mismatches
 - Cache corruption
 - Cache size limits
 
 **Solutions**:
+
 1. Review cache key patterns
 2. Clear cache manually if needed
 3. Adjust cache size limits
@@ -163,11 +172,13 @@ The pipeline uses multiple caching strategies:
 
 **Symptom**: Tests fail in CI but pass locally
 **Causes**:
+
 - Timing issues in CI environment
 - Resource constraints
 - Platform-specific behavior
 
 **Solutions**:
+
 1. Increase test timeouts
 2. Use CI-specific test configurations
 3. Add platform-specific test exclusions
@@ -175,12 +186,14 @@ The pipeline uses multiple caching strategies:
 ### Debug Strategies
 
 1. **Enable Verbose Logging**
+
    ```yaml
    - name: Debug build
      run: cmake --build build --verbose
    ```
 
 2. **Upload Debug Artifacts**
+
    ```yaml
    - name: Upload debug info
      if: failure()
@@ -234,16 +247,19 @@ The pipeline uses multiple caching strategies:
 ### Regular Tasks
 
 #### Weekly
+
 - Review failed builds and fix issues
 - Check dependency update PRs
 - Monitor performance trends
 
 #### Monthly
+
 - Update GitHub Actions to latest versions
 - Review and optimize cache usage
 - Update documentation as needed
 
 #### Quarterly
+
 - Audit security configurations
 - Review and update build matrix
 - Performance optimization review
@@ -260,12 +276,14 @@ The pipeline includes automated monitoring:
 ### Emergency Procedures
 
 #### Pipeline Outage
+
 1. Check GitHub Actions status
 2. Review recent workflow changes
 3. Rollback problematic changes
 4. Communicate status to team
 
 #### Security Incident
+
 1. Disable affected workflows
 2. Review security scan results
 3. Update vulnerable dependencies
@@ -289,4 +307,4 @@ For CI/CD related issues:
 
 ---
 
-*This documentation is automatically updated as part of the CI pipeline. Last updated: $(date)*
+_This documentation is automatically updated as part of the CI pipeline. Last updated: $(date)_
