@@ -12,6 +12,31 @@ This guide helps you diagnose and resolve common issues when using CPP-Scaffold.
 - [Performance Issues](#performance-issues)
 - [Getting Help](#getting-help)
 
+## 🚨 Common Issues
+
+### Interactive Mode Issues
+
+#### "Interactive mode not fully implemented yet"
+
+**Problem**: When running `./cpp-scaffold` without arguments, you see:
+
+```
+Interactive mode not fully implemented yet.
+Please use command line arguments. Use --help for usage information.
+```
+
+**Solution**: Use command-line arguments instead:
+
+```bash
+# Use command-line mode
+./cpp-scaffold MyProject --type console --build cmake --package vcpkg --test gtest
+
+# See all available options
+./cpp-scaffold --help
+```
+
+**Status**: Interactive mode is planned for future releases but not currently implemented.
+
 ## 🔧 Installation Issues
 
 ### CMake Version Too Old
@@ -109,12 +134,14 @@ export PATH=$HOME/.local/bin:$PATH
 **Solutions**:
 
 1. **Check network connection**:
+
    ```bash
    ping github.com
    curl -I https://github.com/gabime/spdlog.git
    ```
 
 2. **Clear dependency cache**:
+
    ```bash
    rm -rf deps_cache/
    cmake .. -G Ninja
@@ -122,13 +149,14 @@ export PATH=$HOME/.local/bin:$PATH
    ```
 
 3. **Use system packages** (if available):
+
    ```bash
    # Ubuntu/Debian
    sudo apt install libspdlog-dev nlohmann-json3-dev
-   
+
    # macOS
    brew install spdlog nlohmann-json
-   
+
    # Then rebuild
    cmake .. -G Ninja
    ninja
@@ -147,16 +175,18 @@ export PATH=$HOME/.local/bin:$PATH
 **Common Solutions**:
 
 1. **C++17 support**:
+
    ```bash
    # Ensure compiler supports C++17
    g++ --version  # Should be 7.0+
    clang++ --version  # Should be 6.0+
-   
+
    # Force C++17 standard
    cmake .. -DCMAKE_CXX_STANDARD=17
    ```
 
 2. **Filesystem library issues** (older compilers):
+
    ```bash
    # GCC < 9 or Clang < 9
    cmake .. -DCMAKE_CXX_FLAGS="-lstdc++fs"  # GCC
@@ -176,6 +206,7 @@ export PATH=$HOME/.local/bin:$PATH
 **Solutions**:
 
 1. **Clean rebuild**:
+
    ```bash
    rm -rf build/
    mkdir build && cd build
@@ -184,10 +215,11 @@ export PATH=$HOME/.local/bin:$PATH
    ```
 
 2. **Check library paths**:
+
    ```bash
    # Linux
    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-   
+
    # macOS
    export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
    ```
@@ -206,11 +238,12 @@ export PATH=$HOME/.local/bin:$PATH
 **Debugging Steps**:
 
 1. **Run with debugger**:
+
    ```bash
    # Build debug version
    cmake .. -DCMAKE_BUILD_TYPE=Debug
    ninja
-   
+
    # Run with gdb
    gdb ./cpp-scaffold
    (gdb) run --your-arguments
@@ -218,6 +251,7 @@ export PATH=$HOME/.local/bin:$PATH
    ```
 
 2. **Use AddressSanitizer**:
+
    ```bash
    cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fsanitize=address"
    ninja
@@ -237,6 +271,7 @@ export PATH=$HOME/.local/bin:$PATH
 **Solutions**:
 
 1. **Reset configuration**:
+
    ```bash
    # Remove corrupted config files
    rm -rf ~/.config/cpp-scaffold/  # Linux
@@ -245,6 +280,7 @@ export PATH=$HOME/.local/bin:$PATH
    ```
 
 2. **Validate JSON**:
+
    ```bash
    # Check configuration file syntax
    python -m json.tool ~/.config/cpp-scaffold/config.json
@@ -281,11 +317,13 @@ cpp-scaffold ProjectName --force --type console
 **Solutions**:
 
 1. **List available templates**:
+
    ```bash
    cpp-scaffold --list-templates
    ```
 
 2. **Check spelling**:
+
    ```bash
    # Correct template names
    cpp-scaffold MyProject --type console      # ✓
@@ -308,18 +346,20 @@ cpp-scaffold ProjectName --force --type console
 **Solutions**:
 
 1. **Install package manager**:
+
    ```bash
    # vcpkg
    git clone https://github.com/Microsoft/vcpkg.git
    cd vcpkg
    ./bootstrap-vcpkg.sh  # Linux/macOS
    .\bootstrap-vcpkg.bat  # Windows
-   
+
    # Conan
    pip install conan
    ```
 
 2. **Skip package manager**:
+
    ```bash
    cpp-scaffold MyProject --type console --package none
    ```
@@ -334,6 +374,7 @@ cpp-scaffold ProjectName --force --type console
 ### Windows Issues
 
 #### MSVC Compiler Issues
+
 ```powershell
 # Ensure Visual Studio is properly installed
 # Install "C++ build tools" workload
@@ -346,6 +387,7 @@ call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build
 ```
 
 #### Path Length Limitations
+
 ```powershell
 # Enable long path support (Windows 10 1607+)
 # Run as Administrator
@@ -358,6 +400,7 @@ cpp-scaffold MyProj --type console  # Instead of MyVeryLongProjectName
 ### macOS Issues
 
 #### Xcode Command Line Tools
+
 ```bash
 # Install if missing
 xcode-select --install
@@ -368,6 +411,7 @@ xcode-select --install
 ```
 
 #### Homebrew Issues
+
 ```bash
 # Update Homebrew
 brew update
@@ -380,6 +424,7 @@ sudo chown -R $(whoami) $(brew --prefix)/*
 ### Linux Issues
 
 #### Missing Development Packages
+
 ```bash
 # Ubuntu/Debian
 sudo apt update
@@ -394,6 +439,7 @@ sudo pacman -S base-devel cmake ninja git
 ```
 
 #### Library Path Issues
+
 ```bash
 # Add to ~/.bashrc or ~/.zshrc
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
@@ -411,22 +457,25 @@ sudo ldconfig
 **Solutions**:
 
 1. **Use Ninja instead of Make**:
+
    ```bash
    cmake .. -G Ninja  # Instead of default generator
    ```
 
 2. **Parallel builds**:
+
    ```bash
    ninja -j$(nproc)  # Use all CPU cores
    ninja -j4         # Use 4 cores
    ```
 
 3. **Use compiler cache**:
+
    ```bash
    # Install ccache
    sudo apt install ccache  # Ubuntu
    brew install ccache      # macOS
-   
+
    # Configure CMake
    cmake .. -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
    ```
@@ -441,11 +490,13 @@ sudo ldconfig
 **Solutions**:
 
 1. **Limit parallel jobs**:
+
    ```bash
    ninja -j2  # Reduce from default
    ```
 
 2. **Use gold linker** (Linux):
+
    ```bash
    cmake .. -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold"
    ```
@@ -462,6 +513,7 @@ sudo ldconfig
 **Solutions**:
 
 1. **Skip unnecessary features**:
+
    ```bash
    cpp-scaffold MyProject --type console --no-tests --no-docs --no-git
    ```

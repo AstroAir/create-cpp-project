@@ -1,16 +1,16 @@
 #pragma once
 
+#include <filesystem>
+#include <map>
+#include <optional>
 #include <string>
 #include <vector>
-#include <filesystem>
-#include <optional>
-#include <map>
 
 namespace utils {
 
 // Git repository management utilities
 class GitUtils {
-public:
+   public:
     // Repository initialization
     static bool initializeRepository(const std::filesystem::path& projectPath);
     static bool isGitRepository(const std::filesystem::path& path);
@@ -18,98 +18,101 @@ public:
 
     // .gitignore management
     static bool createGitignore(const std::filesystem::path& projectPath,
-                               const std::string& templateType,
-                               const std::string& buildSystem = "",
-                               const std::string& packageManager = "");
+                                const std::string& templateType,
+                                const std::string& buildSystem = "",
+                                const std::string& packageManager = "");
 
     // Git configuration
     static bool configureRepository(const std::filesystem::path& projectPath,
-                                  const std::string& userName = "",
-                                  const std::string& userEmail = "");
+                                    const std::string& userName = "",
+                                    const std::string& userEmail = "");
 
     // Initial commit
     static bool createInitialCommit(const std::filesystem::path& projectPath,
-                                   const std::string& message = "Initial commit");
+                                    const std::string& message = "Initial commit");
 
     // Branch management
-    static bool createBranch(const std::filesystem::path& projectPath, const std::string& branchName);
-    static bool switchBranch(const std::filesystem::path& projectPath, const std::string& branchName);
+    static bool createBranch(const std::filesystem::path& projectPath,
+                             const std::string& branchName);
+    static bool switchBranch(const std::filesystem::path& projectPath,
+                             const std::string& branchName);
     static std::vector<std::string> listBranches(const std::filesystem::path& projectPath);
 
     // Remote management
-    static bool addRemote(const std::filesystem::path& projectPath,
-                         const std::string& remoteName,
-                         const std::string& remoteUrl);
-    static std::vector<std::pair<std::string, std::string>> listRemotes(const std::filesystem::path& projectPath);
+    static bool addRemote(const std::filesystem::path& projectPath, const std::string& remoteName,
+                          const std::string& remoteUrl);
+    static std::vector<std::pair<std::string, std::string>> listRemotes(
+            const std::filesystem::path& projectPath);
 
     // Repository cloning and remote source management
     static bool cloneRepository(const std::string& repositoryUrl,
-                               const std::filesystem::path& targetPath,
-                               bool shallow = true,
-                               const std::optional<std::string>& branch = std::nullopt,
-                               const std::optional<std::string>& tag = std::nullopt,
-                               const std::optional<std::string>& commit = std::nullopt);
+                                const std::filesystem::path& targetPath, bool shallow = true,
+                                const std::optional<std::string>& branch = std::nullopt,
+                                const std::optional<std::string>& tag = std::nullopt,
+                                const std::optional<std::string>& commit = std::nullopt);
 
     static bool cloneRepositoryWithAuth(const std::string& repositoryUrl,
-                                       const std::filesystem::path& targetPath,
-                                       const std::optional<std::string>& username = std::nullopt,
-                                       const std::optional<std::string>& password = std::nullopt,
-                                       const std::optional<std::string>& sshKeyPath = std::nullopt,
-                                       bool shallow = true,
-                                       const std::optional<std::string>& branch = std::nullopt,
-                                       const std::optional<std::string>& tag = std::nullopt,
-                                       const std::optional<std::string>& commit = std::nullopt);
+                                        const std::filesystem::path& targetPath,
+                                        const std::optional<std::string>& username = std::nullopt,
+                                        const std::optional<std::string>& password = std::nullopt,
+                                        const std::optional<std::string>& sshKeyPath = std::nullopt,
+                                        bool shallow = true,
+                                        const std::optional<std::string>& branch = std::nullopt,
+                                        const std::optional<std::string>& tag = std::nullopt,
+                                        const std::optional<std::string>& commit = std::nullopt);
 
-    static bool checkoutBranch(const std::filesystem::path& repositoryPath, const std::string& branchName);
-    static bool checkoutTag(const std::filesystem::path& repositoryPath, const std::string& tagName);
-    static bool checkoutCommit(const std::filesystem::path& repositoryPath, const std::string& commitHash);
+    static bool checkoutBranch(const std::filesystem::path& repositoryPath,
+                               const std::string& branchName);
+    static bool checkoutTag(const std::filesystem::path& repositoryPath,
+                            const std::string& tagName);
+    static bool checkoutCommit(const std::filesystem::path& repositoryPath,
+                               const std::string& commitHash);
     static bool removeGitDirectory(const std::filesystem::path& repositoryPath);
     static bool isValidGitUrl(const std::string& url);
     static std::string extractRepositoryName(const std::string& repositoryUrl);
 
     // Git hooks
     static bool installGitHooks(const std::filesystem::path& projectPath,
-                               const std::vector<std::string>& hookTypes);
+                                const std::vector<std::string>& hookTypes);
 
     // Git attributes
     static bool createGitAttributes(const std::filesystem::path& projectPath);
 
     // Enhanced Git workflow support
     static bool setupGitWorkflow(const std::filesystem::path& projectPath,
-                                const std::string& workflowType);
+                                 const std::string& workflowType);
     static bool setupGitFlow(const std::filesystem::path& projectPath);
     static bool setupGitHubFlow(const std::filesystem::path& projectPath);
     static bool setupGitLabFlow(const std::filesystem::path& projectPath);
 
     // Branch management enhancements
     static bool createBranchesFromStrategy(const std::filesystem::path& projectPath,
-                                         const std::string& strategy,
-                                         const std::vector<std::string>& additionalBranches = {});
+                                           const std::string& strategy,
+                                           const std::vector<std::string>& additionalBranches = {});
 
     // License management
     static bool createLicenseFile(const std::filesystem::path& projectPath,
-                                const std::string& licenseType,
-                                const std::string& projectName = "",
-                                const std::string& author = "",
-                                const std::string& year = "");
+                                  const std::string& licenseType,
+                                  const std::string& projectName = "",
+                                  const std::string& author = "", const std::string& year = "");
 
     // Enhanced repository configuration
     static bool configureRepositoryAdvanced(const std::filesystem::path& projectPath,
-                                           const std::string& userName = "",
-                                           const std::string& userEmail = "",
-                                           const std::string& remoteUrl = "",
-                                           bool setupHooks = false);
+                                            const std::string& userName = "",
+                                            const std::string& userEmail = "",
+                                            const std::string& remoteUrl = "",
+                                            bool setupHooks = false);
 
     // Git hooks management
     static bool createPreCommitHook(const std::filesystem::path& projectPath);
     static bool createPrePushHook(const std::filesystem::path& projectPath);
     static bool createCommitMsgHook(const std::filesystem::path& projectPath);
 
-private:
+   private:
     // Execute git commands
     static bool executeGitCommand(const std::filesystem::path& workingDir,
-                                 const std::vector<std::string>& args,
-                                 std::string* output = nullptr);
+                                  const std::vector<std::string>& args,
+                                  std::string* output = nullptr);
 
     // .gitignore template generators
     static std::string getCppGitignoreTemplate();
@@ -148,7 +151,8 @@ private:
 
     // License templates
     static std::string getMITLicenseTemplate(const std::string& author, const std::string& year);
-    static std::string getApache2LicenseTemplate(const std::string& author, const std::string& year);
+    static std::string getApache2LicenseTemplate(const std::string& author,
+                                                 const std::string& year);
     static std::string getGPL3LicenseTemplate(const std::string& author, const std::string& year);
     static std::string getBSD3LicenseTemplate(const std::string& author, const std::string& year);
     static std::string getBSD2LicenseTemplate(const std::string& author, const std::string& year);
@@ -162,24 +166,24 @@ private:
 
 // Code quality tools integration
 class CodeQualityTools {
-public:
+   public:
     // clang-format integration
     static bool createClangFormatConfig(const std::filesystem::path& projectPath,
-                                       const std::string& style = "Google");
+                                        const std::string& style = "Google");
     static bool formatCode(const std::filesystem::path& projectPath,
-                          const std::vector<std::string>& files = {});
+                           const std::vector<std::string>& files = {});
     static bool checkFormatting(const std::filesystem::path& projectPath,
-                               const std::vector<std::string>& files = {});
+                                const std::vector<std::string>& files = {});
 
     // clang-tidy integration
     static bool createClangTidyConfig(const std::filesystem::path& projectPath,
-                                     const std::vector<std::string>& checks = {});
+                                      const std::vector<std::string>& checks = {});
     static bool runClangTidy(const std::filesystem::path& projectPath,
-                            const std::vector<std::string>& files = {});
+                             const std::vector<std::string>& files = {});
 
     // cppcheck integration
     static bool runCppcheck(const std::filesystem::path& projectPath,
-                           const std::vector<std::string>& files = {});
+                            const std::vector<std::string>& files = {});
 
     // Static analysis tools
     static bool createStaticAnalysisConfig(const std::filesystem::path& projectPath);
@@ -191,7 +195,7 @@ public:
     // Pre-commit hooks for code quality
     static bool setupPreCommitHooks(const std::filesystem::path& projectPath);
 
-private:
+   private:
     // Configuration templates
     static std::string getClangFormatTemplate(const std::string& style);
     static std::string getClangTidyTemplate(const std::vector<std::string>& checks);
@@ -206,33 +210,4 @@ private:
     static std::optional<std::string> findTool(const std::string& toolName);
 };
 
-// Git workflow helpers
-class GitWorkflow {
-public:
-    // Common workflows
-    static bool setupGitFlow(const std::filesystem::path& projectPath);
-    static bool setupGitHubFlow(const std::filesystem::path& projectPath);
-
-    // Issue templates
-    static bool createIssueTemplates(const std::filesystem::path& projectPath);
-    static bool createPullRequestTemplate(const std::filesystem::path& projectPath);
-
-    // GitHub Actions / GitLab CI integration
-    static bool createGitHubWorkflows(const std::filesystem::path& projectPath,
-                                     const std::vector<std::string>& workflows);
-    static bool createGitLabCI(const std::filesystem::path& projectPath);
-
-    // Conventional commits
-    static bool setupConventionalCommits(const std::filesystem::path& projectPath);
-
-private:
-    // Workflow templates
-    static std::string getGitFlowConfig();
-    static std::string getIssueTemplate(const std::string& type);
-    static std::string getPullRequestTemplate();
-    static std::string getGitHubWorkflowTemplate(const std::string& workflowType);
-    static std::string getGitLabCITemplate();
-    static std::string getConventionalCommitsConfig();
-};
-
-} // namespace utils
+}  // namespace utils

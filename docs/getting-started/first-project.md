@@ -17,7 +17,7 @@ We'll create a simple calculator library with:
 Let's create a library project called "MathCalculator":
 
 ```bash
-cpp-scaffold MathCalculator \
+./cpp-scaffold MathCalculator \
   --type lib \
   --build cmake \
   --package vcpkg \
@@ -225,13 +225,13 @@ Create a simple application that uses your library:
 
 int main() {
     MathCalculator::Calculator calc;
-    
+
     std::cout << "Calculator Demo\n";
     std::cout << "2 + 3 = " << calc.add(2, 3) << "\n";
     std::cout << "10 - 4 = " << calc.subtract(10, 4) << "\n";
     std::cout << "5 * 6 = " << calc.multiply(5, 6) << "\n";
     std::cout << "15 / 3 = " << calc.divide(15, 3) << "\n";
-    
+
     return 0;
 }
 ```
@@ -244,7 +244,7 @@ Congratulations! You've successfully:
 ✅ Explored the generated project structure  
 ✅ Built the project using CMake and Ninja  
 ✅ Ran unit tests with Google Test  
-✅ Understood the code organization  
+✅ Understood the code organization
 
 ## Next Steps
 

@@ -23,6 +23,29 @@ CPP-Scaffold provides:
 2. **[Quick Start Guide](quick-start.md)** - Learn the basic commands and workflow
 3. **[Create Your First Project](first-project.md)** - Walk through creating a complete project
 
+## 🚀 Quick Start
+
+Ready to create your first project? Use command-line arguments for project creation:
+
+```bash
+# Create a project with command-line arguments
+./cpp-scaffold MyProject --type console --build cmake --package vcpkg --test gtest
+
+# See all available options
+./cpp-scaffold --help
+```
+
+### Interactive Mode _(Coming Soon)_
+
+An interactive wizard is planned for future releases:
+
+```bash
+# Interactive wizard (not yet implemented)
+# ./cpp-scaffold
+
+# When available, will provide step-by-step project configuration
+```
+
 ## Prerequisites
 
 Before you begin, make sure you have:

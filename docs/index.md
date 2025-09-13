@@ -21,7 +21,7 @@ Welcome to CPP-Scaffold, a powerful, modern C++ project scaffolding tool that he
 - 🎨 **IDE Integration**: VSCode, CLion, Visual Studio, Vim, Emacs with project-specific configurations
 - 🔄 **CI/CD Setup**: GitHub Actions, GitLab CI, Travis CI, AppVeyor, Azure DevOps, CircleCI
 - 🌍 **Multi-language Support**: English, Chinese, Spanish, Japanese, German, French
-- 📊 **Interactive Wizard**: Step-by-step project configuration with styled terminal output
+- 📊 **Interactive Wizard**: Step-by-step project configuration with styled terminal output _(coming soon)_
 
 ### Advanced Features
 
@@ -127,17 +127,17 @@ chmod +x build.sh && ./build.sh  # Linux/macOS
 ### Basic Usage
 
 ```bash
-# Interactive mode (recommended for beginners)
-./cpp-scaffold
-
-# Quick project creation
+# Command-line mode (current method)
 ./cpp-scaffold MyProject --type console --build cmake --package vcpkg
 
 # Advanced options with full setup
 ./cpp-scaffold MyProject --type gui --build cmake --package conan --test gtest --ci github --editor vscode
 
-# Use a saved profile
+# Use a saved profile (when available)
 ./cpp-scaffold MyProject --profile webdev
+
+# Interactive mode (coming soon)
+# ./cpp-scaffold  # Not yet implemented
 ```
 
 ### Your First Project
@@ -256,17 +256,17 @@ Options:
   --version               Show version information
 ```
 
-### Interactive Mode
+### Interactive Mode _(Coming Soon)_
 
 ```bash
-# Launch interactive wizard
-./cpp-scaffold
+# Interactive wizard (not yet implemented)
+# ./cpp-scaffold
 
-# Quick start wizard
-./cpp-scaffold --wizard quick
+# Quick start wizard (not yet implemented)
+# ./cpp-scaffold --wizard quick
 
-# Advanced configuration wizard
-./cpp-scaffold --wizard advanced
+# Advanced configuration wizard (not yet implemented)
+# ./cpp-scaffold --wizard advanced
 ```
 
 ## Examples

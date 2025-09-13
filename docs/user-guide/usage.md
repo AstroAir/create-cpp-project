@@ -53,32 +53,32 @@ cpp-scaffold MyAPI --type webservice --build cmake --package conan --test gtest 
 
 ### Core Options
 
-| Option | Short | Description | Values | Default |
-|--------|-------|-------------|--------|---------|
-| `--type` | `-t` | Project template | `console`, `lib`, `header-only-lib`, `gui`, `network`, `embedded`, `webservice`, `multi-executable` | `console` |
-| `--build` | `-b` | Build system | `cmake`, `meson`, `bazel`, `xmake`, `premake`, `make`, `ninja` | `cmake` |
-| `--package` | `-p` | Package manager | `vcpkg`, `conan`, `spack`, `hunter`, `none` | `vcpkg` |
-| `--test` | | Testing framework | `gtest`, `catch2`, `doctest`, `boost`, `none` | `none` |
-| `--ci` | | CI/CD system | `github`, `gitlab`, `travis`, `appveyor`, `azuredevops`, `circleci` | `none` |
-| `--editor` | | Editor config | `vscode`, `clion`, `vs`, `vim`, `emacs`, `sublime` | `none` |
-| `--lang` | `-l` | Interface language | `english`, `chinese`, `spanish`, `japanese`, `german`, `french` | `english` |
-| `--verbose` | `-v` | Verbose output | - | `false` |
-| `--help` | `-h` | Show help | - | - |
-| `--version` | | Show version | - | - |
+| Option      | Short | Description        | Values                                                                                              | Default   |
+| ----------- | ----- | ------------------ | --------------------------------------------------------------------------------------------------- | --------- |
+| `--type`    | `-t`  | Project template   | `console`, `lib`, `header-only-lib`, `gui`, `network`, `embedded`, `webservice`, `multi-executable` | `console` |
+| `--build`   | `-b`  | Build system       | `cmake`, `meson`, `bazel`, `xmake`, `premake`, `make`, `ninja`                                      | `cmake`   |
+| `--package` | `-p`  | Package manager    | `vcpkg`, `conan`, `spack`, `hunter`, `none`                                                         | `vcpkg`   |
+| `--test`    |       | Testing framework  | `gtest`, `catch2`, `doctest`, `boost`, `none`                                                       | `none`    |
+| `--ci`      |       | CI/CD system       | `github`, `gitlab`, `travis`, `appveyor`, `azuredevops`, `circleci`                                 | `none`    |
+| `--editor`  |       | Editor config      | `vscode`, `clion`, `vs`, `vim`, `emacs`, `sublime`                                                  | `none`    |
+| `--lang`    | `-l`  | Interface language | `english`, `chinese`, `spanish`, `japanese`, `german`, `french`                                     | `english` |
+| `--verbose` | `-v`  | Verbose output     | -                                                                                                   | `false`   |
+| `--help`    | `-h`  | Show help          | -                                                                                                   | -         |
+| `--version` |       | Show version       | -                                                                                                   | -         |
 
 ### Advanced Options
 
-| Option | Description | Example |
-|--------|-------------|---------|
-| `--profile <name>` | Use saved profile | `--profile webdev` |
-| `--save-profile <name>` | Save current config | `--save-profile mysetup` |
-| `--list-profiles` | List profiles | - |
-| `--custom-template <path>` | Custom template | `--custom-template ./my-template` |
-| `--network-lib <lib>` | Network library | `--network-lib asio` |
-| `--framework <name>` | GUI framework | `--framework qt` |
-| `--no-git` | Skip Git init | - |
-| `--no-tests` | Skip tests | - |
-| `--no-docs` | Skip docs | - |
+| Option                     | Description         | Example                           |
+| -------------------------- | ------------------- | --------------------------------- |
+| `--profile <name>`         | Use saved profile   | `--profile webdev`                |
+| `--save-profile <name>`    | Save current config | `--save-profile mysetup`          |
+| `--list-profiles`          | List profiles       | -                                 |
+| `--custom-template <path>` | Custom template     | `--custom-template ./my-template` |
+| `--network-lib <lib>`      | Network library     | `--network-lib asio`              |
+| `--framework <name>`       | GUI framework       | `--framework qt`                  |
+| `--no-git`                 | Skip Git init       | -                                 |
+| `--no-tests`               | Skip tests          | -                                 |
+| `--no-docs`                | Skip docs           | -                                 |
 
 ### Boolean Flags
 
@@ -103,15 +103,15 @@ cpp-scaffold MyProject --editor vscode,clion
 cpp-scaffold MyProject --type gui --framework qt --editor vscode,clion --ci github,gitlab
 ```
 
-## 🎯 Interactive Mode
+## 🎯 Interactive Mode _(Coming Soon)_
 
 ### Basic Interactive Mode
 
 ```bash
-# Launch interactive wizard
-cpp-scaffold
+# Interactive wizard (not yet implemented)
+# cpp-scaffold
 
-# Follow the prompts:
+# When implemented, will follow these prompts:
 # 1. Project name
 # 2. Template type
 # 3. Build system
@@ -120,14 +120,14 @@ cpp-scaffold
 # 6. Additional options
 ```
 
-### Wizard Modes
+### Wizard Modes _(Planned Features)_
 
 ```bash
-# Quick start wizard (smart defaults)
-cpp-scaffold --wizard quick
+# Quick start wizard (not yet implemented)
+# cpp-scaffold --wizard quick
 
-# Advanced wizard (all options)
-cpp-scaffold --wizard advanced
+# Advanced wizard (not yet implemented)
+# cpp-scaffold --wizard advanced
 
 # Template selection wizard
 cpp-scaffold --wizard templates
@@ -160,6 +160,7 @@ cpp-scaffold MyTool --type console --build cmake --package conan --test catch2
 ```
 
 **Generated Structure:**
+
 ```
 MyTool/
 ├── src/
@@ -188,6 +189,7 @@ cpp-scaffold MySharedLib --type lib --build cmake --package conan --shared
 ```
 
 **Generated Structure:**
+
 ```
 MyLib/
 ├── include/
@@ -266,13 +268,13 @@ cpp-scaffold MyProject --profile qt-dev --test catch2
 
 ### Built-in Profiles
 
-| Profile | Description | Configuration |
-|---------|-------------|---------------|
-| `minimal` | Minimal setup | Console, CMake, no packages, no tests |
-| `standard` | Standard C++ project | Console, CMake, vcpkg, GTest |
-| `library` | Library development | Library, CMake, vcpkg, GTest, docs |
-| `gui-qt` | Qt application | GUI, Qt, CMake, vcpkg, GTest |
-| `web-service` | Web service | WebService, CMake, Conan, GTest, GitHub CI |
+| Profile       | Description          | Configuration                              |
+| ------------- | -------------------- | ------------------------------------------ |
+| `minimal`     | Minimal setup        | Console, CMake, no packages, no tests      |
+| `standard`    | Standard C++ project | Console, CMake, vcpkg, GTest               |
+| `library`     | Library development  | Library, CMake, vcpkg, GTest, docs         |
+| `gui-qt`      | Qt application       | GUI, Qt, CMake, vcpkg, GTest               |
+| `web-service` | Web service          | WebService, CMake, Conan, GTest, GitHub CI |
 
 ### Profile Management
 

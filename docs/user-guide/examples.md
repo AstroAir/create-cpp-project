@@ -7,29 +7,31 @@ This guide provides detailed examples of using CPP-Scaffold to create various ty
 ### Basic Project Creation
 
 #### Minimal Console Application
+
 ```bash
 # Simplest possible console app
-cpp-scaffold hello-world --type console
+./cpp-scaffold hello-world --type console
 
 # With basic testing
-cpp-scaffold hello-world --type console --test gtest
+./cpp-scaffold hello-world --type console --test gtest
 ```
 
 #### Standard Library Project
+
 ```bash
 # Create a library with modern setup
-cpp-scaffold my-lib --type lib --build cmake --package vcpkg --test catch2
+./cpp-scaffold my-lib --type lib --build cmake --package vcpkg --test catch2
 ```
 
-### Interactive Mode Examples
+### Interactive Mode Examples _(Coming Soon)_
 
-Start the interactive wizard for guided project creation:
+Interactive wizard for guided project creation (not yet implemented):
 
 ```bash
-# Launch interactive mode
-cpp-scaffold
+# Interactive mode (not yet implemented)
+# cpp-scaffold
 
-# Follow the prompts:
+# When implemented, will follow these prompts:
 # Project name: MyProject
 # Template type: [1] Console, [2] Library, [3] GUI... → 1
 # Build system: [1] CMake, [2] Meson... → 1
@@ -43,8 +45,9 @@ cpp-scaffold
 ### Console Applications
 
 #### CLI Tool with Argument Parsing
+
 ```bash
-cpp-scaffold file-analyzer \
+./cpp-scaffold file-analyzer \
   --type console \
   --build cmake \
   --package vcpkg \
@@ -55,6 +58,7 @@ cpp-scaffold file-analyzer \
 ```
 
 **Generated features:**
+
 - Command-line argument parsing with `argparse` or `CLI11`
 - File I/O operations with error handling
 - Logging with `spdlog`
@@ -63,6 +67,7 @@ cpp-scaffold file-analyzer \
 - VSCode debugging configuration
 
 **Usage after creation:**
+
 ```bash
 cd file-analyzer
 mkdir build && cd build
@@ -76,6 +81,7 @@ ninja
 ```
 
 #### System Utility
+
 ```bash
 cpp-scaffold sys-monitor \
   --type console \
@@ -89,8 +95,9 @@ cpp-scaffold sys-monitor \
 ### Library Projects
 
 #### Header-Only Utility Library
+
 ```bash
-cpp-scaffold utils-lib \
+./cpp-scaffold utils-lib \
   --type header-only-lib \
   --build cmake \
   --package vcpkg \
@@ -100,6 +107,7 @@ cpp-scaffold utils-lib \
 ```
 
 **Generated structure:**
+
 ```
 utils-lib/
 ├── include/utils-lib/
@@ -113,6 +121,7 @@ utils-lib/
 ```
 
 #### Shared Library with C API
+
 ```bash
 cpp-scaffold math-engine \
   --type lib \
@@ -126,6 +135,7 @@ cpp-scaffold math-engine \
 ### GUI Applications
 
 #### Qt Desktop Application
+
 ```bash
 cpp-scaffold image-editor \
   --type gui \
@@ -137,6 +147,7 @@ cpp-scaffold image-editor \
 ```
 
 **Includes:**
+
 - Qt6 main window application
 - Modern Qt widgets and layouts
 - Resource management (images, icons)
@@ -144,6 +155,7 @@ cpp-scaffold image-editor \
 - Cross-platform deployment scripts
 
 #### SFML Game Application
+
 ```bash
 cpp-scaffold space-game \
   --type gui \
@@ -156,6 +168,7 @@ cpp-scaffold space-game \
 ### Network Applications
 
 #### REST API Server
+
 ```bash
 cpp-scaffold api-server \
   --type webservice \
@@ -167,6 +180,7 @@ cpp-scaffold api-server \
 ```
 
 **Features:**
+
 - HTTP server with routing
 - JSON request/response handling
 - Database integration options
@@ -174,6 +188,7 @@ cpp-scaffold api-server \
 - API documentation generation
 
 #### TCP Client/Server
+
 ```bash
 cpp-scaffold chat-server \
   --type network \
@@ -188,6 +203,7 @@ cpp-scaffold chat-server \
 ### CMake Projects
 
 #### Modern CMake with vcpkg
+
 ```bash
 cpp-scaffold modern-app \
   --type console \
@@ -197,6 +213,7 @@ cpp-scaffold modern-app \
 ```
 
 **Generated CMakeLists.txt features:**
+
 - Modern CMake 3.14+ practices
 - Target-based dependency management
 - Proper include directories and compile features
@@ -204,6 +221,7 @@ cpp-scaffold modern-app \
 - Package configuration generation
 
 #### CMake with Conan
+
 ```bash
 cpp-scaffold conan-app \
   --type lib \
@@ -223,6 +241,7 @@ cpp-scaffold meson-app \
 ```
 
 **Generated meson.build features:**
+
 - Modern Meson syntax
 - Dependency management
 - Testing integration
@@ -299,6 +318,7 @@ ninja
 ## 🧪 Testing Framework Examples
 
 ### Google Test
+
 ```bash
 cpp-scaffold gtest-demo \
   --type lib \
@@ -308,6 +328,7 @@ cpp-scaffold gtest-demo \
 ```
 
 **Generated test structure:**
+
 ```cpp
 // tests/test_my_class.cpp
 #include <gtest/gtest.h>
@@ -326,6 +347,7 @@ TEST_F(MyClassTest, BasicFunctionality) {
 ```
 
 ### Catch2
+
 ```bash
 cpp-scaffold catch2-demo \
   --type lib \
@@ -335,6 +357,7 @@ cpp-scaffold catch2-demo \
 ```
 
 ### Doctest
+
 ```bash
 cpp-scaffold doctest-demo \
   --type header-only-lib \
@@ -346,6 +369,7 @@ cpp-scaffold doctest-demo \
 ## 🔄 CI/CD Examples
 
 ### GitHub Actions
+
 ```bash
 cpp-scaffold github-ci \
   --type lib \
@@ -356,6 +380,7 @@ cpp-scaffold github-ci \
 ```
 
 **Generated workflow features:**
+
 - Multi-platform builds (Windows, Linux, macOS)
 - Multiple compiler support (GCC, Clang, MSVC)
 - Dependency caching
@@ -363,6 +388,7 @@ cpp-scaffold github-ci \
 - Release automation
 
 ### GitLab CI
+
 ```bash
 cpp-scaffold gitlab-ci \
   --type console \
@@ -373,6 +399,7 @@ cpp-scaffold gitlab-ci \
 ```
 
 ### Multiple CI Systems
+
 ```bash
 cpp-scaffold multi-ci \
   --type lib \
@@ -389,12 +416,13 @@ cpp-scaffold multi-ci \
 The `examples/` directory contains complete, buildable projects:
 
 - `examples/console-file-processor/` - File processing utility
-- `examples/math-library/` - Mathematical computation library  
+- `examples/math-library/` - Mathematical computation library
 - `examples/qt-image-viewer/` - Qt-based image viewer
 - `examples/rest-api-server/` - HTTP REST API server
 - `examples/game-engine-demo/` - Simple game engine with SFML
 
 Each example includes:
+
 - Complete source code
 - Build instructions
 - Usage documentation

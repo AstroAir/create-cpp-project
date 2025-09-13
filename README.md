@@ -65,14 +65,14 @@ xmake build
 ### Create Your First Project
 
 ```bash
-# Interactive mode (recommended)
-./cpp-scaffold
-
-# Quick project creation
+# Command-line mode (current method)
 ./cpp-scaffold MyProject --type console --build cmake --package vcpkg --test gtest
 
 # Advanced setup
 ./cpp-scaffold MyApp --type gui --framework qt --build cmake --package conan --test gtest --ci github --editor vscode
+
+# Interactive mode (coming soon)
+# ./cpp-scaffold  # Not yet implemented
 ```
 
 ## 🏗️ Features
@@ -85,7 +85,7 @@ xmake build
 - **🎨 IDE Integration**: VSCode, CLion, Visual Studio, Vim, Emacs with project-specific configurations
 - **🔄 CI/CD Setup**: GitHub Actions, GitLab CI, Travis CI, AppVeyor, Azure DevOps, CircleCI
 - **🌍 Multi-language Support**: English, Chinese, Spanish, Japanese, German, French
-- **📊 Interactive Wizard**: Step-by-step project configuration with styled terminal output
+- **📊 Interactive Wizard**: Step-by-step project configuration with styled terminal output _(coming soon)_
 
 ## 📚 Documentation
 
@@ -174,16 +174,17 @@ requirements.txt                # Python dependencies for docs
 
 ## 🎯 Project Templates
 
-| Template          | Description              | Use Case                           |
-| ----------------- | ------------------------ | ---------------------------------- |
-| `console`         | Command-line application | CLI tools, utilities, system tools |
-| `lib`             | Static/shared library    | Reusable components, SDKs          |
-| `header-only-lib` | Header-only library      | Template libraries, utilities      |
-| `gui`             | GUI application          | Desktop applications               |
-| `network`         | Network service          | Servers, clients, APIs             |
-| `embedded`        | Embedded system          | IoT, microcontrollers              |
-| `webservice`      | Web service              | REST APIs, web backends            |
-| `custom`          | User-defined template    | Specialized projects               |
+| Template          | Description              | Use Case                           | Status       |
+| ----------------- | ------------------------ | ---------------------------------- | ------------ |
+| `console`         | Command-line application | CLI tools, utilities, system tools | ✅ Available |
+| `lib`             | Static/shared library    | Reusable components, SDKs          | ✅ Available |
+| `header-only-lib` | Header-only library      | Template libraries, utilities      | ✅ Available |
+| `gui`             | GUI application          | Desktop applications               | ✅ Available |
+| `network`         | Network service          | Servers, clients, APIs             | ✅ Available |
+| `embedded`        | Embedded system          | IoT, microcontrollers              | ✅ Available |
+| `webservice`      | Web service              | REST APIs, web backends            | ✅ Available |
+| `modules`         | C++20 modules project    | Modern C++ with modules            | ✅ Available |
+| `custom`          | User-defined template    | Specialized projects               | ✅ Available |
 
 ## 💡 Examples
 
@@ -195,13 +196,13 @@ Create a command-line tool with modern C++ practices:
 
 ```bash
 # Basic console app with XMake (recommended)
-cpp-scaffold MyTool --type console --build xmake --test gtest
+./cpp-scaffold MyTool --type console --build xmake --test gtest
 
 # Basic console app with CMake (traditional)
-cpp-scaffold MyTool --type console --build cmake --package vcpkg --test gtest
+./cpp-scaffold MyTool --type console --build cmake --package vcpkg --test gtest
 
 # Advanced console app with XMake and MSYS2 support
-cpp-scaffold FileProcessor \
+./cpp-scaffold FileProcessor \
   --type console \
   --build xmake \
   --test gtest \
@@ -212,7 +213,7 @@ cpp-scaffold FileProcessor \
   --msys2
 
 # Advanced console app with CMake
-cpp-scaffold FileProcessor \
+./cpp-scaffold FileProcessor \
   --type console \
   --build cmake \
   --package vcpkg \
@@ -260,7 +261,7 @@ Create a reusable library with comprehensive tooling:
 
 ```bash
 # Static/shared library with XMake
-cpp-scaffold MathLib \
+./cpp-scaffold MathLib \
   --type lib \
   --build xmake \
   --test catch2 \
@@ -270,7 +271,7 @@ cpp-scaffold MathLib \
   --msys2
 
 # Static/shared library with CMake
-cpp-scaffold MathLib \
+./cpp-scaffold MathLib \
   --type lib \
   --build cmake \
   --package conan \
@@ -280,14 +281,14 @@ cpp-scaffold MathLib \
   --editor clion
 
 # Header-only library with XMake
-cpp-scaffold UtilsLib \
+./cpp-scaffold UtilsLib \
   --type header-only-lib \
   --build xmake \
   --test doctest \
   --std cpp20
 
 # Header-only library with CMake
-cpp-scaffold UtilsLib \
+./cpp-scaffold UtilsLib \
   --type header-only-lib \
   --build cmake \
   --package vcpkg \
@@ -309,7 +310,7 @@ Build desktop applications with Qt framework:
 
 ```bash
 # Qt6 application with modern setup
-cpp-scaffold MyGuiApp \
+./cpp-scaffold MyGuiApp \
   --type gui \
   --framework qt \
   --build cmake \
@@ -319,8 +320,8 @@ cpp-scaffold MyGuiApp \
   --ci github
 
 # Qt application with custom widgets
-cpp-scaffold ImageEditor \
-  --type qtapp \
+./cpp-scaffold ImageEditor \
+  --type gui \
   --build cmake \
   --package conan \
   --std cpp20 \
@@ -333,7 +334,7 @@ Create high-performance network applications:
 
 ```bash
 # REST API server
-cpp-scaffold MyAPI \
+./cpp-scaffold MyAPI \
   --type webservice \
   --build cmake \
   --package conan \
@@ -342,7 +343,7 @@ cpp-scaffold MyAPI \
   --network-lib boost
 
 # TCP/UDP network service
-cpp-scaffold NetworkService \
+./cpp-scaffold NetworkService \
   --type network \
   --build cmake \
   --package vcpkg \
@@ -356,7 +357,7 @@ cpp-scaffold NetworkService \
 
 ```bash
 # Create the project
-cpp-scaffold FileProcessor \
+./cpp-scaffold FileProcessor \
   --type console \
   --build cmake \
   --package vcpkg \
@@ -392,7 +393,7 @@ ctest
 
 ```bash
 # Create library project
-cpp-scaffold MathLib \
+./cpp-scaffold MathLib \
   --type lib \
   --build cmake \
   --package conan \
@@ -423,7 +424,7 @@ ctest --preset conan-release
 
 ```bash
 # Create Qt application
-cpp-scaffold ImageViewer \
+./cpp-scaffold ImageViewer \
   --type gui \
   --framework qt \
   --build cmake \
@@ -460,35 +461,35 @@ CPP-Scaffold supports multiple modern build systems, each with their own strengt
 - **Fast compilation** and intelligent dependency management
 - **Built-in package management** with automatic dependency resolution
 - **MSYS2 integration** for Windows development
-- **Example**: `cpp-scaffold MyProject --build xmake`
+- **Example**: `./cpp-scaffold MyProject --build xmake`
 
 ### Premake
 
 - **Lua-based** build system that generates native project files
 - **Multi-platform** support (Visual Studio, Xcode, Make, etc.)
 - **Simple configuration** with powerful scripting capabilities
-- **Example**: `cpp-scaffold MyProject --build premake`
+- **Example**: `./cpp-scaffold MyProject --build premake`
 
 ### Meson
 
 - **Python-based** build system focused on speed and usability
 - **Fast builds** with excellent dependency tracking
 - **Cross-compilation** support and modern C++ features
-- **Example**: `cpp-scaffold MyProject --build meson`
+- **Example**: `./cpp-scaffold MyProject --build meson`
 
 ### CMake
 
 - **Industry standard** with extensive ecosystem support
 - **Mature tooling** and IDE integration
 - **Package manager** integration (vcpkg, Conan)
-- **Example**: `cpp-scaffold MyProject --build cmake`
+- **Example**: `./cpp-scaffold MyProject --build cmake`
 
 ### Bazel
 
 - **Google's build system** for large-scale projects
 - **Hermetic builds** and excellent caching
 - **Multi-language** support and remote execution
-- **Example**: `cpp-scaffold MyProject --build bazel`
+- **Example**: `./cpp-scaffold MyProject --build bazel`
 
 All build systems support:
 

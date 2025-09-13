@@ -1,4 +1,4 @@
-# test-utf8-project
+# TestProject
 A C++ console application created with CPP-Scaffold.
 
 ## Features

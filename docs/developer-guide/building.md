@@ -16,14 +16,24 @@ This document provides comprehensive information about building CPP-Scaffold fro
 
 ## 🏗️ Build System Overview
 
-CPP-Scaffold uses **CMake** as its primary build system, providing:
+CPP-Scaffold supports **dual build systems**:
+
+### Primary: CMake with Presets
 
 - **Cross-platform compatibility** across Windows, macOS, and Linux
+- **CMake presets** for standardized build configurations
 - **Automatic dependency management** using CMake FetchContent
-- **Multiple build configurations** (Debug, Release, RelWithDebInfo, MinSizeRel)
+- **Multiple build configurations** (debug, release, optimized, minimal)
 - **Integrated testing** with CTest
 - **Packaging support** with CPack
 - **IDE integration** for Visual Studio, Xcode, and others
+
+### Alternative: XMake (Modern)
+
+- **Lua-based configuration** with simpler syntax
+- **Built-in package management** and dependency resolution
+- **MSYS2 integration** for Windows development
+- **Fast compilation** and intelligent caching
 
 ### CMake Version Requirements
 
@@ -35,29 +45,29 @@ CPP-Scaffold uses **CMake** as its primary build system, providing:
 
 ### Required Tools
 
-| Tool | Minimum Version | Purpose |
-|------|----------------|---------|
-| CMake | 3.14 | Build system generator |
-| C++ Compiler | C++17 compatible | Source compilation |
-| Git | 2.0+ | Dependency fetching |
+| Tool         | Minimum Version  | Purpose                |
+| ------------ | ---------------- | ---------------------- |
+| CMake        | 3.14             | Build system generator |
+| C++ Compiler | C++17 compatible | Source compilation     |
+| Git          | 2.0+             | Dependency fetching    |
 
 ### Supported Compilers
 
-| Compiler | Minimum Version | Platforms |
-|----------|----------------|-----------|
-| GCC | 7.0 | Linux, Windows (MinGW) |
-| Clang | 6.0 | Linux, macOS, Windows |
-| MSVC | 2017 (15.7) | Windows |
-| Apple Clang | 10.0 | macOS |
+| Compiler    | Minimum Version | Platforms              |
+| ----------- | --------------- | ---------------------- |
+| GCC         | 7.0             | Linux, Windows (MinGW) |
+| Clang       | 6.0             | Linux, macOS, Windows  |
+| MSVC        | 2017 (15.7)     | Windows                |
+| Apple Clang | 10.0            | macOS                  |
 
 ### Optional Tools
 
-| Tool | Purpose | Benefit |
-|------|---------|---------|
-| Ninja | Fast build system | Faster compilation |
-| ccache | Compiler cache | Faster rebuilds |
-| Clang-tidy | Static analysis | Code quality |
-| Clang-format | Code formatting | Consistent style |
+| Tool         | Purpose           | Benefit            |
+| ------------ | ----------------- | ------------------ |
+| Ninja        | Fast build system | Faster compilation |
+| ccache       | Compiler cache    | Faster rebuilds    |
+| Clang-tidy   | Static analysis   | Code quality       |
+| Clang-format | Code formatting   | Consistent style   |
 
 ## ⚙️ Build Configuration
 
@@ -74,20 +84,22 @@ ninja
 
 ### CMake Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `CMAKE_BUILD_TYPE` | STRING | `Release` | Build configuration |
-| `BUILD_TESTING` | BOOL | `ON` | Build unit tests |
-| `CMAKE_INSTALL_PREFIX` | PATH | `/usr/local` | Installation directory |
-| `CMAKE_CXX_STANDARD` | STRING | `17` | C++ standard version |
-| `CMAKE_CXX_EXTENSIONS` | BOOL | `OFF` | Compiler extensions |
+| Option                 | Type   | Default      | Description            |
+| ---------------------- | ------ | ------------ | ---------------------- |
+| `CMAKE_BUILD_TYPE`     | STRING | `Release`    | Build configuration    |
+| `BUILD_TESTING`        | BOOL   | `ON`         | Build unit tests       |
+| `CMAKE_INSTALL_PREFIX` | PATH   | `/usr/local` | Installation directory |
+| `CMAKE_CXX_STANDARD`   | STRING | `17`         | C++ standard version   |
+| `CMAKE_CXX_EXTENSIONS` | BOOL   | `OFF`        | Compiler extensions    |
 
 ### Build Type Configurations
 
 #### Debug Build
+
 ```bash
 cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug
 ```
+
 - **Optimization**: None (-O0)
 - **Debug Info**: Full debug symbols
 - **Assertions**: Enabled
@@ -95,9 +107,11 @@ cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug
 - **Use Case**: Development and debugging
 
 #### Release Build
+
 ```bash
 cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
 ```
+
 - **Optimization**: Maximum (-O3)
 - **Debug Info**: None
 - **Assertions**: Disabled (NDEBUG)
@@ -105,17 +119,21 @@ cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
 - **Use Case**: Production deployment
 
 #### RelWithDebInfo Build
+
 ```bash
 cmake .. -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
 ```
+
 - **Optimization**: High (-O2)
 - **Debug Info**: Included
 - **Use Case**: Performance profiling
 
 #### MinSizeRel Build
+
 ```bash
 cmake .. -G Ninja -DCMAKE_BUILD_TYPE=MinSizeRel
 ```
+
 - **Optimization**: Size optimization (-Os)
 - **Use Case**: Embedded systems, minimal distributions
 
@@ -142,38 +160,39 @@ cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON
 
 ### Primary Targets
 
-| Target | Description | Command |
-|--------|-------------|---------|
-| `cpp-scaffold` | Main executable | `ninja cpp-scaffold` |
+| Target             | Description                | Command                  |
+| ------------------ | -------------------------- | ------------------------ |
+| `cpp-scaffold`     | Main executable            | `ninja cpp-scaffold`     |
 | `cpp_scaffold_lib` | Core library (for testing) | `ninja cpp_scaffold_lib` |
-| `all` | Build everything | `ninja` or `ninja all` |
-| `clean` | Clean build artifacts | `ninja clean` |
+| `all`              | Build everything           | `ninja` or `ninja all`   |
+| `clean`            | Clean build artifacts      | `ninja clean`            |
 
 ### Test Targets
 
-| Target | Description | Command |
-|--------|-------------|---------|
-| `test_file_utils` | File utilities tests | `ninja test_file_utils` |
-| `test_string_utils` | String utilities tests | `ninja test_string_utils` |
-| `test_cli_parser` | CLI parser tests | `ninja test_cli_parser` |
-| `test_template_manager` | Template manager tests | `ninja test_template_manager` |
-| `test_terminal_utils` | Terminal utilities tests | `ninja test_terminal_utils` |
-| `test_integration` | Integration tests | `ninja test_integration` |
-| `all_tests` | Comprehensive test suite | `ninja all_tests` |
+| Target                  | Description              | Command                       |
+| ----------------------- | ------------------------ | ----------------------------- |
+| `test_file_utils`       | File utilities tests     | `ninja test_file_utils`       |
+| `test_string_utils`     | String utilities tests   | `ninja test_string_utils`     |
+| `test_cli_parser`       | CLI parser tests         | `ninja test_cli_parser`       |
+| `test_template_manager` | Template manager tests   | `ninja test_template_manager` |
+| `test_terminal_utils`   | Terminal utilities tests | `ninja test_terminal_utils`   |
+| `test_integration`      | Integration tests        | `ninja test_integration`      |
+| `all_tests`             | Comprehensive test suite | `ninja all_tests`             |
 
 ### Utility Targets
 
-| Target | Description | Command |
-|--------|-------------|---------|
-| `install` | Install to system | `ninja install` |
-| `package` | Create distribution package | `ninja package` |
-| `test` | Run all tests | `ninja test` or `ctest` |
+| Target    | Description                 | Command                 |
+| --------- | --------------------------- | ----------------------- |
+| `install` | Install to system           | `ninja install`         |
+| `package` | Create distribution package | `ninja package`         |
+| `test`    | Run all tests               | `ninja test` or `ctest` |
 
 ## 🖥️ Platform-Specific Builds
 
 ### Windows
 
 #### Visual Studio
+
 ```powershell
 # Generate Visual Studio solution
 cmake .. -G "Visual Studio 17 2022" -A x64
@@ -186,6 +205,7 @@ start cpp-scaffold.sln
 ```
 
 #### MinGW
+
 ```bash
 # Using MinGW-w64
 cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
@@ -199,6 +219,7 @@ ninja
 ### macOS
 
 #### Xcode
+
 ```bash
 # Generate Xcode project
 cmake .. -G Xcode
@@ -211,6 +232,7 @@ open cpp-scaffold.xcodeproj
 ```
 
 #### Command Line
+
 ```bash
 # Using system clang
 cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
@@ -224,6 +246,7 @@ ninja
 ### Linux
 
 #### GCC
+
 ```bash
 # Default GCC
 cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
@@ -235,6 +258,7 @@ ninja
 ```
 
 #### Clang
+
 ```bash
 # System Clang
 cmake .. -G Ninja -DCMAKE_CXX_COMPILER=clang++
@@ -372,6 +396,7 @@ ninja package
 ### Package Types by Platform
 
 #### Windows
+
 ```bash
 # NSIS installer
 cpack -G NSIS
@@ -381,6 +406,7 @@ cpack -G ZIP
 ```
 
 #### Linux
+
 ```bash
 # DEB package
 cpack -G DEB
@@ -393,6 +419,7 @@ cpack -G TGZ
 ```
 
 #### macOS
+
 ```bash
 # DMG image
 cpack -G DragNDrop
@@ -406,6 +433,7 @@ cpack -G TGZ
 ### Common Build Issues
 
 #### CMake Version Too Old
+
 ```bash
 # Error: CMake 3.14 or higher is required
 # Solution: Update CMake
@@ -415,6 +443,7 @@ winget upgrade Kitware.CMake       # Windows
 ```
 
 #### Compiler Not Found
+
 ```bash
 # Error: No suitable C++ compiler found
 # Solution: Install compiler
@@ -424,6 +453,7 @@ xcode-select --install             # macOS
 ```
 
 #### Dependency Download Failures
+
 ```bash
 # Error: Failed to download dependencies
 # Solution: Check network connection and clear cache
@@ -433,6 +463,7 @@ ninja
 ```
 
 #### Filesystem Library Issues
+
 ```bash
 # Error: filesystem library not found (older compilers)
 # Solution: Link filesystem library explicitly
@@ -443,6 +474,7 @@ cmake .. -DCMAKE_CXX_FLAGS="-lc++fs"     # Clang < 9
 ### Build Performance
 
 #### Parallel Builds
+
 ```bash
 # Use all CPU cores
 ninja -j$(nproc)                    # Linux
@@ -451,6 +483,7 @@ ninja -j%NUMBER_OF_PROCESSORS%      # Windows
 ```
 
 #### Compiler Cache
+
 ```bash
 # Install and configure ccache
 sudo apt install ccache             # Ubuntu
@@ -461,6 +494,7 @@ cmake .. -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 ```
 
 #### Memory Usage
+
 ```bash
 # Limit parallel jobs for low-memory systems
 ninja -j2
@@ -472,6 +506,7 @@ cmake .. -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold"
 ### Debug Builds
 
 #### Verbose Output
+
 ```bash
 # CMake verbose output
 cmake .. --debug-output
@@ -484,6 +519,7 @@ cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON
 ```
 
 #### Debugging CMake
+
 ```bash
 # Print all variables
 cmake .. -LAH

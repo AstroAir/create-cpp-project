@@ -91,12 +91,14 @@ src/
 #### 1. CLI Parser (`cli/cli_parser.h`)
 
 **Responsibilities:**
+
 - Command-line argument parsing and validation
 - Option type conversion and validation
 - Help and version information display
-- Interactive mode coordination
+- Interactive mode coordination _(planned feature)_
 
 **Key Classes:**
+
 ```cpp
 class CliParser {
     static CliOptions parse(int argc, char* argv[]);
@@ -117,12 +119,14 @@ struct CliOptions {
 #### 2. Template System (`templates/`)
 
 **Responsibilities:**
+
 - Project template management and creation
 - Template inheritance and customization
 - File generation and project structure creation
 - Build system integration
 
 **Key Classes:**
+
 ```cpp
 class TemplateBase {
     virtual bool create() = 0;
@@ -141,12 +145,14 @@ class TemplateManager {
 #### 3. Configuration Manager (`config/config_manager.h`)
 
 **Responsibilities:**
+
 - Persistent configuration storage
 - Profile management
 - User preferences handling
 - Environment variable integration
 
 **Key Classes:**
+
 ```cpp
 class ConfigManager {
     static ConfigManager& getInstance();
@@ -159,12 +165,14 @@ class ConfigManager {
 #### 4. Framework Integration (`utils/framework_integration.h`)
 
 **Responsibilities:**
+
 - Third-party framework detection and setup
 - Package manager integration
 - CMake configuration generation
 - Dependency resolution
 
 **Key Classes:**
+
 ```cpp
 class FrameworkIntegration {
     enum class Framework { Qt, SFML, Boost, OpenCV, /* ... */ };
@@ -287,7 +295,7 @@ public:
 1. CLI Parsing
    ├── Command line arguments → CliOptions
    ├── Validation and type conversion
-   └── Interactive mode (if needed)
+   └── Interactive mode *(planned feature)*
 
 2. Configuration Resolution
    ├── Load user preferences
@@ -348,7 +356,7 @@ public:
 class MyCustomTemplate : public TemplateBase {
 public:
     MyCustomTemplate(const CliOptions& options) : TemplateBase(options) {}
-    
+
     bool create() override {
         // Custom implementation
         return TemplateBase::create();
@@ -361,9 +369,9 @@ protected:
 };
 
 // Registration
-templateManager.registerTemplate("my-custom", 
-    [](const CliOptions& opts) { 
-        return std::make_unique<MyCustomTemplate>(opts); 
+templateManager.registerTemplate("my-custom",
+    [](const CliOptions& opts) {
+        return std::make_unique<MyCustomTemplate>(opts);
     });
 ```
 
@@ -479,7 +487,7 @@ class TemplateManagerTest : public ::testing::Test {
 protected:
     void SetUp() override;
     void TearDown() override;
-    
+
     std::unique_ptr<TemplateManager> manager_;
     CliOptions testOptions_;
 };

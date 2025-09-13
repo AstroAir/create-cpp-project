@@ -98,8 +98,8 @@ The project automatically manages its dependencies using CMake FetchContent:
 ### Command Line Usage
 
 ```bash
-# Interactive mode (recommended for beginners)
-./cpp-scaffold
+# Interactive mode (not yet implemented)
+# ./cpp-scaffold
 
 # Quick project creation
 ./cpp-scaffold MyProject --type console --build cmake --package vcpkg
@@ -313,6 +313,7 @@ private:
 ```
 
 **Registered Templates:**
+
 - `console` → `ConsoleTemplate`
 - `lib` → `LibraryTemplate`
 - `header-only-lib` → `HeaderOnlyLibTemplate`
@@ -362,23 +363,23 @@ private:
 - **`showVersion()`**: Shows version and build information
 - **`showAvailableTemplates()`**: Lists all available project templates
 - **`promptUserForOptions(defaults)`**: Interactive prompt for configuration
-- **`runInteractiveMode()`**: Full interactive wizard experience
+- **`runInteractiveMode()`**: Placeholder for interactive wizard _(not yet implemented)_
 - **`validateOptions(options)`**: Validates and sanitizes options
 
 ## 🏗️ Template System
 
 ### Available Templates
 
-| Template | Description | Use Case | Key Features |
-|----------|-------------|----------|--------------|
-| `console` | Command-line application | CLI tools, utilities, system tools | Argument parsing, logging, cross-platform |
-| `lib` | Static/shared library | Reusable components, SDKs | Export/import handling, pkg-config, versioning |
-| `header-only-lib` | Header-only library | Template libraries, utilities | Single-header distribution, comprehensive docs |
-| `gui` | GUI application | Desktop applications | Framework integration (Qt, SFML), resource management |
-| `network` | Network service | Servers, clients, APIs | Async I/O, protocol handling, scalability |
-| `embedded` | Embedded system | IoT, microcontrollers | Resource constraints, real-time, hardware abstraction |
-| `webservice` | Web service | REST APIs, web backends | HTTP handling, JSON APIs, middleware |
-| `custom` | User-defined template | Specialized projects | Template inheritance, variable substitution |
+| Template          | Description              | Use Case                           | Key Features                                          |
+| ----------------- | ------------------------ | ---------------------------------- | ----------------------------------------------------- |
+| `console`         | Command-line application | CLI tools, utilities, system tools | Argument parsing, logging, cross-platform             |
+| `lib`             | Static/shared library    | Reusable components, SDKs          | Export/import handling, pkg-config, versioning        |
+| `header-only-lib` | Header-only library      | Template libraries, utilities      | Single-header distribution, comprehensive docs        |
+| `gui`             | GUI application          | Desktop applications               | Framework integration (Qt, SFML), resource management |
+| `network`         | Network service          | Servers, clients, APIs             | Async I/O, protocol handling, scalability             |
+| `embedded`        | Embedded system          | IoT, microcontrollers              | Resource constraints, real-time, hardware abstraction |
+| `webservice`      | Web service              | REST APIs, web backends            | HTTP handling, JSON APIs, middleware                  |
+| `custom`          | User-defined template    | Specialized projects               | Template inheritance, variable substitution           |
 
 ### Template Inheritance Hierarchy
 
@@ -436,6 +437,7 @@ private:
 ```
 
 **Generated Project Structure:**
+
 ```
 MyConsoleApp/
 ├── src/
@@ -714,14 +716,16 @@ struct ConfigProfile {
     int schemaVersion = 1;
 };
 ```
+
     static bool saveProfile(std::string_view profileName, const CliOptions& options);
     static std::optional<CliOptions> loadProfile(std::string_view profileName);
     static std::vector<std::string> listProfiles();
 
 private:
-    static constexpr std::string_view DEFAULT_PROFILE = "default";
+static constexpr std::string_view DEFAULT_PROFILE = "default";
 };
-```
+
+````
 
 ### ProjectWizard
 
@@ -751,7 +755,7 @@ private:
     static CliOptions getRecommendedOptionsForTemplate(TemplateType type);
     static bool saveAsTemplate(const CliOptions& options, const std::string& templateName);
 };
-```
+````
 
 ### UserInput
 
@@ -1541,63 +1545,63 @@ cpp-scaffold [PROJECT_NAME] [OPTIONS]
 
 ### Core Options
 
-| Option | Short | Description | Default |
-|--------|-------|-------------|---------|
-| `--type` | `-t` | Project template type | `console` |
-| `--build` | `-b` | Build system | `cmake` |
-| `--package` | `-p` | Package manager | `vcpkg` |
-| `--test` | | Testing framework | `none` |
-| `--ci` | | CI/CD system | `none` |
-| `--editor` | | Editor configuration | `none` |
-| `--language` | `-l` | Interface language | `english` |
-| `--verbose` | `-v` | Enable verbose output | `false` |
-| `--help` | `-h` | Show help information | |
-| `--version` | | Show version information | |
+| Option       | Short | Description              | Default   |
+| ------------ | ----- | ------------------------ | --------- |
+| `--type`     | `-t`  | Project template type    | `console` |
+| `--build`    | `-b`  | Build system             | `cmake`   |
+| `--package`  | `-p`  | Package manager          | `vcpkg`   |
+| `--test`     |       | Testing framework        | `none`    |
+| `--ci`       |       | CI/CD system             | `none`    |
+| `--editor`   |       | Editor configuration     | `none`    |
+| `--language` | `-l`  | Interface language       | `english` |
+| `--verbose`  | `-v`  | Enable verbose output    | `false`   |
+| `--help`     | `-h`  | Show help information    |           |
+| `--version`  |       | Show version information |           |
 
 ### Template Types
 
-| Type | Description |
-|------|-------------|
-| `console` | Command-line application |
-| `lib` | Static/shared library |
-| `header-only-lib` | Header-only library |
-| `gui` | GUI application |
-| `network` | Network service |
-| `embedded` | Embedded system project |
-| `webservice` | Web service application |
-| `multi-executable` | Multiple executables |
+| Type               | Description              |
+| ------------------ | ------------------------ |
+| `console`          | Command-line application |
+| `lib`              | Static/shared library    |
+| `header-only-lib`  | Header-only library      |
+| `gui`              | GUI application          |
+| `network`          | Network service          |
+| `embedded`         | Embedded system project  |
+| `webservice`       | Web service application  |
+| `multi-executable` | Multiple executables     |
 
 ### Build Systems
 
-| System | Description |
-|--------|-------------|
-| `cmake` | CMake build system |
-| `meson` | Meson build system |
-| `bazel` | Bazel build system |
-| `xmake` | XMake build system |
+| System    | Description          |
+| --------- | -------------------- |
+| `cmake`   | CMake build system   |
+| `meson`   | Meson build system   |
+| `bazel`   | Bazel build system   |
+| `xmake`   | XMake build system   |
 | `premake` | Premake build system |
-| `make` | Traditional Makefile |
-| `ninja` | Ninja build system |
+| `make`    | Traditional Makefile |
+| `ninja`   | Ninja build system   |
 
 ### Package Managers
 
-| Manager | Description |
-|---------|-------------|
-| `vcpkg` | Microsoft vcpkg |
-| `conan` | Conan package manager |
-| `spack` | Spack package manager |
+| Manager  | Description            |
+| -------- | ---------------------- |
+| `vcpkg`  | Microsoft vcpkg        |
+| `conan`  | Conan package manager  |
+| `spack`  | Spack package manager  |
 | `hunter` | Hunter package manager |
-| `none` | No package manager |
+| `none`   | No package manager     |
 
 ### Testing Frameworks
 
-| Framework | Description |
-|-----------|-------------|
-| `gtest` | Google Test |
-| `catch2` | Catch2 testing framework |
-| `doctest` | Doctest framework |
-| `boost` | Boost.Test |
-| `none` | No testing framework |
+| Framework | Description              |
+| --------- | ------------------------ |
+| `gtest`   | Google Test              |
+| `catch2`  | Catch2 testing framework |
+| `doctest` | Doctest framework        |
+| `boost`   | Boost.Test               |
+| `none`    | No testing framework     |
 
 ### Example Commands
 
@@ -1668,12 +1672,13 @@ Try different project templates:
 ./cpp-scaffold MyServer --type network --build cmake --package vcpkg --test gtest
 ```
 
-### 4. Interactive Mode
+### 4. Interactive Mode _(Coming Soon)_
 
-For beginners, use the interactive wizard:
+Interactive wizard is planned for future releases:
 
 ```bash
-./cpp-scaffold
+# Interactive wizard (not yet implemented)
+# ./cpp-scaffold
 ```
 
 This will guide you through all available options with explanations and recommendations.
@@ -1694,6 +1699,7 @@ CPP-Scaffold uses a comprehensive error handling strategy that combines multiple
 ### Error Handling Patterns
 
 #### 1. Boolean Return Values
+
 Most operations return `bool` to indicate success or failure:
 
 ```cpp
@@ -1705,6 +1711,7 @@ if (!success) {
 ```
 
 #### 2. Optional Return Values
+
 Operations that may not return a value use `std::optional<T>`:
 
 ```cpp
@@ -1718,6 +1725,7 @@ if (profile.has_value()) {
 ```
 
 #### 3. Exceptions for Critical Errors
+
 Critical errors that should not be ignored throw exceptions:
 
 ```cpp
@@ -1734,6 +1742,7 @@ try {
 ```
 
 #### 4. Comprehensive Logging
+
 All operations are logged using spdlog for debugging and monitoring:
 
 ```cpp

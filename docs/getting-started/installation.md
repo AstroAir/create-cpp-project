@@ -49,6 +49,12 @@ sudo mv cpp-scaffold /usr/local/bin/
 # Clone and build
 git clone https://github.com/cpp-scaffold/cpp-scaffold.git
 cd cpp-scaffold
+
+# Option 1: Using CMake presets (recommended)
+cmake --preset release
+cmake --build --preset release
+
+# Option 2: Traditional CMake
 mkdir build && cd build
 cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
 ninja
@@ -61,21 +67,24 @@ ninja
 #### Prerequisites Installation
 
 1. **Install Visual Studio 2019/2022** with C++ development tools:
+
    ```powershell
    # Using winget (Windows 10 1709+)
    winget install Microsoft.VisualStudio.2022.Community
    ```
 
 2. **Install CMake**:
+
    ```powershell
    # Using winget
    winget install Kitware.CMake
-   
+
    # Or using Chocolatey
    choco install cmake
    ```
 
 3. **Install Git**:
+
    ```powershell
    winget install Git.Git
    ```
@@ -119,11 +128,13 @@ copy build\cpp-scaffold.exe C:\Windows\System32\
 #### Prerequisites Installation
 
 1. **Install Xcode Command Line Tools**:
+
    ```bash
    xcode-select --install
    ```
 
 2. **Install Homebrew** (if not already installed):
+
    ```bash
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
    ```
@@ -241,11 +252,11 @@ sudo ninja install  # Linux/macOS
 
 ### Build Options
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `CMAKE_BUILD_TYPE` | Build type (Debug, Release, RelWithDebInfo) | `Release` |
-| `BUILD_TESTING` | Build unit tests | `ON` |
-| `CMAKE_INSTALL_PREFIX` | Installation directory | `/usr/local` (Unix) |
+| Option                 | Description                                 | Default             |
+| ---------------------- | ------------------------------------------- | ------------------- |
+| `CMAKE_BUILD_TYPE`     | Build type (Debug, Release, RelWithDebInfo) | `Release`           |
+| `BUILD_TESTING`        | Build unit tests                            | `ON`                |
+| `CMAKE_INSTALL_PREFIX` | Installation directory                      | `/usr/local` (Unix) |
 
 ### Advanced Build Configuration
 
@@ -331,6 +342,7 @@ cpp-scaffold TestGui --type gui --framework qt
 **Problem**: `CMake 3.14 or higher is required`
 
 **Solution**:
+
 ```bash
 # Ubuntu/Debian
 sudo snap install cmake --classic
@@ -347,6 +359,7 @@ winget upgrade Kitware.CMake
 **Problem**: `No suitable C++ compiler found`
 
 **Solution**:
+
 ```bash
 # Ubuntu/Debian
 sudo apt install build-essential
@@ -362,6 +375,7 @@ xcode-select --install
 **Problem**: `Git not found in PATH`
 
 **Solution**:
+
 ```bash
 # Ubuntu/Debian
 sudo apt install git
@@ -378,6 +392,7 @@ winget install Git.Git
 **Problem**: Permission errors during `ninja install`
 
 **Solution**:
+
 ```bash
 # Use sudo on Unix systems
 sudo ninja install
@@ -392,6 +407,7 @@ ninja install
 **Problem**: Compilation errors or linking failures
 
 **Solution**:
+
 1. Ensure all prerequisites are installed
 2. Clear build directory and rebuild:
    ```bash

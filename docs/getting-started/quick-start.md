@@ -37,13 +37,13 @@ For quick project creation, use the command line interface:
 
 ```bash
 # Create a simple console application
-cpp-scaffold MyProject --type console --build cmake --package vcpkg
+./cpp-scaffold MyProject --type console --build cmake --package vcpkg
 
 # Create a library with testing
-cpp-scaffold MyLibrary --type lib --build cmake --package conan --test gtest
+./cpp-scaffold MyLibrary --type lib --build cmake --package conan --test gtest
 
 # Create a GUI application
-cpp-scaffold MyGuiApp --type gui --build cmake --package vcpkg --framework qt
+./cpp-scaffold MyGuiApp --type gui --build cmake --package vcpkg --framework qt
 ```
 
 ## Common Commands
@@ -52,48 +52,48 @@ cpp-scaffold MyGuiApp --type gui --build cmake --package vcpkg --framework qt
 
 ```bash
 # Console application
-cpp-scaffold MyConsoleApp --type console
+./cpp-scaffold MyConsoleApp --type console
 
 # Static/shared library
-cpp-scaffold MyLibrary --type lib
+./cpp-scaffold MyLibrary --type lib
 
 # Header-only library
-cpp-scaffold MyHeaderLib --type header-only-lib
+./cpp-scaffold MyHeaderLib --type header-only-lib
 
 # GUI application
-cpp-scaffold MyGuiApp --type gui
+./cpp-scaffold MyGuiApp --type gui
 
 # Network service
-cpp-scaffold MyNetworkService --type network
+./cpp-scaffold MyNetworkService --type network
 
 # Web service
-cpp-scaffold MyWebService --type webservice
+./cpp-scaffold MyWebService --type webservice
 ```
 
 ### Build Systems
 
 ```bash
 # CMake (recommended)
-cpp-scaffold MyProject --build cmake
+./cpp-scaffold MyProject --build cmake
 
 # Meson
-cpp-scaffold MyProject --build meson
+./cpp-scaffold MyProject --build meson
 
 # Bazel
-cpp-scaffold MyProject --build bazel
+./cpp-scaffold MyProject --build bazel
 ```
 
 ### Package Managers
 
 ```bash
 # vcpkg (recommended for Windows)
-cpp-scaffold MyProject --package vcpkg
+./cpp-scaffold MyProject --package vcpkg
 
 # Conan (cross-platform)
-cpp-scaffold MyProject --package conan
+./cpp-scaffold MyProject --package conan
 
 # No package manager
-cpp-scaffold MyProject --package none
+./cpp-scaffold MyProject --package none
 ```
 
 ## Your First Project
@@ -102,7 +102,7 @@ Let's create a simple "Hello World" console application:
 
 ```bash
 # Create the project
-cpp-scaffold HelloWorld --type console --build cmake --package vcpkg --test gtest
+./cpp-scaffold HelloWorld --type console --build cmake --package vcpkg --test gtest
 
 # Navigate to the project directory
 cd HelloWorld
@@ -149,13 +149,13 @@ Save frequently used configurations as profiles:
 
 ```bash
 # Save current configuration
-cpp-scaffold --save-profile myprofile
+./cpp-scaffold --save-profile myprofile
 
 # Use a saved profile
-cpp-scaffold MyProject --profile myprofile
+./cpp-scaffold MyProject --profile myprofile
 
 # List available profiles
-cpp-scaffold --list-profiles
+./cpp-scaffold --list-profiles
 ```
 
 ## Next Steps
@@ -170,13 +170,13 @@ Now that you've created your first project:
 
 ```bash
 # Show help
-cpp-scaffold --help
+./cpp-scaffold --help
 
 # Show version
-cpp-scaffold --version
+./cpp-scaffold --version
 
 # Enable verbose output
-cpp-scaffold MyProject --verbose
+./cpp-scaffold MyProject --verbose
 ```
 
 For more detailed information, see the [User Guide](../user-guide/index.md).
