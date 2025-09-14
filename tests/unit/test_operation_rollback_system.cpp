@@ -4,8 +4,8 @@
 #include <fstream>
 #include <sstream>
 
-#include "../../src/utils/operation_rollback_system.h"
-#include "../../src/utils/file_utils.h"
+#include "../../src/utils/validation/operation_rollback_system.h"
+#include "../../src/utils/core/file_utils.h"
 
 using namespace utils;
 using ::testing::_;

@@ -10,7 +10,7 @@
 #include "file_analyzer.h"
 #include "text_processor.h"
 #include "../utils/logger.h"
-#include "../utils/file_utils.h"
+#include "../utils/core/file_utils.h"
 #include <iostream>
 #include <sstream>
 #include <algorithm>

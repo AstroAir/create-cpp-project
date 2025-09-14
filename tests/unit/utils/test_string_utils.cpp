@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "utils/string_utils.h"
+#include "utils/core/string_utils.h"
 
 using namespace utils;
 

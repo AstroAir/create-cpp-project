@@ -6,8 +6,8 @@
 #include <iostream>
 #include <regex>
 
-#include "../../utils/string_utils.h"
-#include "../../utils/terminal_utils.h"
+#include "../../utils/core/string_utils.h"
+#include "../../utils/ui/terminal_utils.h"
 #include "../input/user_input.h"
 
 using namespace utils;
@@ -466,10 +466,10 @@ namespace validation_utils {
 
 void printValidationResult(const ValidationResult& result) {
     if (result.hasErrors()) {
-        std::cout << TerminalUtils::colorize("❌ Validation Errors:", utils::Color::BrightRed)
+        std::cout << TerminalUtils::colorize("�?Validation Errors:", utils::Color::BrightRed)
                   << "\n";
         for (const auto& error : result.errors) {
-            std::cout << TerminalUtils::colorize("  • " + error, utils::Color::Red) << "\n";
+            std::cout << TerminalUtils::colorize("  �?" + error, utils::Color::Red) << "\n";
         }
         std::cout << "\n";
     }
@@ -478,27 +478,26 @@ void printValidationResult(const ValidationResult& result) {
         std::cout << TerminalUtils::colorize("⚠️  Validation Warnings:", utils::Color::BrightYellow)
                   << "\n";
         for (const auto& warning : result.warnings) {
-            std::cout << TerminalUtils::colorize("  • " + warning, utils::Color::Yellow) << "\n";
+            std::cout << TerminalUtils::colorize("  �?" + warning, utils::Color::Yellow) << "\n";
         }
         std::cout << "\n";
     }
 
     if (result.isValid && !result.hasWarnings()) {
-        std::cout << TerminalUtils::colorize("✅ Configuration is valid!",
-                                             utils::Color::BrightGreen)
+        std::cout << TerminalUtils::colorize("�?Configuration is valid!", utils::Color::BrightGreen)
                   << "\n\n";
     }
 }
 
 void printValidationSummary(const ValidationResult& result) {
     if (result.isValid) {
-        std::string message = "✅ Valid";
+        std::string message = "�?Valid";
         if (result.hasWarnings()) {
             message += fmt::format(" ({} warnings)", result.warnings.size());
         }
         std::cout << TerminalUtils::colorize(message, utils::Color::BrightGreen) << "\n";
     } else {
-        std::string message = fmt::format("❌ Invalid ({} errors", result.errors.size());
+        std::string message = fmt::format("�?Invalid ({} errors", result.errors.size());
         if (result.hasWarnings()) {
             message += fmt::format(", {} warnings", result.warnings.size());
         }
@@ -510,7 +509,7 @@ void printValidationSummary(const ValidationResult& result) {
 std::string formatValidationErrors(const ValidationResult& result) {
     std::string formatted;
     for (const auto& error : result.errors) {
-        formatted += "❌ " + error + "\n";
+        formatted += "�?" + error + "\n";
     }
     return formatted;
 }

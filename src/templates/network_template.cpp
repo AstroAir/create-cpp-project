@@ -1,10 +1,10 @@
-ï»¿#include "network_template.h"
+#include "network_template.h"
 
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
-#include "../utils/file_utils.h"
-#include "../utils/terminal_utils.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/ui/terminal_utils.h"
 
 using namespace utils;
 using namespace cli_enums;
@@ -20,7 +20,7 @@ bool NetworkTemplate::create() {
         return false;
     }
 
-    spdlog::info("ğŸš€ Creating network application project '{}'...", projectPath);
+    spdlog::info("?? Creating network application project '{}'...", projectPath);
 
     // Create basic structure
     spdlog::info("Creating project structure...");
@@ -28,7 +28,7 @@ bool NetworkTemplate::create() {
         spdlog::error("Failed to create project structure");
         return false;
     }
-    spdlog::info("âœ… Project structure created");
+    spdlog::info("? Project structure created");
 
     // Create build system
     spdlog::info("Configuring build system...");
@@ -36,7 +36,7 @@ bool NetworkTemplate::create() {
         spdlog::error("Failed to configure build system");
         return false;
     }
-    spdlog::info("âœ… Build system configured");
+    spdlog::info("? Build system configured");
 
     // Setup network library
     spdlog::info("Setting up network library...");
@@ -44,7 +44,7 @@ bool NetworkTemplate::create() {
         spdlog::error("Failed to setup network library");
         return false;
     }
-    spdlog::info("âœ… Network library setup");
+    spdlog::info("? Network library setup");
 
     // Setup package manager
     spdlog::info("Setting up package manager...");
@@ -52,7 +52,7 @@ bool NetworkTemplate::create() {
         spdlog::error("Failed to setup package manager");
         return false;
     }
-    spdlog::info("âœ… Package manager setup");
+    spdlog::info("? Package manager setup");
 
     // Setup test framework
     if (options_.includeTests) {
@@ -61,7 +61,7 @@ bool NetworkTemplate::create() {
             spdlog::error("Failed to setup test framework");
             return false;
         }
-        spdlog::info("âœ… Test framework configured");
+        spdlog::info("? Test framework configured");
     }
 
     // Setup code style tools
@@ -71,7 +71,7 @@ bool NetworkTemplate::create() {
             spdlog::error("Failed to configure code style tools");
             return false;
         }
-        spdlog::info("âœ… Code style tools configured");
+        spdlog::info("? Code style tools configured");
     }
 
     // Setup editor integrations
@@ -81,7 +81,7 @@ bool NetworkTemplate::create() {
             spdlog::error("Failed to configure editor integrations");
             return false;
         }
-        spdlog::info("âœ… Editor integrations configured");
+        spdlog::info("? Editor integrations configured");
     }
 
     // Setup CI/CD integrations
@@ -91,7 +91,7 @@ bool NetworkTemplate::create() {
             spdlog::error("Failed to configure CI/CD integrations");
             return false;
         }
-        spdlog::info("âœ… CI/CD integrations configured");
+        spdlog::info("? CI/CD integrations configured");
     }
 
     // Initialize Git
@@ -101,7 +101,7 @@ bool NetworkTemplate::create() {
             spdlog::error("Failed to initialize Git repository");
             return false;
         }
-        spdlog::info("âœ… Git repository initialized");
+        spdlog::info("? Git repository initialized");
     }
 
     // Display project creation completion information
@@ -569,10 +569,10 @@ add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)
 bool NetworkTemplate::setupCodeStyleTools() {
     std::string projectPath = options_.projectName;
 
-    // ä½¿ç”¨åŸºç±»æä¾›çš„æ–¹æ³•è®¾ç½®ä»£ç é£æ ¼
+    // Ê¹ÓÃ»ùÀàÌá¹©µÄ·½·¨ÉèÖÃ´úÂë·ç¸ñ
     bool result = TemplateBase::setupCodeStyleConfig(projectPath);
 
-    // å¦‚æœåŸºç±»å®ç°ä¸æ»¡è¶³ç‰¹å®šéœ€æ±‚ï¼Œå¯ä»¥åœ¨è¿™é‡Œæ·»åŠ ç½‘ç»œæ¨¡æ¿ç‰¹æœ‰çš„ä»£ç é£æ ¼é…ç½®
+    // Èç¹û»ùÀàÊµÏÖ²»Âú×ãÌØ¶¨ĞèÇó£¬¿ÉÒÔÔÚÕâÀïÌí¼ÓÍøÂçÄ£°åÌØÓĞµÄ´úÂë·ç¸ñÅäÖÃ
 
     return result;
 }
@@ -580,10 +580,10 @@ bool NetworkTemplate::setupCodeStyleTools() {
 bool NetworkTemplate::setupEditorIntegrations() {
     std::string projectPath = options_.projectName;
 
-    // ä½¿ç”¨åŸºç±»æä¾›çš„æ–¹æ³•è®¾ç½®ç¼–è¾‘å™¨é…ç½®
+    // Ê¹ÓÃ»ùÀàÌá¹©µÄ·½·¨ÉèÖÃ±à¼­Æ÷ÅäÖÃ
     bool result = TemplateBase::setupEditorConfig(projectPath);
 
-    // å¦‚æœåŸºç±»å®ç°ä¸æ»¡è¶³ç‰¹å®šéœ€æ±‚ï¼Œå¯ä»¥åœ¨è¿™é‡Œæ·»åŠ ç½‘ç»œæ¨¡æ¿ç‰¹æœ‰çš„ç¼–è¾‘å™¨é…ç½®
+    // Èç¹û»ùÀàÊµÏÖ²»Âú×ãÌØ¶¨ĞèÇó£¬¿ÉÒÔÔÚÕâÀïÌí¼ÓÍøÂçÄ£°åÌØÓĞµÄ±à¼­Æ÷ÅäÖÃ
 
     return result;
 }
@@ -591,10 +591,10 @@ bool NetworkTemplate::setupEditorIntegrations() {
 bool NetworkTemplate::setupCICDIntegrations() {
     std::string projectPath = options_.projectName;
 
-    // ä½¿ç”¨åŸºç±»æä¾›çš„æ–¹æ³•è®¾ç½®CI/CDé…ç½®
+    // Ê¹ÓÃ»ùÀàÌá¹©µÄ·½·¨ÉèÖÃCI/CDÅäÖÃ
     bool result = TemplateBase::setupCICD(projectPath);
 
-    // å¦‚æœåŸºç±»å®ç°ä¸æ»¡è¶³ç‰¹å®šéœ€æ±‚ï¼Œå¯ä»¥åœ¨è¿™é‡Œæ·»åŠ ç½‘ç»œæ¨¡æ¿ç‰¹æœ‰çš„CI/CDé…ç½®
+    // Èç¹û»ùÀàÊµÏÖ²»Âú×ãÌØ¶¨ĞèÇó£¬¿ÉÒÔÔÚÕâÀïÌí¼ÓÍøÂçÄ£°åÌØÓĞµÄCI/CDÅäÖÃ
 
     return result;
 }
@@ -1451,66 +1451,66 @@ std::string NetworkTemplate::getReadmeContent() {
     return fmt::format(
             R"(# {}
 
-ä¸€ä¸ªC++ç½‘ç»œåº”ç”¨ï¼Œä½¿ç”¨CPP-Scaffoldåˆ›å»ºã€‚
+Ò»¸öC++ÍøÂçÓ¦ÓÃ£¬Ê¹ÓÃCPP-Scaffold´´½¨¡£
 
-## åŠŸèƒ½
+## ¹¦ÄÜ
 
-- åŸºäº {} çš„å®¢æˆ·ç«¯/æœåŠ¡å™¨ç½‘ç»œé€šä¿¡
-- è·¨å¹³å°å…¼å®¹æ€§
-- ç®€æ´æ˜“ç”¨çš„API
+- »ùÓÚ {} µÄ¿Í»§¶Ë/·şÎñÆ÷ÍøÂçÍ¨ĞÅ
+- ¿çÆ½Ì¨¼æÈİĞÔ
+- ¼ò½àÒ×ÓÃµÄAPI
 
-## é¡¹ç›®ç»“æ„
+## ÏîÄ¿½á¹¹
 ```
 {}/
-â”œâ”€â”€ include/
-â”‚   â””â”€â”€ {}/
-â”‚       â”œâ”€â”€ client/
-â”‚       â”‚   â””â”€â”€ client.h
-â”‚       â””â”€â”€ server/
-â”‚           â””â”€â”€ server.h
-â”œâ”€â”€ src/
-â”‚   â”œâ”€â”€ client/
-â”‚   â”‚   â””â”€â”€ client.cpp
-â”‚   â”œâ”€â”€ server/
-â”‚   â”‚   â””â”€â”€ server.cpp
-â”‚   â””â”€â”€ main.cpp
-â””â”€â”€ CMakeLists.txt
+©À©¤©¤ include/
+©¦   ©¸©¤©¤ {}/
+©¦       ©À©¤©¤ client/
+©¦       ©¦   ©¸©¤©¤ client.h
+©¦       ©¸©¤©¤ server/
+©¦           ©¸©¤©¤ server.h
+©À©¤©¤ src/
+©¦   ©À©¤©¤ client/
+©¦   ©¦   ©¸©¤©¤ client.cpp
+©¦   ©À©¤©¤ server/
+©¦   ©¦   ©¸©¤©¤ server.cpp
+©¦   ©¸©¤©¤ main.cpp
+©¸©¤©¤ CMakeLists.txt
 ```
 
-## å¿«é€Ÿå¼€å§‹
+## ¿ìËÙ¿ªÊ¼
 
 ```sh
-# å…‹éš†ä»“åº“
+# ¿ËÂ¡²Ö¿â
 git clone <repository-url>
 cd {}
 
-# åˆ›å»ºæ„å»ºç›®å½•å¹¶ç”Ÿæˆæ„å»ºæ–‡ä»¶
+# ´´½¨¹¹½¨Ä¿Â¼²¢Éú³É¹¹½¨ÎÄ¼ş
 mkdir build
 cd build
 cmake ..
 make
 
-# è¿è¡ŒæœåŠ¡å™¨
+# ÔËĞĞ·şÎñÆ÷
 ./{} server
 
-# è¿è¡Œå®¢æˆ·ç«¯
+# ÔËĞĞ¿Í»§¶Ë
 ./{} client
 ```
 
-## ä¾èµ–
+## ÒÀÀµ
 
-- C++17 æˆ–æ›´é«˜ç‰ˆæœ¬
-- CMake 3.10 æˆ–æ›´é«˜ç‰ˆæœ¬
-- {} åº“
-- {} åº“
+- C++17 »ò¸ü¸ß°æ±¾
+- CMake 3.10 »ò¸ü¸ß°æ±¾
+- {} ¿â
+- {} ¿â
 
-## è´¡çŒ®
+## ¹±Ï×
 
-æ¬¢è¿è´¡çŒ®ä»£ç ï¼è¯·æäº¤Pull Requestæˆ–æŠ¥å‘Šé—®é¢˜ã€‚
+»¶Ó­¹±Ï×´úÂë£¡ÇëÌá½»Pull Request»ò±¨¸æÎÊÌâ¡£
 
-## è®¸å¯è¯
+## Ğí¿ÉÖ¤
 
-æœ¬é¡¹ç›®ä½¿ç”¨MITè®¸å¯è¯ã€‚è¯¦æƒ…è¯·å‚é˜…LICENSEæ–‡ä»¶ã€‚
+±¾ÏîÄ¿Ê¹ÓÃMITĞí¿ÉÖ¤¡£ÏêÇéÇë²ÎÔÄLICENSEÎÄ¼ş¡£
 )",
             options_.projectName, options_.networkLibrary.value_or("Unknown"), options_.projectName,
             options_.projectName, options_.projectName, options_.projectName, options_.projectName,

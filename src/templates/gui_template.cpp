@@ -1,24 +1,24 @@
-ï»¿#include "gui_template.h"
+#include "gui_template.h"
 
 #include <spdlog/fmt/fmt.h>
 
 #include <iostream>
 
-#include "../utils/file_utils.h"
-#include "../utils/string_utils.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/core/string_utils.h"
 
 using namespace utils;
 using namespace cli_enums;
 
 GuiTemplate::GuiTemplate(const CliOptions& options) : TemplateBase(options) {
-    // ç¡®å®šGUIæ¡†æ¶ç±»å‹ (é»˜è®¤ä¸ºQt)
+    // È·¶¨GUI¿ò¼ÜÀàĞÍ (Ä¬ÈÏÎªQt)
     guiFramework_ = "qt";
 
-    // ä¼˜å…ˆä½¿ç”¨å‘½ä»¤è¡ŒæŒ‡å®šçš„GUIæ¡†æ¶
+    // ÓÅÏÈÊ¹ÓÃÃüÁîĞĞÖ¸¶¨µÄGUI¿ò¼Ü
     if (!options.guiFrameworks.empty()) {
-        guiFramework_ = options.guiFrameworks[0];  // ä½¿ç”¨ç¬¬ä¸€ä¸ªæŒ‡å®šçš„æ¡†æ¶
+        guiFramework_ = options.guiFrameworks[0];  // Ê¹ÓÃµÚÒ»¸öÖ¸¶¨µÄ¿ò¼Ü
     } else {
-        // æ£€æŸ¥æ˜¯å¦æœ‰æ¡†æ¶æŒ‡å®šåœ¨é¡¹ç›®åç§°ä¸­
+        // ¼ì²éÊÇ·ñÓĞ¿ò¼ÜÖ¸¶¨ÔÚÏîÄ¿Ãû³ÆÖĞ
         std::string projectName = StringUtils::toLower(options.projectName);
         if (projectName.find("qt") != std::string::npos) {
             guiFramework_ = "qt";
@@ -34,78 +34,78 @@ GuiTemplate::GuiTemplate(const CliOptions& options) : TemplateBase(options) {
         }
     }
 
-    std::cout << "ğŸ¨ é€‰æ‹©çš„GUIæ¡†æ¶: " << guiFramework_ << std::endl;
+    std::cout << "?? Ñ¡ÔñµÄGUI¿ò¼Ü: " << guiFramework_ << std::endl;
 }
 
 bool GuiTemplate::create() {
     std::string projectPath = options_.projectName;
 
-    // æ£€æŸ¥é¡¹ç›®ç›®å½•æ˜¯å¦å·²å­˜åœ¨
+    // ¼ì²éÏîÄ¿Ä¿Â¼ÊÇ·ñÒÑ´æÔÚ
     if (FileUtils::directoryExists(projectPath)) {
-        std::cout << "é”™è¯¯: ç›®å½• '" << projectPath << "' å·²å­˜åœ¨ã€‚\n";
+        std::cout << "´íÎó: Ä¿Â¼ '" << projectPath << "' ÒÑ´æÔÚ¡£\n";
         return false;
     }
 
-    std::cout << "ğŸš€ æ­£åœ¨åˆ›å»ºGUIé¡¹ç›® (" << guiFramework_ << ")...\n";
+    std::cout << "?? ÕıÔÚ´´½¨GUIÏîÄ¿ (" << guiFramework_ << ")...\n";
 
-    // åˆ›å»ºåŸºæœ¬ç»“æ„
+    // ´´½¨»ù±¾½á¹¹
     if (!createProjectStructure()) {
-        std::cout << "åˆ›å»ºé¡¹ç›®ç»“æ„å¤±è´¥\n";
+        std::cout << "´´½¨ÏîÄ¿½á¹¹Ê§°Ü\n";
         return false;
     }
-    std::cout << "ï¿½?é¡¹ç›®ç»“æ„å·²åˆ›å»º\n";
+    std::cout << "??ÏîÄ¿½á¹¹ÒÑ´´½¨\n";
 
-    // åˆ›å»ºGUIç‰¹å®šæ–‡ä»¶
+    // ´´½¨GUIÌØ¶¨ÎÄ¼ş
     if (!createGuiSpecificFiles()) {
-        std::cout << "åˆ›å»ºGUIç‰¹å®šæ–‡ä»¶å¤±è´¥\n";
+        std::cout << "´´½¨GUIÌØ¶¨ÎÄ¼şÊ§°Ü\n";
         return false;
     }
-    std::cout << "ï¿½?GUIç‰¹å®šæ–‡ä»¶å·²åˆ›å»º\n";
+    std::cout << "??GUIÌØ¶¨ÎÄ¼şÒÑ´´½¨\n";
 
-    // åˆ›å»ºæ„å»ºç³»ç»Ÿ
+    // ´´½¨¹¹½¨ÏµÍ³
     if (!createBuildSystem()) {
-        std::cout << "é…ç½®æ„å»ºç³»ç»Ÿå¤±è´¥\n";
+        std::cout << "ÅäÖÃ¹¹½¨ÏµÍ³Ê§°Ü\n";
         return false;
     }
-    std::cout << "ï¿½?æ„å»ºç³»ç»Ÿå·²é…ç½®\n";
+    std::cout << "??¹¹½¨ÏµÍ³ÒÑÅäÖÃ\n";
 
-    // è®¾ç½®åŒ…ç®¡ç†å™¨
+    // ÉèÖÃ°ü¹ÜÀíÆ÷
     if (!setupPackageManager()) {
-        std::cout << "è®¾ç½®åŒ…ç®¡ç†å™¨å¤±è´¥\n";
+        std::cout << "ÉèÖÃ°ü¹ÜÀíÆ÷Ê§°Ü\n";
         return false;
     }
-    std::cout << "ï¿½?åŒ…ç®¡ç†å™¨å·²è®¾ç½®\n";
+    std::cout << "??°ü¹ÜÀíÆ÷ÒÑÉèÖÃ\n";
 
-    // è®¾ç½®æµ‹è¯•æ¡†æ¶
+    // ÉèÖÃ²âÊÔ¿ò¼Ü
     if (options_.includeTests) {
         if (!setupTestFramework()) {
-            std::cout << "è®¾ç½®æµ‹è¯•æ¡†æ¶å¤±è´¥\n";
+            std::cout << "ÉèÖÃ²âÊÔ¿ò¼ÜÊ§°Ü\n";
             return false;
         }
-        std::cout << "ï¿½?æµ‹è¯•æ¡†æ¶å·²é…ç½®\n";
+        std::cout << "??²âÊÔ¿ò¼ÜÒÑÅäÖÃ\n";
     }
 
-    // è®¾ç½®æ–‡æ¡£
+    // ÉèÖÃÎÄµµ
     if (options_.includeDocumentation) {
         if (!setupDocumentation()) {
-            std::cout << "è®¾ç½®æ–‡æ¡£å¤±è´¥\n";
+            std::cout << "ÉèÖÃÎÄµµÊ§°Ü\n";
             return false;
         }
-        std::cout << "ï¿½?æ–‡æ¡£å·²é…ç½®\n";
+        std::cout << "??ÎÄµµÒÑÅäÖÃ\n";
     }
 
-    // åˆå§‹åŒ–Git
+    // ³õÊ¼»¯Git
     if (options_.initGit) {
         if (!initializeGit(projectPath)) {
-            std::cout << "åˆå§‹åŒ–Gitä»“åº“å¤±è´¥\n";
+            std::cout << "³õÊ¼»¯Git²Ö¿âÊ§°Ü\n";
             return false;
         }
-        std::cout << "ï¿½?å·²åˆå§‹åŒ–Gitä»“åº“\n";
+        std::cout << "??ÒÑ³õÊ¼»¯Git²Ö¿â\n";
     }
 
-    std::cout << "\nä½ çš„GUIé¡¹ç›®å·²å‡†å¤‡å°±ç»ªï¼\n\n";
+    std::cout << "\nÄãµÄGUIÏîÄ¿ÒÑ×¼±¸¾ÍĞ÷£¡\n\n";
 
-    // æ‰“å°ä½¿ç”¨è¯´æ˜
+    // ´òÓ¡Ê¹ÓÃËµÃ÷
     std::cout << "cd " << options_.projectName << "\n";
 
     if (to_string(options_.buildSystem) == "cmake") {
@@ -125,7 +125,7 @@ bool GuiTemplate::create() {
         std::cout << "make config=release\n";
     }
 
-    std::cout << "\nç¥ç¼–ç æ„‰ï¿½? ğŸ‰\n";
+    std::cout << "\n×£±àÂëÓä?? ??\n";
 
     return true;
 }
@@ -133,18 +133,18 @@ bool GuiTemplate::create() {
 bool GuiTemplate::createProjectStructure() {
     std::string projectPath = options_.projectName;
 
-    // åˆ›å»ºä¸»ç›®ï¿½?
+    // ´´½¨Ö÷Ä¿??
     if (!FileUtils::createDirectory(projectPath)) {
         return false;
     }
 
-    // åˆ›å»ºsrcç›®å½•
+    // ´´½¨srcÄ¿Â¼
     std::string srcPath = FileUtils::combinePath(projectPath, "src");
     if (!FileUtils::createDirectory(srcPath)) {
         return false;
     }
 
-    // åˆ›å»ºincludeç›®å½•
+    // ´´½¨includeÄ¿Â¼
     std::string includePath = FileUtils::combinePath(projectPath, "include");
     if (!FileUtils::createDirectory(includePath)) {
         return false;
@@ -155,13 +155,13 @@ bool GuiTemplate::createProjectStructure() {
         return false;
     }
 
-    // åˆ›å»ºèµ„æºç›®å½•
+    // ´´½¨×ÊÔ´Ä¿Â¼
     std::string resourcesPath = FileUtils::combinePath(projectPath, "resources");
     if (!FileUtils::createDirectory(resourcesPath)) {
         return false;
     }
 
-    // åˆ›å»ºUIç›®å½• (å¯¹äºç•Œé¢è®¾è®¡æ–‡ä»¶)
+    // ´´½¨UIÄ¿Â¼ (¶ÔÓÚ½çÃæÉè¼ÆÎÄ¼ş)
     if (guiFramework_ == "qt" || guiFramework_ == "gtk") {
         std::string uiPath = FileUtils::combinePath(projectPath, "ui");
         if (!FileUtils::createDirectory(uiPath)) {
@@ -169,7 +169,7 @@ bool GuiTemplate::createProjectStructure() {
         }
     }
 
-    // å†™å…¥README.md
+    // Ğ´ÈëREADME.md
     if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "README.md"),
                                 getReadmeContent())) {
         return false;
@@ -184,14 +184,14 @@ bool GuiTemplate::createGuiSpecificFiles() {
     std::string includePath = FileUtils::combinePath(projectPath, "include");
     std::string includeProjectPath = FileUtils::combinePath(includePath, options_.projectName);
 
-    // åˆ›å»ºä¸»è¦æºæ–‡ï¿½?
+    // ´´½¨Ö÷ÒªÔ´ÎÄ??
     if (!FileUtils::writeToFile(FileUtils::combinePath(srcPath, "main.cpp"), getMainCppContent())) {
         return false;
     }
 
-    // æ ¹æ®ä¸åŒçš„GUIæ¡†æ¶åˆ›å»ºä¸åŒçš„æ–‡ï¿½?
+    // ¸ù¾İ²»Í¬µÄGUI¿ò¼Ü´´½¨²»Í¬µÄÎÄ??
     if (guiFramework_ == "qt") {
-        // Qtç‰¹å®šæ–‡ä»¶
+        // QtÌØ¶¨ÎÄ¼ş
         if (!FileUtils::writeToFile(FileUtils::combinePath(includeProjectPath, "main_window.h"),
                                     getMainWindowHeaderContent())) {
             return false;
@@ -213,7 +213,7 @@ bool GuiTemplate::createGuiSpecificFiles() {
         }
     } else if (guiFramework_ == "gtk" || guiFramework_ == "fltk" || guiFramework_ == "wxwidgets" ||
                guiFramework_ == "imgui") {
-        // å¯¹äºå…¶ä»–æ¡†æ¶ï¼Œåˆ›å»ºç®€åŒ–çš„ç»“æ„
+        // ¶ÔÓÚÆäËû¿ò¼Ü£¬´´½¨¼ò»¯µÄ½á¹¹
         if (!FileUtils::writeToFile(FileUtils::combinePath(includeProjectPath, "app.h"),
                                     getFrameworkSpecificHeaderContent())) {
             return false;
@@ -225,7 +225,7 @@ bool GuiTemplate::createGuiSpecificFiles() {
         }
     }
 
-    // åˆ›å»ºæ—¥å¿—å·¥å…·ï¿½?
+    // ´´½¨ÈÕÖ¾¹¤¾ß??
     if (!FileUtils::writeToFile(FileUtils::combinePath(includeProjectPath, "logging.h"),
                                 getLoggingHeaderContent())) {
         return false;
@@ -236,7 +236,7 @@ bool GuiTemplate::createGuiSpecificFiles() {
         return false;
     }
 
-    // ä¸ºä¸åŒæ¡†æ¶åˆ›å»ºç‰¹å®šæ–‡ï¿½?
+    // Îª²»Í¬¿ò¼Ü´´½¨ÌØ¶¨ÎÄ??
     if (guiFramework_ == "qt") {
         std::string uiPath = FileUtils::combinePath(projectPath, "ui");
         if (!FileUtils::writeToFile(FileUtils::combinePath(uiPath, "main_window.ui"),
@@ -270,19 +270,19 @@ bool GuiTemplate::createBuildSystem() {
     std::string projectPath = options_.projectName;
 
     if (to_string(options_.buildSystem) == "cmake") {
-        // åˆ›å»ºCMakeLists.txt
+        // ´´½¨CMakeLists.txt
         if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "CMakeLists.txt"),
                                     getCMakeContent())) {
             return false;
         }
     } else if (to_string(options_.buildSystem) == "meson") {
-        // åˆ›å»ºmeson.build
+        // ´´½¨meson.build
         if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "meson.build"),
                                     getMesonContent())) {
             return false;
         }
     } else if (to_string(options_.buildSystem) == "bazel") {
-        // åˆ›å»ºWORKSPACEå’ŒBUILDæ–‡ä»¶
+        // ´´½¨WORKSPACEºÍBUILDÎÄ¼ş
         if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "WORKSPACE"),
                                     "workspace(name = \"" + options_.projectName + "\")\n")) {
             return false;
@@ -293,13 +293,13 @@ bool GuiTemplate::createBuildSystem() {
             return false;
         }
     } else if (to_string(options_.buildSystem) == "xmake") {
-        // åˆ›å»ºxmake.lua
+        // ´´½¨xmake.lua
         if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "xmake.lua"),
                                     getXMakeContent())) {
             return false;
         }
     } else if (to_string(options_.buildSystem) == "premake") {
-        // åˆ›å»ºpremake5.lua
+        // ´´½¨premake5.lua
         if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "premake5.lua"),
                                     getPremakeContent())) {
             return false;
@@ -313,19 +313,19 @@ bool GuiTemplate::setupPackageManager() {
     std::string projectPath = options_.projectName;
 
     if (to_string(options_.packageManager) == "vcpkg") {
-        // åˆ›å»ºvcpkg.json
+        // ´´½¨vcpkg.json
         if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "vcpkg.json"),
                                     getVcpkgJsonContent())) {
             return false;
         }
     } else if (to_string(options_.packageManager) == "conan") {
-        // åˆ›å»ºconanfile.txt
+        // ´´½¨conanfile.txt
         if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "conanfile.txt"),
                                     getConanfileContent())) {
             return false;
         }
     } else if (to_string(options_.packageManager) == "msys2") {
-        // åˆ›å»ºPKGBUILD
+        // ´´½¨PKGBUILD
         if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "PKGBUILD"),
                                     getMSYS2PKGBUILDContent())) {
             return false;
@@ -360,12 +360,12 @@ bool GuiTemplate::setupTestFramework() {
         return false;
     }
 
-    // æ›´æ–°æ„å»ºç³»ç»Ÿä»¥åŒ…å«æµ‹ï¿½?
+    // ¸üĞÂ¹¹½¨ÏµÍ³ÒÔ°üº¬²â??
     if (to_string(options_.buildSystem) == "cmake") {
         std::string cmakePath = FileUtils::combinePath(projectPath, "CMakeLists.txt");
         std::string cmakeContent = FileUtils::readFromFile(cmakePath);
 
-        // æ·»åŠ æµ‹è¯•é…ç½®
+        // Ìí¼Ó²âÊÔÅäÖÃ
         cmakeContent += R"(
 # Tests
 if(BUILD_TESTING)
@@ -378,7 +378,7 @@ endif()
             return false;
         }
 
-        // åˆ›å»ºtests/CMakeLists.txt
+        // ´´½¨tests/CMakeLists.txt
         std::string testCmakeContent;
         if (to_string(options_.testFramework) == "gtest") {
             testCmakeContent = R"(
@@ -438,25 +438,25 @@ std::string GuiTemplate::getMainCppContent() {
                R"(/logging.h"
 
 int main(int argc, char* argv[]) {
-    // åˆå§‹åŒ–æ—¥å¿—ç³»ï¿½?
+    // ³õÊ¼»¯ÈÕÖ¾Ïµ??
     )" + options_.projectName +
                R"(::Logging::init("logs/app.log");
 
-    // åˆ›å»ºåº”ç”¨å®ä¾‹
+    // ´´½¨Ó¦ÓÃÊµÀı
     QApplication qtApp(argc, argv);
     )" + options_.projectName +
                R"(::Application app;
 
-    // æ˜¾ç¤ºä¸»çª—ï¿½?
+    // ÏÔÊ¾Ö÷´°??
     if (!app.initialize()) {
-        SPDLOG_ERROR("åº”ç”¨åˆå§‹åŒ–å¤±ï¿½?);
+        SPDLOG_ERROR("Ó¦ÓÃ³õÊ¼»¯Ê§??);
         return 1;
     }
 
-    // è¿è¡Œåº”ç”¨ä¸»å¾ªï¿½?
-    SPDLOG_INFO("åº”ç”¨å¯åŠ¨æˆåŠŸ");
+    // ÔËĞĞÓ¦ÓÃÖ÷Ñ­??
+    SPDLOG_INFO("Ó¦ÓÃÆô¶¯³É¹¦");
     int result = qtApp.exec();
-    SPDLOG_INFO("åº”ç”¨é€€å‡ºï¼Œè¿”å›ï¿½? {}", result);
+    SPDLOG_INFO("Ó¦ÓÃÍË³ö£¬·µ»Ø?? {}", result);
 
     return result;
 }
@@ -466,22 +466,22 @@ int main(int argc, char* argv[]) {
 #include ")" + options_.projectName +
                R"(/logging.h"
 
-// æ³¨å†Œwxåº”ç”¨
+// ×¢²áwxÓ¦ÓÃ
 wxIMPLEMENT_APP_NO_MAIN()" +
                options_.projectName + R"(::Application);
 
 int main(int argc, char* argv[]) {
-    // åˆå§‹åŒ–æ—¥å¿—ç³»ï¿½?
+    // ³õÊ¼»¯ÈÕÖ¾Ïµ??
     )" + options_.projectName +
                R"(::Logging::init("logs/app.log");
-    SPDLOG_INFO("åº”ç”¨å¯åŠ¨ï¿½?);
+    SPDLOG_INFO("Ó¦ÓÃÆô¶¯??);
 
-    // è¿è¡ŒwxWidgetsåº”ç”¨
+    // ÔËĞĞwxWidgetsÓ¦ÓÃ
     wxEntryStart(argc, argv);
     int result = wxEntry(argc, argv);
     wxEntryCleanup();
 
-    SPDLOG_INFO("åº”ç”¨é€€å‡ºï¼Œè¿”å›ï¿½? {}", result);
+    SPDLOG_INFO("Ó¦ÓÃÍË³ö£¬·µ»Ø?? {}", result);
     return result;
 }
 )";
@@ -491,56 +491,56 @@ int main(int argc, char* argv[]) {
                R"(/logging.h"
 
 int main(int argc, char* argv[]) {
-    // åˆå§‹åŒ–æ—¥å¿—ç³»ï¿½?
+    // ³õÊ¼»¯ÈÕÖ¾Ïµ??
     )" + options_.projectName +
                R"(::Logging::init("logs/app.log");
-    SPDLOG_INFO("åº”ç”¨å¯åŠ¨ï¿½?);
+    SPDLOG_INFO("Ó¦ÓÃÆô¶¯??);
 
-    // åˆå§‹åŒ–GTK
+    // ³õÊ¼»¯GTK
     gtk_init(&argc, &argv);
 
-    // åˆ›å»ºåº”ç”¨å®ä¾‹
+    // ´´½¨Ó¦ÓÃÊµÀı
     )" + options_.projectName +
                R"(::Application app;
 
     if (!app.initialize()) {
-        SPDLOG_ERROR("åº”ç”¨åˆå§‹åŒ–å¤±ï¿½?);
+        SPDLOG_ERROR("Ó¦ÓÃ³õÊ¼»¯Ê§??);
         return 1;
     }
 
-    // è¿è¡ŒGTKä¸»å¾ªï¿½?
-    SPDLOG_INFO("åº”ç”¨å¯åŠ¨æˆåŠŸ");
+    // ÔËĞĞGTKÖ÷Ñ­??
+    SPDLOG_INFO("Ó¦ÓÃÆô¶¯³É¹¦");
     int result = app.run();
-    SPDLOG_INFO("åº”ç”¨é€€å‡ºï¼Œè¿”å›ï¿½? {}", result);
+    SPDLOG_INFO("Ó¦ÓÃÍË³ö£¬·µ»Ø?? {}", result);
 
     return result;
 }
 )";
     }
 
-    // é»˜è®¤è¿”å›Qtå®ç°
+    // Ä¬ÈÏ·µ»ØQtÊµÏÖ
     return R"(#include <iostream>
 #include ")" +
            options_.projectName + R"(/logging.h"
 
 int main(int argc, char* argv[]) {
-    // åˆå§‹åŒ–æ—¥å¿—ç³»ï¿½?
+    // ³õÊ¼»¯ÈÕÖ¾Ïµ??
     )" + options_.projectName +
            R"(::Logging::init("logs/app.log");
-    SPDLOG_INFO("åº”ç”¨å¯åŠ¨ï¿½?);
+    SPDLOG_INFO("Ó¦ÓÃÆô¶¯??);
 
-    // åˆ›å»ºåº”ç”¨å®ä¾‹
+    // ´´½¨Ó¦ÓÃÊµÀı
     )" + options_.projectName +
            R"(::Application app;
     if (!app.initialize()) {
-        SPDLOG_ERROR("åº”ç”¨åˆå§‹åŒ–å¤±ï¿½?);
+        SPDLOG_ERROR("Ó¦ÓÃ³õÊ¼»¯Ê§??);
         return 1;
     }
 
-    // è¿è¡Œåº”ç”¨ä¸»å¾ªï¿½?
-    SPDLOG_INFO("åº”ç”¨å¯åŠ¨æˆåŠŸ");
+    // ÔËĞĞÓ¦ÓÃÖ÷Ñ­??
+    SPDLOG_INFO("Ó¦ÓÃÆô¶¯³É¹¦");
     int result = app.run();
-    SPDLOG_INFO("åº”ç”¨é€€å‡ºï¼Œè¿”å›ï¿½? {}", result);
+    SPDLOG_INFO("Ó¦ÓÃÍË³ö£¬·µ»Ø?? {}", result);
 
     return result;
 }
@@ -561,7 +561,7 @@ std::string GuiTemplate::getMainWindowHeaderContent() {
 #include <memory>
 #include <spdlog/spdlog.h>
 
-// å‰å‘å£°æ˜
+// Ç°ÏòÉùÃ÷
 namespace Ui {
 class MainWindow;
 }
@@ -576,25 +576,25 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 
-    // åˆå§‹åŒ–çª—ï¿½?
+    // ³õÊ¼»¯´°??
     bool initialize();
 
 private slots:
-    // æ§½å‡½ï¿½?
+    // ²Ûº¯??
     void onActionExit();
     void onActionAbout();
 
 private:
-    // UIè®¾è®¡å™¨ç”Ÿæˆçš„UIï¿½?
+    // UIÉè¼ÆÆ÷Éú³ÉµÄUI??
     std::unique_ptr<Ui::MainWindow> ui;
 
-    // åˆå§‹åŒ–èœï¿½?
+    // ³õÊ¼»¯²Ë??
     void setupMenus();
 
-    // åˆå§‹åŒ–çŠ¶æ€æ 
+    // ³õÊ¼»¯×´Ì¬À¸
     void setupStatusBar();
 
-    // è¿æ¥ä¿¡å·å’Œæ§½
+    // Á¬½ÓĞÅºÅºÍ²Û
     void connectSignals();
 };
 
@@ -618,7 +618,7 @@ private:
 namespace )" + options_.projectName +
                R"( {
 
-// çª—å£æ ‡è¯†ï¿½?
+// ´°¿Ú±êÊ¶??
 enum {
     ID_MAIN_WINDOW = wxID_HIGHEST + 1,
     ID_MENU_EXIT,
@@ -630,25 +630,25 @@ public:
     MainWindow(const wxString& title, const wxPoint& pos, const wxSize& size);
     ~MainWindow() override;
 
-    // åˆå§‹åŒ–çª—ï¿½?
+    // ³õÊ¼»¯´°??
     bool initialize();
 
 private:
-    // UIæ§ä»¶
+    // UI¿Ø¼ş
     wxMenuBar* menuBar{nullptr};
     wxStatusBar* statusBar{nullptr};
     wxPanel* mainPanel{nullptr};
 
-    // åˆå§‹åŒ–UI
+    // ³õÊ¼»¯UI
     void setupMenus();
     void setupStatusBar();
     void setupControls();
 
-    // äº‹ä»¶å¤„ç†
+    // ÊÂ¼ş´¦Àí
     void onExit(wxCommandEvent& event);
     void onAbout(wxCommandEvent& event);
 
-    // äº‹ä»¶ï¿½?
+    // ÊÂ¼ş??
     wxDECLARE_EVENT_TABLE();
 };
 
@@ -677,32 +677,32 @@ public:
     MainWindow();
     ~MainWindow();
 
-    // åˆå§‹åŒ–çª—ï¿½?
+    // ³õÊ¼»¯´°??
     bool initialize();
 
-    // æ˜¾ç¤ºçª—å£
+    // ÏÔÊ¾´°¿Ú
     void show();
 
-    // è·å–GTKçª—å£æ§ä»¶
+    // »ñÈ¡GTK´°¿Ú¿Ø¼ş
     GtkWidget* getWidget() const { return window; }
 
 private:
-    // GTKæ§ä»¶
+    // GTK¿Ø¼ş
     GtkWidget* window{nullptr};
     GtkWidget* mainBox{nullptr};
     GtkWidget* menuBar{nullptr};
     GtkWidget* statusBar{nullptr};
 
-    // UIæ–‡ä»¶è·¯å¾„
+    // UIÎÄ¼şÂ·¾¶
     std::string uiFilePath;
 
-    // åˆå§‹åŒ–UI
+    // ³õÊ¼»¯UI
     void setupUI();
     void setupMenus();
     void setupStatusBar();
     void setupSignals();
 
-    // å›è°ƒå‡½æ•°
+    // »Øµ÷º¯Êı
     static void onExit(GtkWidget* widget, gpointer data);
     static void onAbout(GtkWidget* widget, gpointer data);
 };
@@ -715,7 +715,7 @@ private:
 )";
     }
 
-    // é»˜è®¤è¿”å›ä¸€ä¸ªé€šç”¨å®ç°
+    // Ä¬ÈÏ·µ»ØÒ»¸öÍ¨ÓÃÊµÏÖ
     return R"(#pragma once
 #ifndef )" +
            headerGuard + R"(
@@ -733,23 +733,23 @@ public:
     MainWindow();
     ~MainWindow();
 
-    // åˆå§‹åŒ–çª—ï¿½?
+    // ³õÊ¼»¯´°??
     bool initialize();
 
-    // æ˜¾ç¤ºçª—å£
+    // ÏÔÊ¾´°¿Ú
     void show();
 
-    // çª—å£æ˜¯å¦å¯è§
+    // ´°¿ÚÊÇ·ñ¿É¼û
     bool isVisible() const;
 
 private:
-    // çª—å£æ˜¯å¦å·²åˆå§‹åŒ–
+    // ´°¿ÚÊÇ·ñÒÑ³õÊ¼»¯
     bool initialized{false};
 
-    // çª—å£æ˜¯å¦å¯è§
+    // ´°¿ÚÊÇ·ñ¿É¼û
     bool visible{false};
 
-    // åˆå§‹åŒ–UI
+    // ³õÊ¼»¯UI
     void setupUI();
 };
 
@@ -776,73 +776,73 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    SPDLOG_DEBUG("MainWindowæ„é€ å‡½ï¿½?);
+    SPDLOG_DEBUG("MainWindow¹¹Ôìº¯??);
 }
 
 MainWindow::~MainWindow()
 {
-    SPDLOG_DEBUG("MainWindowææ„å‡½æ•°");
+    SPDLOG_DEBUG("MainWindowÎö¹¹º¯Êı");
 }
 
 bool MainWindow::initialize()
 {
-    SPDLOG_DEBUG("åˆå§‹åŒ–MainWindow");
+    SPDLOG_DEBUG("³õÊ¼»¯MainWindow");
 
-    // è®¾ç½®UI
+    // ÉèÖÃUI
     ui->setupUi(this);
 
-    // è®¾ç½®çª—å£æ ‡é¢˜
+    // ÉèÖÃ´°¿Ú±êÌâ
     setWindowTitle(tr(")" +
                options_.projectName + R"("));
 
-    // åˆå§‹åŒ–èœï¿½?
+    // ³õÊ¼»¯²Ë??
     setupMenus();
 
-    // åˆå§‹åŒ–çŠ¶æ€æ 
+    // ³õÊ¼»¯×´Ì¬À¸
     setupStatusBar();
 
-    // è¿æ¥ä¿¡å·å’Œæ§½
+    // Á¬½ÓĞÅºÅºÍ²Û
     connectSignals();
 
-    SPDLOG_INFO("MainWindowåˆå§‹åŒ–å®Œï¿½?);
+    SPDLOG_INFO("MainWindow³õÊ¼»¯Íê??);
     return true;
 }
 
 void MainWindow::setupMenus()
 {
-    SPDLOG_DEBUG("è®¾ç½®èœå•");
+    SPDLOG_DEBUG("ÉèÖÃ²Ëµ¥");
 
-    // è¿æ¥é€€å‡ºæ“ï¿½?
+    // Á¬½ÓÍË³ö²Ù??
     connect(ui->actionExit, &QAction::triggered, this, &MainWindow::onActionExit);
 
-    // è¿æ¥å…³äºæ“ä½œ
+    // Á¬½Ó¹ØÓÚ²Ù×÷
     connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::onActionAbout);
 }
 
 void MainWindow::setupStatusBar()
 {
-    SPDLOG_DEBUG("è®¾ç½®çŠ¶æ€æ ");
-    statusBar()->showMessage(tr("å°±ç»ª"));
+    SPDLOG_DEBUG("ÉèÖÃ×´Ì¬À¸");
+    statusBar()->showMessage(tr("¾ÍĞ÷"));
 }
 
 void MainWindow::connectSignals()
 {
-    SPDLOG_DEBUG("è¿æ¥ä¿¡å·å’Œæ§½");
+    SPDLOG_DEBUG("Á¬½ÓĞÅºÅºÍ²Û");
 }
 
 void MainWindow::onActionExit()
 {
-    SPDLOG_DEBUG("è§¦å‘é€€å‡ºæ“ï¿½?);
+    SPDLOG_DEBUG("´¥·¢ÍË³ö²Ù??);
     close();
 }
 
 void MainWindow::onActionAbout()
 {
-    SPDLOG_DEBUG("è§¦å‘å…³äºæ“ä½œ");
-    QMessageBox::about(this, tr("å…³äº"),
+    SPDLOG_DEBUG("´¥·¢¹ØÓÚ²Ù×÷");
+    QMessageBox::about(this, tr("¹ØÓÚ"),
                        tr(")" +
                options_.projectName + R"( v1.0\n\n"
-                          "ä¸€ä¸ªä½¿ç”¨Qtæ¡†æ¶çš„GUIåº”ç”¨ï¿½?));
+                          "Ò»¸öÊ¹ÓÃQt¿ò¼ÜµÄGUIÓ¦ÓÃ??));
 }
 
 } // namespace )" +
@@ -856,7 +856,7 @@ void MainWindow::onActionAbout()
 namespace )" + options_.projectName +
                R"( {
 
-// äº‹ä»¶è¡¨å®šï¿½?
+// ÊÂ¼ş±í¶¨??
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
     EVT_MENU(ID_MENU_EXIT, MainWindow::onExit)
     EVT_MENU(ID_MENU_ABOUT, MainWindow::onAbout)
@@ -865,97 +865,97 @@ wxEND_EVENT_TABLE()
 MainWindow::MainWindow(const wxString& title, const wxPoint& pos, const wxSize& size)
     : wxFrame(nullptr, ID_MAIN_WINDOW, title, pos, size)
 {
-    SPDLOG_DEBUG("MainWindowæ„é€ å‡½ï¿½?);
+    SPDLOG_DEBUG("MainWindow¹¹Ôìº¯??);
 }
 
 MainWindow::~MainWindow()
 {
-    SPDLOG_DEBUG("MainWindowææ„å‡½æ•°");
+    SPDLOG_DEBUG("MainWindowÎö¹¹º¯Êı");
 }
 
 bool MainWindow::initialize()
 {
-    SPDLOG_DEBUG("åˆå§‹åŒ–MainWindow");
+    SPDLOG_DEBUG("³õÊ¼»¯MainWindow");
 
-    // è®¾ç½®å›¾æ ‡
+    // ÉèÖÃÍ¼±ê
     // SetIcon(wxIcon("APPICON"));
 
-    // åˆ›å»ºUIå…ƒç´ 
+    // ´´½¨UIÔªËØ
     setupMenus();
     setupStatusBar();
     setupControls();
 
-    SPDLOG_INFO("MainWindowåˆå§‹åŒ–å®Œï¿½?);
+    SPDLOG_INFO("MainWindow³õÊ¼»¯Íê??);
     return true;
 }
 
 void MainWindow::setupMenus()
 {
-    SPDLOG_DEBUG("è®¾ç½®èœå•");
+    SPDLOG_DEBUG("ÉèÖÃ²Ëµ¥");
 
-    // åˆ›å»ºæ–‡ä»¶èœå•
+    // ´´½¨ÎÄ¼ş²Ëµ¥
     wxMenu *menuFile = new wxMenu;
-    menuFile->Append(ID_MENU_EXIT, "é€€å‡º\tAlt+F4", "é€€å‡ºåº”ç”¨ç¨‹ï¿½?);
+    menuFile->Append(ID_MENU_EXIT, "ÍË³ö\tAlt+F4", "ÍË³öÓ¦ÓÃ³Ì??);
 
-    // åˆ›å»ºå¸®åŠ©èœå•
+    // ´´½¨°ïÖú²Ëµ¥
     wxMenu *menuHelp = new wxMenu;
-    menuHelp->Append(ID_MENU_ABOUT, "å…³äº...\tF1", "æ˜¾ç¤ºå…³äºå¯¹è¯ï¿½?);
+    menuHelp->Append(ID_MENU_ABOUT, "¹ØÓÚ...\tF1", "ÏÔÊ¾¹ØÓÚ¶Ô»°??);
 
-    // åˆ›å»ºèœå•ï¿½?
+    // ´´½¨²Ëµ¥??
     menuBar = new wxMenuBar;
-    menuBar->Append(menuFile, "æ–‡ä»¶");
-    menuBar->Append(menuHelp, "å¸®åŠ©");
+    menuBar->Append(menuFile, "ÎÄ¼ş");
+    menuBar->Append(menuHelp, "°ïÖú");
 
-    // è®¾ç½®èœå•ï¿½?
+    // ÉèÖÃ²Ëµ¥??
     SetMenuBar(menuBar);
 }
 
 void MainWindow::setupStatusBar()
 {
-    SPDLOG_DEBUG("è®¾ç½®çŠ¶æ€æ ");
+    SPDLOG_DEBUG("ÉèÖÃ×´Ì¬À¸");
 
-    // åˆ›å»ºçŠ¶æ€æ 
+    // ´´½¨×´Ì¬À¸
     statusBar = CreateStatusBar(1);
-    statusBar->SetStatusText("å°±ç»ª");
+    statusBar->SetStatusText("¾ÍĞ÷");
 }
 
 void MainWindow::setupControls()
 {
-    SPDLOG_DEBUG("è®¾ç½®æ§ä»¶");
+    SPDLOG_DEBUG("ÉèÖÃ¿Ø¼ş");
 
-    // åˆ›å»ºä¸»é¢ï¿½?
+    // ´´½¨Ö÷Ãæ??
     mainPanel = new wxPanel(this, wxID_ANY);
 
-    // åˆ›å»ºä¸€ä¸ªç®€å•çš„å¸ƒå±€
+    // ´´½¨Ò»¸ö¼òµ¥µÄ²¼¾Ö
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 
-    // æ·»åŠ ä¸€ä¸ªæ–‡æœ¬æ ‡ï¿½?
+    // Ìí¼ÓÒ»¸öÎÄ±¾±ê??
     sizer->Add(
-        new wxStaticText(mainPanel, wxID_ANY, "æ¬¢è¿ä½¿ç”¨ )" +
+        new wxStaticText(mainPanel, wxID_ANY, "»¶Ó­Ê¹ÓÃ )" +
                options_.projectName + R"("),
         0, wxALL | wxALIGN_CENTER_HORIZONTAL, 20
     );
 
-    // è®¾ç½®é¢æ¿å¸ƒå±€
+    // ÉèÖÃÃæ°å²¼¾Ö
     mainPanel->SetSizer(sizer);
     mainPanel->Layout();
 }
 
 void MainWindow::onExit(wxCommandEvent& event)
 {
-    SPDLOG_DEBUG("è§¦å‘é€€å‡ºæ“ï¿½?);
+    SPDLOG_DEBUG("´¥·¢ÍË³ö²Ù??);
     Close(true);
 }
 
 void MainWindow::onAbout(wxCommandEvent& event)
 {
-    SPDLOG_DEBUG("è§¦å‘å…³äºæ“ä½œ");
+    SPDLOG_DEBUG("´¥·¢¹ØÓÚ²Ù×÷");
 
     wxAboutDialogInfo aboutInfo;
     aboutInfo.SetName(")" +
                options_.projectName + R"(");
     aboutInfo.SetVersion("1.0");
-    aboutInfo.SetDescription("ä¸€ä¸ªä½¿ç”¨wxWidgetsæ¡†æ¶çš„GUIåº”ç”¨");
+    aboutInfo.SetDescription("Ò»¸öÊ¹ÓÃwxWidgets¿ò¼ÜµÄGUIÓ¦ÓÃ");
     aboutInfo.SetCopyright("(C) 2025");
 
     wxAboutBox(aboutInfo);
@@ -974,12 +974,12 @@ namespace )" + options_.projectName +
 MainWindow::MainWindow()
     : uiFilePath("ui/main_window.glade")
 {
-    SPDLOG_DEBUG("MainWindowæ„é€ å‡½ï¿½?);
+    SPDLOG_DEBUG("MainWindow¹¹Ôìº¯??);
 }
 
 MainWindow::~MainWindow()
 {
-    SPDLOG_DEBUG("MainWindowææ„å‡½æ•°");
+    SPDLOG_DEBUG("MainWindowÎö¹¹º¯Êı");
     if (window) {
         gtk_widget_destroy(window);
     }
@@ -987,51 +987,51 @@ MainWindow::~MainWindow()
 
 bool MainWindow::initialize()
 {
-    SPDLOG_DEBUG("åˆå§‹åŒ–MainWindow");
+    SPDLOG_DEBUG("³õÊ¼»¯MainWindow");
 
-    // ä»Gladeæ–‡ä»¶åŠ è½½ç•Œé¢
+    // ´ÓGladeÎÄ¼ş¼ÓÔØ½çÃæ
     GtkBuilder* builder = gtk_builder_new();
 
     if (gtk_builder_add_from_file(builder, uiFilePath.c_str(), nullptr) == 0) {
-        SPDLOG_ERROR("æ— æ³•åŠ è½½UIæ–‡ä»¶: {}", uiFilePath);
+        SPDLOG_ERROR("ÎŞ·¨¼ÓÔØUIÎÄ¼ş: {}", uiFilePath);
         g_object_unref(builder);
         return false;
     }
 
-    // è·å–ä¸»çª—å£æ§ï¿½?
+    // »ñÈ¡Ö÷´°¿Ú¿Ø??
     window = GTK_WIDGET(gtk_builder_get_object(builder, "main_window"));
     if (!window) {
-        SPDLOG_ERROR("æ— æ³•è·å–ä¸»çª—å£æ§ï¿½?);
+        SPDLOG_ERROR("ÎŞ·¨»ñÈ¡Ö÷´°¿Ú¿Ø??);
         g_object_unref(builder);
         return false;
     }
 
-    // è·å–å…¶ä»–æ§ä»¶
+    // »ñÈ¡ÆäËû¿Ø¼ş
     menuBar = GTK_WIDGET(gtk_builder_get_object(builder, "menubar"));
     statusBar = GTK_WIDGET(gtk_builder_get_object(builder, "statusbar"));
 
-    // è®¾ç½®ä¿¡å·
+    // ÉèÖÃĞÅºÅ
     g_signal_connect(gtk_builder_get_object(builder, "menu_exit"), "activate",
                     G_CALLBACK(onExit), this);
     g_signal_connect(gtk_builder_get_object(builder, "menu_about"), "activate",
                     G_CALLBACK(onAbout), this);
 
-    // çª—å£å…³é—­æ—¶é€€å‡ºåº”ï¿½?
+    // ´°¿Ú¹Ø±ÕÊ±ÍË³öÓ¦??
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), nullptr);
 
-    // æ˜¾ç¤ºæ‰€æœ‰æ§ï¿½?
+    // ÏÔÊ¾ËùÓĞ¿Ø??
     gtk_widget_show_all(window);
 
-    // é‡Šæ”¾æ„å»ºï¿½?
+    // ÊÍ·Å¹¹½¨??
     g_object_unref(builder);
 
-    SPDLOG_INFO("MainWindowåˆå§‹åŒ–å®Œï¿½?);
+    SPDLOG_INFO("MainWindow³õÊ¼»¯Íê??);
     return true;
 }
 
 void MainWindow::show()
 {
-    SPDLOG_DEBUG("æ˜¾ç¤ºMainWindow");
+    SPDLOG_DEBUG("ÏÔÊ¾MainWindow");
     if (window) {
         gtk_widget_show(window);
     }
@@ -1039,33 +1039,33 @@ void MainWindow::show()
 
 void MainWindow::setupUI()
 {
-    SPDLOG_DEBUG("è®¾ç½®UI");
+    SPDLOG_DEBUG("ÉèÖÃUI");
 }
 
 void MainWindow::setupMenus()
 {
-    SPDLOG_DEBUG("è®¾ç½®èœå•");
+    SPDLOG_DEBUG("ÉèÖÃ²Ëµ¥");
 }
 
 void MainWindow::setupStatusBar()
 {
-    SPDLOG_DEBUG("è®¾ç½®çŠ¶æ€æ ");
+    SPDLOG_DEBUG("ÉèÖÃ×´Ì¬À¸");
 }
 
 void MainWindow::setupSignals()
 {
-    SPDLOG_DEBUG("è®¾ç½®ä¿¡å·");
+    SPDLOG_DEBUG("ÉèÖÃĞÅºÅ");
 }
 
 void MainWindow::onExit(GtkWidget* widget, gpointer data)
 {
-    SPDLOG_DEBUG("è§¦å‘é€€å‡ºæ“ï¿½?);
+    SPDLOG_DEBUG("´¥·¢ÍË³ö²Ù??);
     gtk_main_quit();
 }
 
 void MainWindow::onAbout(GtkWidget* widget, gpointer data)
 {
-    SPDLOG_DEBUG("è§¦å‘å…³äºæ“ä½œ");
+    SPDLOG_DEBUG("´¥·¢¹ØÓÚ²Ù×÷");
 
     GtkWidget* dialog = gtk_about_dialog_new();
     GtkAboutDialog* about_dialog = GTK_ABOUT_DIALOG(dialog);
@@ -1074,7 +1074,7 @@ void MainWindow::onAbout(GtkWidget* widget, gpointer data)
                options_.projectName + R"(");
     gtk_about_dialog_set_version(about_dialog, "1.0");
     gtk_about_dialog_set_copyright(about_dialog, "(C) 2025");
-    gtk_about_dialog_set_comments(about_dialog, "ä¸€ä¸ªä½¿ç”¨GTKæ¡†æ¶çš„GUIåº”ç”¨");
+    gtk_about_dialog_set_comments(about_dialog, "Ò»¸öÊ¹ÓÃGTK¿ò¼ÜµÄGUIÓ¦ÓÃ");
 
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
@@ -1085,7 +1085,7 @@ void MainWindow::onAbout(GtkWidget* widget, gpointer data)
 )";
     }
 
-    // é»˜è®¤è¿”å›ä¸€ä¸ªé€šç”¨ï¿½?
+    // Ä¬ÈÏ·µ»ØÒ»¸öÍ¨ÓÃ??
     return R"(#include ")" + options_.projectName + R"(/main_window.h"
 
 namespace )" +
@@ -1093,30 +1093,30 @@ namespace )" +
 
 MainWindow::MainWindow()
 {
-    SPDLOG_DEBUG("MainWindowæ„é€ å‡½ï¿½?);
+    SPDLOG_DEBUG("MainWindow¹¹Ôìº¯??);
 }
 
 MainWindow::~MainWindow()
 {
-    SPDLOG_DEBUG("MainWindowææ„å‡½æ•°");
+    SPDLOG_DEBUG("MainWindowÎö¹¹º¯Êı");
 }
 
 bool MainWindow::initialize()
 {
-    SPDLOG_DEBUG("åˆå§‹åŒ–MainWindow");
+    SPDLOG_DEBUG("³õÊ¼»¯MainWindow");
     initialized = true;
-    SPDLOG_INFO("MainWindowåˆå§‹åŒ–å®Œï¿½?);
+    SPDLOG_INFO("MainWindow³õÊ¼»¯Íê??);
     return true;
 }
 
 void MainWindow::show()
 {
-    SPDLOG_DEBUG("æ˜¾ç¤ºMainWindow");
+    SPDLOG_DEBUG("ÏÔÊ¾MainWindow");
     if (initialized) {
         visible = true;
-        SPDLOG_INFO("MainWindowç°åœ¨å¯è§");
+        SPDLOG_INFO("MainWindowÏÖÔÚ¿É¼û");
     } else {
-        SPDLOG_ERROR("å°è¯•æ˜¾ç¤ºæœªåˆå§‹åŒ–çš„çª—ï¿½?);
+        SPDLOG_ERROR("³¢ÊÔÏÔÊ¾Î´³õÊ¼»¯µÄ´°??);
     }
 }
 
@@ -1127,7 +1127,7 @@ bool MainWindow::isVisible() const
 
 void MainWindow::setupUI()
 {
-    SPDLOG_DEBUG("è®¾ç½®UI");
+    SPDLOG_DEBUG("ÉèÖÃUI");
 }
 
 } // namespace )" +
@@ -1160,20 +1160,20 @@ public:
     Application();
     ~Application() override;
 
-    // åˆå§‹åŒ–åº”ç”¨ç¨‹ï¿½?
+    // ³õÊ¼»¯Ó¦ÓÃ³Ì??
     bool initialize();
 
-    // è·å–ä¸»çª—ï¿½?
+    // »ñÈ¡Ö÷´°??
     MainWindow* mainWindow() { return mainWindow_.get(); }
 
 private:
-    // ä¸»çª—ï¿½?
+    // Ö÷´°??
     std::unique_ptr<MainWindow> mainWindow_;
 
-    // åŠ è½½åº”ç”¨ç¨‹åºé…ç½®
+    // ¼ÓÔØÓ¦ÓÃ³ÌĞòÅäÖÃ
     bool loadSettings();
 
-    // ä¿å­˜åº”ç”¨ç¨‹åºé…ç½®
+    // ±£´æÓ¦ÓÃ³ÌĞòÅäÖÃ
     bool saveSettings();
 };
 
@@ -1203,23 +1203,23 @@ public:
     Application();
     virtual ~Application();
 
-    // wxWidgetsåº”ç”¨åˆå§‹ï¿½?
+    // wxWidgetsÓ¦ÓÃ³õÊ¼??
     bool OnInit() override;
 
-    // wxWidgetsåº”ç”¨é€€ï¿½?
+    // wxWidgetsÓ¦ÓÃÍË??
     int OnExit() override;
 
-    // è·å–ä¸»çª—ï¿½?
+    // »ñÈ¡Ö÷´°??
     MainWindow* getMainWindow() { return mainWindow_; }
 
 private:
-    // ä¸»çª—ï¿½?
+    // Ö÷´°??
     MainWindow* mainWindow_{nullptr};
 
-    // åŠ è½½åº”ç”¨ç¨‹åºé…ç½®
+    // ¼ÓÔØÓ¦ÓÃ³ÌĞòÅäÖÃ
     bool loadSettings();
 
-    // ä¿å­˜åº”ç”¨ç¨‹åºé…ç½®
+    // ±£´æÓ¦ÓÃ³ÌĞòÅäÖÃ
     bool saveSettings();
 };
 
@@ -1248,23 +1248,23 @@ public:
     Application();
     ~Application();
 
-    // åˆå§‹åŒ–åº”ç”¨ç¨‹ï¿½?
+    // ³õÊ¼»¯Ó¦ÓÃ³Ì??
     bool initialize();
 
-    // è¿è¡Œåº”ç”¨ç¨‹åº
+    // ÔËĞĞÓ¦ÓÃ³ÌĞò
     int run();
 
-    // è·å–ä¸»çª—ï¿½?
+    // »ñÈ¡Ö÷´°??
     MainWindow* getMainWindow() { return mainWindow_.get(); }
 
 private:
-    // ä¸»çª—ï¿½?
+    // Ö÷´°??
     std::unique_ptr<MainWindow> mainWindow_;
 
-    // åŠ è½½åº”ç”¨ç¨‹åºé…ç½®
+    // ¼ÓÔØÓ¦ÓÃ³ÌĞòÅäÖÃ
     bool loadSettings();
 
-    // ä¿å­˜åº”ç”¨ç¨‹åºé…ç½®
+    // ±£´æÓ¦ÓÃ³ÌĞòÅäÖÃ
     bool saveSettings();
 };
 
@@ -1276,7 +1276,7 @@ private:
 )";
     }
 
-    // é»˜è®¤è¿”å›é€šç”¨ï¿½?
+    // Ä¬ÈÏ·µ»ØÍ¨ÓÃ??
     return R"(#pragma once
 #ifndef )" +
            headerGuard + R"(
@@ -1295,26 +1295,26 @@ public:
     Application();
     ~Application();
 
-    // åˆå§‹åŒ–åº”ç”¨ç¨‹ï¿½?
+    // ³õÊ¼»¯Ó¦ÓÃ³Ì??
     bool initialize();
 
-    // è¿è¡Œåº”ç”¨ç¨‹åºä¸»å¾ªï¿½?
+    // ÔËĞĞÓ¦ÓÃ³ÌĞòÖ÷Ñ­??
     int run();
 
-    // è·å–ä¸»çª—ï¿½?
+    // »ñÈ¡Ö÷´°??
     MainWindow* getMainWindow() { return mainWindow_.get(); }
 
 private:
-    // ä¸»çª—ï¿½?
+    // Ö÷´°??
     std::unique_ptr<MainWindow> mainWindow_;
 
-    // åº”ç”¨ç¨‹åºæ˜¯å¦æ­£åœ¨è¿è¡Œ
+    // Ó¦ÓÃ³ÌĞòÊÇ·ñÕıÔÚÔËĞĞ
     bool running{false};
 
-    // åŠ è½½åº”ç”¨ç¨‹åºé…ç½®
+    // ¼ÓÔØÓ¦ÓÃ³ÌĞòÅäÖÃ
     bool loadSettings();
 
-    // ä¿å­˜åº”ç”¨ç¨‹åºé…ç½®
+    // ±£´æÓ¦ÓÃ³ÌĞòÅäÖÃ
     bool saveSettings();
 };
 
@@ -1336,49 +1336,49 @@ namespace )" + options_.projectName +
 Application::Application()
     : QObject(nullptr)
 {
-    SPDLOG_DEBUG("Applicationæ„é€ å‡½ï¿½?);
+    SPDLOG_DEBUG("Application¹¹Ôìº¯??);
 }
 
 Application::~Application()
 {
-    SPDLOG_DEBUG("Applicationææ„å‡½æ•°");
+    SPDLOG_DEBUG("ApplicationÎö¹¹º¯Êı");
     saveSettings();
 }
 
 bool Application::initialize()
 {
-    SPDLOG_INFO("åˆå§‹åŒ–åº”ç”¨ç¨‹ï¿½?);
+    SPDLOG_INFO("³õÊ¼»¯Ó¦ÓÃ³Ì??);
 
-    // åŠ è½½è®¾ç½®
+    // ¼ÓÔØÉèÖÃ
     if (!loadSettings()) {
-        SPDLOG_WARN("æ— æ³•åŠ è½½åº”ç”¨ç¨‹åºè®¾ç½®");
+        SPDLOG_WARN("ÎŞ·¨¼ÓÔØÓ¦ÓÃ³ÌĞòÉèÖÃ");
     }
 
-    // åˆ›å»ºå¹¶åˆå§‹åŒ–ä¸»çª—ï¿½?
+    // ´´½¨²¢³õÊ¼»¯Ö÷´°??
     mainWindow_ = std::make_unique<MainWindow>();
     if (!mainWindow_->initialize()) {
-        SPDLOG_ERROR("åˆå§‹åŒ–ä¸»çª—å£å¤±è´¥");
+        SPDLOG_ERROR("³õÊ¼»¯Ö÷´°¿ÚÊ§°Ü");
         return false;
     }
 
-    // æ˜¾ç¤ºä¸»çª—ï¿½?
+    // ÏÔÊ¾Ö÷´°??
     mainWindow_->show();
 
-    SPDLOG_INFO("åº”ç”¨ç¨‹åºåˆå§‹åŒ–å®Œï¿½?);
+    SPDLOG_INFO("Ó¦ÓÃ³ÌĞò³õÊ¼»¯Íê??);
     return true;
 }
 
 bool Application::loadSettings()
 {
-    SPDLOG_DEBUG("åŠ è½½åº”ç”¨ç¨‹åºè®¾ç½®");
-    // TODO: å®ç°è®¾ç½®åŠ è½½é€»è¾‘
+    SPDLOG_DEBUG("¼ÓÔØÓ¦ÓÃ³ÌĞòÉèÖÃ");
+    // TODO: ÊµÏÖÉèÖÃ¼ÓÔØÂß¼­
     return true;
 }
 
 bool Application::saveSettings()
 {
-    SPDLOG_DEBUG("ä¿å­˜åº”ç”¨ç¨‹åºè®¾ç½®");
-    // TODO: å®ç°è®¾ç½®ä¿å­˜é€»è¾‘
+    SPDLOG_DEBUG("±£´æÓ¦ÓÃ³ÌĞòÉèÖÃ");
+    // TODO: ÊµÏÖÉèÖÃ±£´æÂß¼­
     return true;
 }
 
@@ -1393,48 +1393,48 @@ namespace )" + options_.projectName +
 
 Application::Application()
 {
-    SPDLOG_DEBUG("Applicationæ„é€ å‡½ï¿½?);
+    SPDLOG_DEBUG("Application¹¹Ôìº¯??);
 }
 
 Application::~Application()
 {
-    SPDLOG_DEBUG("Applicationææ„å‡½æ•°");
+    SPDLOG_DEBUG("ApplicationÎö¹¹º¯Êı");
     saveSettings();
 }
 
 bool Application::OnInit()
 {
-    SPDLOG_INFO("åˆå§‹åŒ–åº”ç”¨ç¨‹ï¿½?);
+    SPDLOG_INFO("³õÊ¼»¯Ó¦ÓÃ³Ì??);
 
-    // è®¾ç½®åº”ç”¨ç¨‹åºåç§°
+    // ÉèÖÃÓ¦ÓÃ³ÌĞòÃû³Æ
     SetAppName(")" +
                options_.projectName + R"(");
 
-    // åŠ è½½è®¾ç½®
+    // ¼ÓÔØÉèÖÃ
     if (!loadSettings()) {
-        SPDLOG_WARN("æ— æ³•åŠ è½½åº”ç”¨ç¨‹åºè®¾ç½®");
+        SPDLOG_WARN("ÎŞ·¨¼ÓÔØÓ¦ÓÃ³ÌĞòÉèÖÃ");
     }
 
-    // åˆ›å»ºå¹¶åˆå§‹åŒ–ä¸»çª—ï¿½?
+    // ´´½¨²¢³õÊ¼»¯Ö÷´°??
     mainWindow_ = new MainWindow(")" +
                options_.projectName + R"(", wxPoint(50, 50), wxSize(800, 600));
     if (!mainWindow_->initialize()) {
-        SPDLOG_ERROR("åˆå§‹åŒ–ä¸»çª—å£å¤±è´¥");
+        SPDLOG_ERROR("³õÊ¼»¯Ö÷´°¿ÚÊ§°Ü");
         return false;
     }
 
-    // æ˜¾ç¤ºä¸»çª—ï¿½?
+    // ÏÔÊ¾Ö÷´°??
     mainWindow_->Show(true);
 
-    SPDLOG_INFO("åº”ç”¨ç¨‹åºåˆå§‹åŒ–å®Œï¿½?);
+    SPDLOG_INFO("Ó¦ÓÃ³ÌĞò³õÊ¼»¯Íê??);
     return true;
 }
 
 int Application::OnExit()
 {
-    SPDLOG_INFO("åº”ç”¨ç¨‹åºé€€ï¿½?);
+    SPDLOG_INFO("Ó¦ÓÃ³ÌĞòÍË??);
 
-    // ä¿å­˜è®¾ç½®
+    // ±£´æÉèÖÃ
     saveSettings();
 
     return wxApp::OnExit();
@@ -1442,15 +1442,15 @@ int Application::OnExit()
 
 bool Application::loadSettings()
 {
-    SPDLOG_DEBUG("åŠ è½½åº”ç”¨ç¨‹åºè®¾ç½®");
-    // TODO: å®ç°è®¾ç½®åŠ è½½é€»è¾‘
+    SPDLOG_DEBUG("¼ÓÔØÓ¦ÓÃ³ÌĞòÉèÖÃ");
+    // TODO: ÊµÏÖÉèÖÃ¼ÓÔØÂß¼­
     return true;
 }
 
 bool Application::saveSettings()
 {
-    SPDLOG_DEBUG("ä¿å­˜åº”ç”¨ç¨‹åºè®¾ç½®");
-    // TODO: å®ç°è®¾ç½®ä¿å­˜é€»è¾‘
+    SPDLOG_DEBUG("±£´æÓ¦ÓÃ³ÌĞòÉèÖÃ");
+    // TODO: ÊµÏÖÉèÖÃ±£´æÂß¼­
     return true;
 }
 
@@ -1465,40 +1465,40 @@ namespace )" + options_.projectName +
 
 Application::Application()
 {
-    SPDLOG_DEBUG("Applicationæ„é€ å‡½ï¿½?);
+    SPDLOG_DEBUG("Application¹¹Ôìº¯??);
 }
 
 Application::~Application()
 {
-    SPDLOG_DEBUG("Applicationææ„å‡½æ•°");
+    SPDLOG_DEBUG("ApplicationÎö¹¹º¯Êı");
     saveSettings();
 }
 
 bool Application::initialize()
 {
-    SPDLOG_INFO("åˆå§‹åŒ–åº”ç”¨ç¨‹ï¿½?);
+    SPDLOG_INFO("³õÊ¼»¯Ó¦ÓÃ³Ì??);
 
-    // åŠ è½½è®¾ç½®
+    // ¼ÓÔØÉèÖÃ
     if (!loadSettings()) {
-        SPDLOG_WARN("æ— æ³•åŠ è½½åº”ç”¨ç¨‹åºè®¾ç½®");
+        SPDLOG_WARN("ÎŞ·¨¼ÓÔØÓ¦ÓÃ³ÌĞòÉèÖÃ");
     }
 
-    // åˆ›å»ºå¹¶åˆå§‹åŒ–ä¸»çª—ï¿½?
+    // ´´½¨²¢³õÊ¼»¯Ö÷´°??
     mainWindow_ = std::make_unique<MainWindow>();
     if (!mainWindow_->initialize()) {
-        SPDLOG_ERROR("åˆå§‹åŒ–ä¸»çª—å£å¤±è´¥");
+        SPDLOG_ERROR("³õÊ¼»¯Ö÷´°¿ÚÊ§°Ü");
         return false;
     }
 
-    SPDLOG_INFO("åº”ç”¨ç¨‹åºåˆå§‹åŒ–å®Œï¿½?);
+    SPDLOG_INFO("Ó¦ÓÃ³ÌĞò³õÊ¼»¯Íê??);
     return true;
 }
 
 int Application::run()
 {
-    SPDLOG_INFO("è¿è¡Œåº”ç”¨ç¨‹åº");
+    SPDLOG_INFO("ÔËĞĞÓ¦ÓÃ³ÌĞò");
 
-    // è¿è¡ŒGTKä¸»å¾ªï¿½?
+    // ÔËĞĞGTKÖ÷Ñ­??
     gtk_main();
 
     return 0;
@@ -1506,15 +1506,15 @@ int Application::run()
 
 bool Application::loadSettings()
 {
-    SPDLOG_DEBUG("åŠ è½½åº”ç”¨ç¨‹åºè®¾ç½®");
-    // TODO: å®ç°è®¾ç½®åŠ è½½é€»è¾‘
+    SPDLOG_DEBUG("¼ÓÔØÓ¦ÓÃ³ÌĞòÉèÖÃ");
+    // TODO: ÊµÏÖÉèÖÃ¼ÓÔØÂß¼­
     return true;
 }
 
 bool Application::saveSettings()
 {
-    SPDLOG_DEBUG("ä¿å­˜åº”ç”¨ç¨‹åºè®¾ç½®");
-    // TODO: å®ç°è®¾ç½®ä¿å­˜é€»è¾‘
+    SPDLOG_DEBUG("±£´æÓ¦ÓÃ³ÌĞòÉèÖÃ");
+    // TODO: ÊµÏÖÉèÖÃ±£´æÂß¼­
     return true;
 }
 
@@ -1523,7 +1523,7 @@ bool Application::saveSettings()
 )";
     }
 
-    // é»˜è®¤è¿”å›é€šç”¨ï¿½?
+    // Ä¬ÈÏ·µ»ØÍ¨ÓÃ??
     return R"(#include ")" + options_.projectName + R"(/application.h"
 #include <chrono>
 #include <thread>
@@ -1533,79 +1533,79 @@ namespace )" +
 
 Application::Application()
 {
-    SPDLOG_DEBUG("Applicationæ„é€ å‡½ï¿½?);
+    SPDLOG_DEBUG("Application¹¹Ôìº¯??);
 }
 
 Application::~Application()
 {
-    SPDLOG_DEBUG("Applicationææ„å‡½æ•°");
+    SPDLOG_DEBUG("ApplicationÎö¹¹º¯Êı");
     saveSettings();
 }
 
 bool Application::initialize()
 {
-    SPDLOG_INFO("åˆå§‹åŒ–åº”ç”¨ç¨‹ï¿½?);
+    SPDLOG_INFO("³õÊ¼»¯Ó¦ÓÃ³Ì??);
 
-    // åŠ è½½è®¾ç½®
+    // ¼ÓÔØÉèÖÃ
     if (!loadSettings()) {
-        SPDLOG_WARN("æ— æ³•åŠ è½½åº”ç”¨ç¨‹åºè®¾ç½®");
+        SPDLOG_WARN("ÎŞ·¨¼ÓÔØÓ¦ÓÃ³ÌĞòÉèÖÃ");
     }
 
-    // åˆ›å»ºå¹¶åˆå§‹åŒ–ä¸»çª—ï¿½?
+    // ´´½¨²¢³õÊ¼»¯Ö÷´°??
     mainWindow_ = std::make_unique<MainWindow>();
     if (!mainWindow_->initialize()) {
-        SPDLOG_ERROR("åˆå§‹åŒ–ä¸»çª—å£å¤±è´¥");
+        SPDLOG_ERROR("³õÊ¼»¯Ö÷´°¿ÚÊ§°Ü");
         return false;
     }
 
-    SPDLOG_INFO("åº”ç”¨ç¨‹åºåˆå§‹åŒ–å®Œï¿½?);
+    SPDLOG_INFO("Ó¦ÓÃ³ÌĞò³õÊ¼»¯Íê??);
     return true;
 }
 
 int Application::run()
 {
-    SPDLOG_INFO("è¿è¡Œåº”ç”¨ç¨‹åº");
+    SPDLOG_INFO("ÔËĞĞÓ¦ÓÃ³ÌĞò");
 
     if (!mainWindow_) {
-        SPDLOG_ERROR("ä¸»çª—å£æœªåˆå§‹ï¿½?);
+        SPDLOG_ERROR("Ö÷´°¿ÚÎ´³õÊ¼??);
         return 1;
     }
 
-    // æ˜¾ç¤ºä¸»çª—ï¿½?
+    // ÏÔÊ¾Ö÷´°??
     mainWindow_->show();
 
-    // æ¨¡æ‹Ÿäº‹ä»¶å¾ªç¯
+    // Ä£ÄâÊÂ¼şÑ­»·
     running = true;
 
     while (running) {
-        // å¤„ç†äº‹ä»¶...
+        // ´¦ÀíÊÂ¼ş...
 
-        // æ¨¡æ‹Ÿäº‹ä»¶å¾ªç¯çš„æ—¶é—´ç‰‡
+        // Ä£ÄâÊÂ¼şÑ­»·µÄÊ±¼äÆ¬
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-        // åœ¨å®é™…åº”ç”¨ä¸­ï¼Œè¿™é‡Œä¼šæœ‰ä¸€ä¸ªçœŸæ­£çš„äº‹ä»¶å¾ªç¯
-        // å¯¹äºæœ¬ç¤ºä¾‹ï¼Œæˆ‘ä»¬åªæ˜¯æ¨¡æ‹Ÿå‡ ç§’é’Ÿç„¶åé€€ï¿½?
+        // ÔÚÊµ¼ÊÓ¦ÓÃÖĞ£¬ÕâÀï»áÓĞÒ»¸öÕæÕıµÄÊÂ¼şÑ­»·
+        // ¶ÔÓÚ±¾Ê¾Àı£¬ÎÒÃÇÖ»ÊÇÄ£Äâ¼¸ÃëÖÓÈ»ºóÍË??
         static int counter = 0;
-        if (++counter > 50) { // è¿è¡Œï¿½?ï¿½?
+        if (++counter > 50) { // ÔËĞĞ????
             running = false;
         }
     }
 
-    SPDLOG_INFO("åº”ç”¨ç¨‹åºä¸»å¾ªç¯ç»“ï¿½?);
+    SPDLOG_INFO("Ó¦ÓÃ³ÌĞòÖ÷Ñ­»·½á??);
     return 0;
 }
 
 bool Application::loadSettings()
 {
-    SPDLOG_DEBUG("åŠ è½½åº”ç”¨ç¨‹åºè®¾ç½®");
-    // TODO: å®ç°è®¾ç½®åŠ è½½é€»è¾‘
+    SPDLOG_DEBUG("¼ÓÔØÓ¦ÓÃ³ÌĞòÉèÖÃ");
+    // TODO: ÊµÏÖÉèÖÃ¼ÓÔØÂß¼­
     return true;
 }
 
 bool Application::saveSettings()
 {
-    SPDLOG_DEBUG("ä¿å­˜åº”ç”¨ç¨‹åºè®¾ç½®");
-    // TODO: å®ç°è®¾ç½®ä¿å­˜é€»è¾‘
+    SPDLOG_DEBUG("±£´æÓ¦ÓÃ³ÌĞòÉèÖÃ");
+    // TODO: ÊµÏÖÉèÖÃ±£´æÂß¼­
     return true;
 }
 
@@ -1627,7 +1627,7 @@ std::string GuiTemplate::getLoggingHeaderContent() {
 #include <spdlog/spdlog.h>
 #include <string>
 
-// å®šä¹‰ä½¿ç”¨spdlogçš„å®ï¼Œæ–¹ä¾¿åœ¨é¡¹ç›®ä¸­è°ƒï¿½?
+// ¶¨ÒåÊ¹ÓÃspdlogµÄºê£¬·½±ãÔÚÏîÄ¿ÖĞµ÷??
 #define SPDLOG_TRACE(...) SPDLOG_LOGGER_TRACE(spdlog::default_logger_raw(), __VA_ARGS__)
 #define SPDLOG_DEBUG(...) SPDLOG_LOGGER_DEBUG(spdlog::default_logger_raw(), __VA_ARGS__)
 #define SPDLOG_INFO(...) SPDLOG_LOGGER_INFO(spdlog::default_logger_raw(), __VA_ARGS__)
@@ -1640,33 +1640,33 @@ namespace )" +
 
 class Logging {
 public:
-    // åˆå§‹åŒ–æ—¥å¿—ç³»ï¿½?
+    // ³õÊ¼»¯ÈÕÖ¾Ïµ??
     static bool init(const std::string& logFilePath,
                    spdlog::level::level_enum level = spdlog::level::info);
 
-    // å…³é—­æ—¥å¿—ç³»ç»Ÿ
+    // ¹Ø±ÕÈÕÖ¾ÏµÍ³
     static void shutdown();
 
-    // è®¾ç½®æ—¥å¿—çº§åˆ«
+    // ÉèÖÃÈÕÖ¾¼¶±ğ
     static void setLevel(spdlog::level::level_enum level);
 
-    // è·å–å½“å‰æ—¥å¿—çº§åˆ«
+    // »ñÈ¡µ±Ç°ÈÕÖ¾¼¶±ğ
     static spdlog::level::level_enum getLevel();
 
-    // è·å–æ ¼å¼åŒ–æ—¶é—´æˆ³
+    // »ñÈ¡¸ñÊ½»¯Ê±¼ä´Á
     static std::string getFormattedTimestamp();
 
 private:
-    // æ˜¯å¦å·²åˆå§‹åŒ–
+    // ÊÇ·ñÒÑ³õÊ¼»¯
     static bool initialized_;
 
-    // æ—¥å¿—æ–‡ä»¶è·¯å¾„
+    // ÈÕÖ¾ÎÄ¼şÂ·¾¶
     static std::string logFilePath_;
 
-    // å½“å‰æ—¥å¿—çº§åˆ«
+    // µ±Ç°ÈÕÖ¾¼¶±ğ
     static spdlog::level::level_enum level_;
 
-    // åˆ›å»ºæ—¥å¿—ç›®å½•
+    // ´´½¨ÈÕÖ¾Ä¿Â¼
     static bool createLogDirectory(const std::string& path);
 };
 
@@ -1692,69 +1692,69 @@ std::string GuiTemplate::getLoggingCppContent() {
 namespace )" +
            options_.projectName + R"( {
 
-// é™æ€æˆå‘˜åˆå§‹åŒ–
+// ¾²Ì¬³ÉÔ±³õÊ¼»¯
 bool Logging::initialized_ = false;
 std::string Logging::logFilePath_ = "logs/app.log";
 spdlog::level::level_enum Logging::level_ = spdlog::level::info;
 
 bool Logging::init(const std::string& logFilePath, spdlog::level::level_enum level) {
     if (initialized_) {
-        return true; // å·²ç»åˆå§‹åŒ–è¿‡
+        return true; // ÒÑ¾­³õÊ¼»¯¹ı
     }
 
     try {
         logFilePath_ = logFilePath;
         level_ = level;
 
-        // åˆ›å»ºæ—¥å¿—ç›®å½•
+        // ´´½¨ÈÕÖ¾Ä¿Â¼
         if (!createLogDirectory(logFilePath_)) {
-            // å¦‚æœåˆ›å»ºç›®å½•å¤±è´¥ï¼Œå›é€€åˆ°æ§åˆ¶å°æ—¥å¿—
+            // Èç¹û´´½¨Ä¿Â¼Ê§°Ü£¬»ØÍËµ½¿ØÖÆÌ¨ÈÕÖ¾
             auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
             auto logger = std::make_shared<spdlog::logger>("console_logger", console_sink);
             logger->set_level(level_);
             spdlog::set_default_logger(logger);
 
-            spdlog::warn("æ— æ³•åˆ›å»ºæ—¥å¿—ç›®å½•ï¼Œä»…ä½¿ç”¨æ§åˆ¶å°è¾“ï¿½?);
+            spdlog::warn("ÎŞ·¨´´½¨ÈÕÖ¾Ä¿Â¼£¬½öÊ¹ÓÃ¿ØÖÆÌ¨Êä??);
             initialized_ = true;
             return false;
         }
 
-        // åˆ›å»ºä¸€ä¸ªæ—‹è½¬æ–‡ä»¶æ—¥å¿—ï¼Œæœ€ï¿½?MBï¼Œä¿ï¿½?ä¸ªå¤‡ï¿½?
+        // ´´½¨Ò»¸öĞı×ªÎÄ¼şÈÕÖ¾£¬×î??MB£¬±£??¸ö±¸??
         auto rotating_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
             logFilePath_, 5 * 1024 * 1024, 3);
 
-        // åŒæ—¶è¾“å‡ºåˆ°æ§åˆ¶å°
+        // Í¬Ê±Êä³öµ½¿ØÖÆÌ¨
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 
-        // åˆ›å»ºå¸¦æœ‰ä¸¤ä¸ªæ¥æ”¶å™¨çš„è®°å½•ï¿½?
+        // ´´½¨´øÓĞÁ½¸ö½ÓÊÕÆ÷µÄ¼ÇÂ¼??
         std::vector<spdlog::sink_ptr> sinks {rotating_sink, console_sink};
         auto logger = std::make_shared<spdlog::logger>("multi_sink", sinks.begin(), sinks.end());
 
-        // è®¾ç½®è®°å½•æ ¼å¼
+        // ÉèÖÃ¼ÇÂ¼¸ñÊ½
         logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [%t] %v");
 
-        // è®¾ç½®æ—¥å¿—çº§åˆ«
+        // ÉèÖÃÈÕÖ¾¼¶±ğ
         logger->set_level(level_);
 
-        // è®¾ç½®ä¸ºé»˜è®¤è®°å½•å™¨
+        // ÉèÖÃÎªÄ¬ÈÏ¼ÇÂ¼Æ÷
         spdlog::set_default_logger(logger);
 
-        // è®°å½•åˆå§‹åŒ–ä¿¡ï¿½?
-        spdlog::info("æ—¥å¿—ç³»ç»Ÿåˆå§‹åŒ–æˆåŠŸï¼Œçº§åˆ«: {}, è·¯å¾„: {}",
+        // ¼ÇÂ¼³õÊ¼»¯ĞÅ??
+        spdlog::info("ÈÕÖ¾ÏµÍ³³õÊ¼»¯³É¹¦£¬¼¶±ğ: {}, Â·¾¶: {}",
                    spdlog::level::to_string_view(level_), logFilePath_);
 
         initialized_ = true;
         return true;
     }
     catch (const spdlog::spdlog_ex& ex) {
-        std::cerr << "æ—¥å¿—åˆå§‹åŒ–å¤±ï¿½? " << ex.what() << std::endl;
+        std::cerr << "ÈÕÖ¾³õÊ¼»¯Ê§?? " << ex.what() << std::endl;
         return false;
     }
 }
 
 void Logging::shutdown() {
     if (initialized_) {
-        spdlog::info("å…³é—­æ—¥å¿—ç³»ç»Ÿ");
+        spdlog::info("¹Ø±ÕÈÕÖ¾ÏµÍ³");
         spdlog::shutdown();
         initialized_ = false;
     }
@@ -1764,7 +1764,7 @@ void Logging::setLevel(spdlog::level::level_enum level) {
     level_ = level;
     if (initialized_) {
         spdlog::set_level(level_);
-        spdlog::info("æ—¥å¿—çº§åˆ«è®¾ç½®ï¿½? {}", spdlog::level::to_string_view(level_));
+        spdlog::info("ÈÕÖ¾¼¶±ğÉèÖÃ?? {}", spdlog::level::to_string_view(level_));
     }
 }
 
@@ -1796,7 +1796,7 @@ bool Logging::createLogDirectory(const std::string& path) {
         return true;
     }
     catch (const std::exception& e) {
-        std::cerr << "åˆ›å»ºæ—¥å¿—ç›®å½•å¤±è´¥: " << e.what() << std::endl;
+        std::cerr << "´´½¨ÈÕÖ¾Ä¿Â¼Ê§°Ü: " << e.what() << std::endl;
         return false;
     }
 }
@@ -1807,67 +1807,67 @@ bool Logging::createLogDirectory(const std::string& path) {
 }
 
 std::string GuiTemplate::getReadmeContent() {
-    // ç¡®å®šGUIæ¡†æ¶åç§°
+    // È·¶¨GUI¿ò¼ÜÃû³Æ
     std::string guiName = guiFramework_ == "qt"          ? "Qt"
                           : guiFramework_ == "wxwidgets" ? "wxWidgets"
                           : guiFramework_ == "gtk"       ? "GTK"
-                                                         : "é€šç”¨UIæ¡†æ¶";
+                                                         : "Í¨ÓÃUI¿ò¼Ü";
 
-    // ç¡®å®šGUIæ¡†æ¶ä¾èµ–
+    // È·¶¨GUI¿ò¼ÜÒÀÀµ
     std::string guiDependency = guiFramework_ == "qt"          ? "Qt 6.x"
                                 : guiFramework_ == "wxwidgets" ? "wxWidgets 3.x"
                                 : guiFramework_ == "gtk"       ? "GTK 3.x"
-                                                               : "GUIæ¡†æ¶åº“";
+                                                               : "GUI¿ò¼Ü¿â";
 
-    // åŒ…ç®¡ç†å™¨ä¿¡æ¯
+    // °ü¹ÜÀíÆ÷ĞÅÏ¢
     std::string packageManagerInfo =
             to_string(options_.packageManager) != "none"
-                    ? fmt::format("- {}åŒ…ç®¡ç†\n", to_string(options_.packageManager))
+                    ? fmt::format("- {}°ü¹ÜÀí\n", to_string(options_.packageManager))
                     : "";
 
-    // æµ‹è¯•æ¡†æ¶ä¿¡æ¯
+    // ²âÊÔ¿ò¼ÜĞÅÏ¢
     std::string testFrameworkInfo =
             options_.includeTests
-                    ? fmt::format("- é›†æˆ{}æµ‹è¯•æ¡†æ¶\n", to_string(options_.testFramework))
+                    ? fmt::format("- ¼¯³É{}²âÊÔ¿ò¼Ü\n", to_string(options_.testFramework))
                     : "";
 
-    // åŒ…ç®¡ç†å™¨ä¾èµ–
+    // °ü¹ÜÀíÆ÷ÒÀÀµ
     std::string packageManagerDep =
             to_string(options_.packageManager) != "none"
                     ? fmt::format("- {}\n", to_string(options_.packageManager))
                     : "";
 
-    // æ„å»ºæ­¥éª¤
+    // ¹¹½¨²½Öè
     std::string buildSteps;
     if (to_string(options_.buildSystem) == "cmake") {
-        buildSteps = R"(# åˆ›å»ºæ„å»ºç›®å½•
+        buildSteps = R"(# ´´½¨¹¹½¨Ä¿Â¼
 mkdir build && cd build
 
-# é…ç½®é¡¹ç›®
+# ÅäÖÃÏîÄ¿
 cmake ..
 
-# ç¼–è¯‘
+# ±àÒë
 make)";
     } else if (to_string(options_.buildSystem) == "meson") {
-        buildSteps = R"(# é…ç½®é¡¹ç›®
+        buildSteps = R"(# ÅäÖÃÏîÄ¿
 meson setup build
 
-# ç¼–è¯‘
+# ±àÒë
 cd build
 meson compile)";
     } else if (to_string(options_.buildSystem) == "xmake") {
-        buildSteps = R"(# ä½¿ç”¨XMakeæ„å»º
+        buildSteps = R"(# Ê¹ÓÃXMake¹¹½¨
 xmake)";
     } else if (to_string(options_.buildSystem) == "premake") {
-        buildSteps = R"(# ä½¿ç”¨Premakeæ„å»º
+        buildSteps = R"(# Ê¹ÓÃPremake¹¹½¨
 premake5 gmake2
 make config=release)";
     } else {
-        buildSteps = R"(# ä½¿ç”¨Bazelæ„å»º
+        buildSteps = R"(# Ê¹ÓÃBazel¹¹½¨
 bazel build //...)";
     }
 
-    // æµ‹è¯•éƒ¨åˆ†
+    // ²âÊÔ²¿·Ö
     std::string testSection = "";
     if (options_.includeTests) {
         std::string testCmd;
@@ -1885,7 +1885,7 @@ meson test)";
             testCmd = R"(bazel test //...)";
         }
 
-        testSection = fmt::format(R"(### è¿è¡Œæµ‹è¯•
+        testSection = fmt::format(R"(### ÔËĞĞ²âÊÔ
 
 ```bash
 {}
@@ -1894,7 +1894,7 @@ meson test)";
                                   testCmd);
     }
 
-    // è¿è¡Œå‘½ä»¤
+    // ÔËĞĞÃüÁî
     std::string runCmd;
     if (to_string(options_.buildSystem) == "cmake" || to_string(options_.buildSystem) == "meson") {
         runCmd = fmt::format(R"(cd build
@@ -1908,46 +1908,46 @@ meson test)";
         runCmd = fmt::format(R"(bazel run //:{})", options_.projectName);
     }
 
-    // UIéƒ¨åˆ†
+    // UI²¿·Ö
     std::string uiSection = "";
     if (guiFramework_ == "qt" || guiFramework_ == "gtk") {
-        uiSection = fmt::format(R"(â”œâ”€â”€ ui/                    # UIè®¾è®¡æ–‡ä»¶
-ï¿½?  â””â”€â”€ main_window.{}  # ä¸»çª—å£ç•Œé¢è®¾ï¿½?
+        uiSection = fmt::format(R"(©À©¤©¤ ui/                    # UIÉè¼ÆÎÄ¼ş
+??  ©¸©¤©¤ main_window.{}  # Ö÷´°¿Ú½çÃæÉè??
 )",
                                 (guiFramework_ == "qt" ? "ui" : "glade"));
     }
 
-    // æµ‹è¯•ç›®å½•
+    // ²âÊÔÄ¿Â¼
     std::string testsDir = options_.includeTests ?
-                                                 R"(â”œâ”€â”€ tests/                 # æµ‹è¯•ç›®å½•
-ï¿½?  â””â”€â”€ test_main.cpp       # æµ‹è¯•å…¥å£
+                                                 R"(©À©¤©¤ tests/                 # ²âÊÔÄ¿Â¼
+??  ©¸©¤©¤ test_main.cpp       # ²âÊÔÈë¿Ú
 )"
                                                  : "";
 
-    // ä½¿ç”¨fmtæ ¼å¼åŒ–æ•´ä¸ªREADMEå†…å®¹
+    // Ê¹ÓÃfmt¸ñÊ½»¯Õû¸öREADMEÄÚÈİ
     return fmt::format(R"(# {0}
 
-ä¸€ä¸ªä½¿ç”¨{1}å¼€å‘çš„C++ GUIåº”ç”¨ï¼Œç”±CPP-Scaffoldåˆ›å»ºï¿½?
+Ò»¸öÊ¹ÓÃ{1}¿ª·¢µÄC++ GUIÓ¦ÓÃ£¬ÓÉCPP-Scaffold´´½¨??
 
-## åŠŸèƒ½ç‰¹ç‚¹
+## ¹¦ÄÜÌØµã
 
-- ç°ä»£åŒ–çš„C++17 GUIåº”ç”¨
-- ä½¿ç”¨{1}ä½œä¸ºç•Œé¢æ¡†æ¶
-- é›†æˆspdlogæ—¥å¿—ç³»ç»Ÿ
-- {2}æ„å»ºç³»ç»Ÿ
+- ÏÖ´ú»¯µÄC++17 GUIÓ¦ÓÃ
+- Ê¹ÓÃ{1}×÷Îª½çÃæ¿ò¼Ü
+- ¼¯³ÉspdlogÈÕÖ¾ÏµÍ³
+- {2}¹¹½¨ÏµÍ³
 {3}{4}
 
-## æ„å»ºè¯´æ˜
+## ¹¹½¨ËµÃ÷
 
-### ä¾èµ–ï¿½?
+### ÒÀÀµ??
 
-- C++17å…¼å®¹ç¼–è¯‘ï¿½?
+- C++17¼æÈİ±àÒë??
 - {5}
 - spdlog
-- {2} æ„å»ºç³»ç»Ÿ
+- {2} ¹¹½¨ÏµÍ³
 {6}
 
-### ç¼–è¯‘æ­¥éª¤
+### ±àÒë²½Öè
 
 ```bash
 {7}
@@ -1955,48 +1955,48 @@ meson test)";
 
 {8}
 
-### è¿è¡Œåº”ç”¨
+### ÔËĞĞÓ¦ÓÃ
 
 ```bash
 {9}
 ```
 
-## é¡¹ç›®ç»“æ„
+## ÏîÄ¿½á¹¹
 
 ```
 {0}/
-â”œâ”€â”€ include/               # å¤´æ–‡ä»¶ç›®ï¿½?
-ï¿½?  â””â”€â”€ {0}/
-ï¿½?      â”œâ”€â”€ application.h  # åº”ç”¨ï¿½?
-ï¿½?      â”œâ”€â”€ main_window.h  # ä¸»çª—ï¿½?
-ï¿½?      â””â”€â”€ logging.h      # æ—¥å¿—å·¥å…·
-â”œâ”€â”€ src/                   # æºæ–‡ä»¶ç›®ï¿½?
-ï¿½?  â”œâ”€â”€ main.cpp           # ç¨‹åºå…¥å£ï¿½?
-ï¿½?  â”œâ”€â”€ application.cpp    # åº”ç”¨å®ç°
-ï¿½?  â”œâ”€â”€ main_window.cpp    # ä¸»çª—å£å®ï¿½?
-ï¿½?  â””â”€â”€ logging.cpp        # æ—¥å¿—å·¥å…·å®ç°
-{10}â”œâ”€â”€ resources/             # èµ„æºæ–‡ä»¶ç›®å½•
-{11}â”œâ”€â”€ README.md              # é¡¹ç›®è¯´æ˜æ–‡æ¡£
-â””â”€â”€ CMakeLists.txt          # CMakeæ„å»ºè„šæœ¬
+©À©¤©¤ include/               # Í·ÎÄ¼şÄ¿??
+??  ©¸©¤©¤ {0}/
+??      ©À©¤©¤ application.h  # Ó¦ÓÃ??
+??      ©À©¤©¤ main_window.h  # Ö÷´°??
+??      ©¸©¤©¤ logging.h      # ÈÕÖ¾¹¤¾ß
+©À©¤©¤ src/                   # Ô´ÎÄ¼şÄ¿??
+??  ©À©¤©¤ main.cpp           # ³ÌĞòÈë¿Ú??
+??  ©À©¤©¤ application.cpp    # Ó¦ÓÃÊµÏÖ
+??  ©À©¤©¤ main_window.cpp    # Ö÷´°¿ÚÊµ??
+??  ©¸©¤©¤ logging.cpp        # ÈÕÖ¾¹¤¾ßÊµÏÖ
+{10}©À©¤©¤ resources/             # ×ÊÔ´ÎÄ¼şÄ¿Â¼
+{11}©À©¤©¤ README.md              # ÏîÄ¿ËµÃ÷ÎÄµµ
+©¸©¤©¤ CMakeLists.txt          # CMake¹¹½¨½Å±¾
 ```
 
-## ä½¿ç”¨spdlogæ—¥å¿—ç³»ç»Ÿ
+## Ê¹ÓÃspdlogÈÕÖ¾ÏµÍ³
 
-é¡¹ç›®é›†æˆäº†spdlogæ—¥å¿—ç³»ç»Ÿï¼Œæä¾›äº†æ–¹ä¾¿çš„æ—¥å¿—å®ä¾›é¡¹ç›®ä½¿ç”¨ï¼š
+ÏîÄ¿¼¯³ÉÁËspdlogÈÕÖ¾ÏµÍ³£¬Ìá¹©ÁË·½±ãµÄÈÕÖ¾ºê¹©ÏîÄ¿Ê¹ÓÃ£º
 
 ```cpp
-// ç¤ºä¾‹ç”¨æ³•
-SPDLOG_TRACE("è¿™æ˜¯ä¸€ä¸ªè·Ÿè¸ªæ—¥ï¿½?);
-SPDLOG_DEBUG("è¿™æ˜¯ä¸€ä¸ªè°ƒè¯•æ—¥ï¿½?);
-SPDLOG_INFO("è¿™æ˜¯ä¸€ä¸ªä¿¡æ¯æ—¥ï¿½?);
-SPDLOG_WARN("è¿™æ˜¯ä¸€ä¸ªè­¦å‘Šæ—¥ï¿½?);
-SPDLOG_ERROR("è¿™æ˜¯ä¸€ä¸ªé”™è¯¯æ—¥ï¿½? {{0}}", error_code);
-SPDLOG_CRITICAL("è¿™æ˜¯ä¸€ä¸ªä¸¥é‡é”™è¯¯æ—¥ï¿½?);
+// Ê¾ÀıÓÃ·¨
+SPDLOG_TRACE("ÕâÊÇÒ»¸ö¸ú×ÙÈÕ??);
+SPDLOG_DEBUG("ÕâÊÇÒ»¸öµ÷ÊÔÈÕ??);
+SPDLOG_INFO("ÕâÊÇÒ»¸öĞÅÏ¢ÈÕ??);
+SPDLOG_WARN("ÕâÊÇÒ»¸ö¾¯¸æÈÕ??);
+SPDLOG_ERROR("ÕâÊÇÒ»¸ö´íÎóÈÕ?? {{0}}", error_code);
+SPDLOG_CRITICAL("ÕâÊÇÒ»¸öÑÏÖØ´íÎóÈÕ??);
 ```
 
-## è®¸å¯ï¿½?
+## Ğí¿É??
 
-æ­¤é¡¹ç›®ä½¿ç”¨MITè®¸å¯ï¿½?- è¯¦è§LICENSEæ–‡ä»¶)",
+´ËÏîÄ¿Ê¹ÓÃMITĞí¿É??- Ïê¼ûLICENSEÎÄ¼ş)",
                        options_.projectName, guiName, options_.buildSystem, packageManagerInfo,
                        testFrameworkInfo, guiDependency, packageManagerDep, buildSteps, testSection,
                        runCmd, uiSection, testsDir);
@@ -2021,7 +2021,7 @@ option(BUILD_TESTING "Build tests" )" +
 find_package(spdlog REQUIRED)
 )";
 
-    // GUIæ¡†æ¶ç‰¹å®šé…ç½®
+    // GUI¿ò¼ÜÌØ¶¨ÅäÖÃ
     if (guiFramework_ == "qt") {
         content += R"(
 # Qt configuration
@@ -2053,7 +2053,7 @@ add_definitions(${GTK3_CFLAGS_OTHER})
 )";
     }
 
-    // vcpkgé›†æˆ
+    // vcpkg¼¯³É
     if (to_string(options_.packageManager) == "vcpkg") {
         content += R"(
 # vcpkg integration
@@ -2063,7 +2063,7 @@ endif()
 )";
     }
 
-    // æºæ–‡ä»¶å®šï¿½?
+    // Ô´ÎÄ¼ş¶¨??
     content += R"(
 # Source files
 set(SOURCES
@@ -2078,7 +2078,7 @@ include_directories(include)
 
 # Resources)";
 
-    // èµ„æºæ–‡ä»¶
+    // ×ÊÔ´ÎÄ¼ş
     if (guiFramework_ == "qt") {
         content += R"(
 set(RESOURCES
@@ -2095,7 +2095,7 @@ set(RESOURCES
 ))";
     }
 
-    // ä¸»å¯æ‰§è¡Œæ–‡ä»¶
+    // Ö÷¿ÉÖ´ĞĞÎÄ¼ş
     content += R"(
 
 # Main executable
@@ -2111,7 +2111,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})";
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 )";
 
-    // é“¾æ¥ï¿½?
+    // Á´½Ó??
     if (guiFramework_ == "qt") {
         content += R"(
 target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_LIBS} spdlog::spdlog)
@@ -2130,7 +2130,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog)
 )";
     }
 
-    // åº“ç›®ï¿½?ç”¨äºæµ‹è¯•)
+    // ¿âÄ¿??ÓÃÓÚ²âÊÔ)
     content += R"(
 # Library target (for reuse in tests)
 add_library(${PROJECT_NAME}_lib STATIC ${SOURCES})";
@@ -2145,7 +2145,7 @@ add_library(${PROJECT_NAME}_lib STATIC ${SOURCES})";
 target_include_directories(${PROJECT_NAME}_lib PUBLIC include)
 )";
 
-    // é“¾æ¥åº“ç›®æ ‡çš„ï¿½?
+    // Á´½Ó¿âÄ¿±êµÄ??
     if (guiFramework_ == "qt") {
         content += R"(
 target_link_libraries(${PROJECT_NAME}_lib PUBLIC ${QT_LIBS} spdlog::spdlog)
@@ -2164,7 +2164,7 @@ target_link_libraries(${PROJECT_NAME}_lib PUBLIC spdlog::spdlog)
 )";
     }
 
-    // å®‰è£…ç›®æ ‡
+    // °²×°Ä¿±ê
     content += R"(
 # Installation
 install(TARGETS ${PROJECT_NAME}
@@ -2172,7 +2172,7 @@ install(TARGETS ${PROJECT_NAME}
 )
 )";
 
-    // æµ‹è¯•é…ç½®
+    // ²âÊÔÅäÖÃ
     if (options_.includeTests) {
         content += R"(
 # Tests
@@ -2196,7 +2196,7 @@ std::string GuiTemplate::getMesonContent() {
 spdlog_dep = dependency('spdlog')
 )";
 
-    // GUIæ¡†æ¶ç‰¹å®šé…ç½®
+    // GUI¿ò¼ÜÌØ¶¨ÅäÖÃ
     if (guiFramework_ == "qt") {
         content += R"(
 # Qt dependencies
@@ -2215,7 +2215,7 @@ gtk_dep = dependency('gtk+-3.0', version : '>=3.20')
 )";
     }
 
-    // æµ‹è¯•æ¡†æ¶ä¾èµ–
+    // ²âÊÔ¿ò¼ÜÒÀÀµ
     if (options_.includeTests) {
         if (to_string(options_.testFramework) == "gtest") {
             content += R"(
@@ -2238,7 +2238,7 @@ test_deps = [doctest_dep]
         }
     }
 
-    // æºæ–‡ï¿½?
+    // Ô´ÎÄ??
     content += R"(
 # Source files
 src_files = [
@@ -2261,7 +2261,7 @@ dependencies = [spdlog_dep, )";
     } else if (guiFramework_ == "gtk") {
         content += "gtk_dep";
     } else {
-        content += "[]";  // ç©ºä¾èµ–åˆ—ï¿½?
+        content += "[]";  // ¿ÕÒÀÀµÁĞ??
     }
 
     content += R"(]
@@ -2317,7 +2317,7 @@ qt_resource(
 )";
     }
 
-    // ä¸»åº“
+    // Ö÷¿â
     content += R"(
 cc_library(
     name = ")" +
@@ -2360,7 +2360,7 @@ cc_binary(
 )
 )";
 
-    // æµ‹è¯•
+    // ²âÊÔ
     if (options_.includeTests) {
         content +=
                 R"(
@@ -2589,13 +2589,13 @@ project "{1}"
 }
 
 std::string GuiTemplate::getVcpkgJsonContent() {
-    // åˆ›å»ºä¾èµ–é¡¹åˆ—è¡¨ï¼Œä»spdlogå¼€ï¿½?
+    // ´´½¨ÒÀÀµÏîÁĞ±í£¬´Óspdlog¿ª??
     std::vector<std::string> dependencies = {
             R"({
         "name": "spdlog"
       })"};
 
-    // æ ¹æ®GUIæ¡†æ¶æ·»åŠ ç›¸åº”ä¾èµ–
+    // ¸ù¾İGUI¿ò¼ÜÌí¼ÓÏàÓ¦ÒÀÀµ
     if (guiFramework_ == "qt") {
         dependencies.push_back(R"({
         "name": "qtbase"
@@ -2610,7 +2610,7 @@ std::string GuiTemplate::getVcpkgJsonContent() {
       })");
     }
 
-    // æ ¹æ®æµ‹è¯•é…ç½®æ·»åŠ æµ‹è¯•æ¡†æ¶ä¾èµ–
+    // ¸ù¾İ²âÊÔÅäÖÃÌí¼Ó²âÊÔ¿ò¼ÜÒÀÀµ
     if (options_.includeTests) {
         std::string testFrameworkName;
         if (to_string(options_.testFramework) == "gtest") {
@@ -2626,7 +2626,7 @@ std::string GuiTemplate::getVcpkgJsonContent() {
                                            testFrameworkName));
     }
 
-    // æ„å»ºä¾èµ–é¡¹å­—ç¬¦ä¸²ï¼Œæ¯ä¸ªä¾èµ–é¡¹ä¹‹é—´ç”¨é€—å·å’Œæ¢è¡Œè¿ï¿½?
+    // ¹¹½¨ÒÀÀµÏî×Ö·û´®£¬Ã¿¸öÒÀÀµÏîÖ®¼äÓÃ¶ººÅºÍ»»ĞĞÁ¬??
     std::string dependenciesStr;
     for (size_t i = 0; i < dependencies.size(); ++i) {
         dependenciesStr += dependencies[i];
@@ -2636,7 +2636,7 @@ std::string GuiTemplate::getVcpkgJsonContent() {
         dependenciesStr += "\n    ";
     }
 
-    // ä½¿ç”¨fmtåˆ›å»ºå®Œæ•´JSONå†…å®¹
+    // Ê¹ÓÃfmt´´½¨ÍêÕûJSONÄÚÈİ
     return fmt::format(R"({{
     "name": "{}",
     "version": "0.1.0",
@@ -2779,46 +2779,46 @@ std::string GuiTemplate::getGTestContent() {
            options_.projectName + R"(/logging.h"
 #include <memory>
 
-// åˆå§‹åŒ–æ—¥å¿—ç³»ï¿½?
+// ³õÊ¼»¯ÈÕÖ¾Ïµ??
 class LoggingEnvironment : public ::testing::Environment {
 public:
     ~LoggingEnvironment() override = default;
 
-    // æµ‹è¯•å¼€å§‹å‰è®¾ç½®
+    // ²âÊÔ¿ªÊ¼Ç°ÉèÖÃ
     void SetUp() override {
         )" +
            options_.projectName +
            R"(::Logging::init("logs/test.log", spdlog::level::debug);
-        SPDLOG_INFO("æµ‹è¯•å¼€ï¿½?);
+        SPDLOG_INFO("²âÊÔ¿ª??);
     }
 
-    // æµ‹è¯•ç»“æŸåæ¸…ï¿½?
+    // ²âÊÔ½áÊøºóÇå??
     void TearDown() override {
-        SPDLOG_INFO("æµ‹è¯•ç»“æŸ");
+        SPDLOG_INFO("²âÊÔ½áÊø");
         )" +
            options_.projectName + R"(::Logging::shutdown();
     }
 };
 
-// æµ‹è¯•Loggingï¿½?
+// ²âÊÔLogging??
 TEST(LoggingTest, InitializationWorks) {
-    // ç”±äºåœ¨Environmentä¸­å·²ç»åˆå§‹åŒ–ï¼Œæ‰€ä»¥è¿™é‡Œåº”è¯¥å¯ä»¥æ­£å¸¸ä½¿ï¿½?
+    // ÓÉÓÚÔÚEnvironmentÖĞÒÑ¾­³õÊ¼»¯£¬ËùÒÔÕâÀïÓ¦¸Ã¿ÉÒÔÕı³£Ê¹??
     EXPECT_EQ()" +
            options_.projectName + R"(::Logging::getLevel(), spdlog::level::debug);
 
-    // æµ‹è¯•æ—¥å¿—çº§åˆ«è®¾ç½®
+    // ²âÊÔÈÕÖ¾¼¶±ğÉèÖÃ
     )" + options_.projectName +
            R"(::Logging::setLevel(spdlog::level::info);
     EXPECT_EQ()" +
            options_.projectName + R"(::Logging::getLevel(), spdlog::level::info);
 
-    // æµ‹è¯•è·å–æ ¼å¼åŒ–æ—¶é—´æˆ³
+    // ²âÊÔ»ñÈ¡¸ñÊ½»¯Ê±¼ä´Á
     auto timestamp = )" +
            options_.projectName + R"(::Logging::getFormattedTimestamp();
     EXPECT_FALSE(timestamp.empty());
 }
 
-// æ³¨å†Œå…¨å±€ç¯å¢ƒ
+// ×¢²áÈ«¾Ö»·¾³
 int main(int argc, char argv) {
     ::testing::InitGoogleTest(&argc, argv);
     ::testing::AddGlobalTestEnvironment(new LoggingEnvironment);
@@ -2834,29 +2834,29 @@ std::string GuiTemplate::getCatch2Content() {
            options_.projectName + R"(/logging.h"
 #include <memory>
 
-// åˆå§‹åŒ–æ—¥å¿—ç³»ï¿½?
+// ³õÊ¼»¯ÈÕÖ¾Ïµ??
 struct LoggingFixture {
     LoggingFixture() {
         )" +
            options_.projectName +
            R"(::Logging::init("logs/test.log", spdlog::level::debug);
-        SPDLOG_INFO("æµ‹è¯•å¼€ï¿½?);
+        SPDLOG_INFO("²âÊÔ¿ª??);
     }
 
     ~LoggingFixture() {
-        SPDLOG_INFO("æµ‹è¯•ç»“æŸ");
+        SPDLOG_INFO("²âÊÔ½áÊø");
         )" +
            options_.projectName + R"(::Logging::shutdown();
     }
 };
 
-TEST_CASE_METHOD(LoggingFixture, "æµ‹è¯•Loggingï¿½?, "[logging]") {
-    SECTION("æµ‹è¯•æ—¥å¿—çº§åˆ«") {
+TEST_CASE_METHOD(LoggingFixture, "²âÊÔLogging??, "[logging]") {
+    SECTION("²âÊÔÈÕÖ¾¼¶±ğ") {
         REQUIRE()" +
            options_.projectName +
            R"(::Logging::getLevel() == spdlog::level::debug);
 
-        // æµ‹è¯•æ—¥å¿—çº§åˆ«è®¾ç½®
+        // ²âÊÔÈÕÖ¾¼¶±ğÉèÖÃ
         )" +
            options_.projectName + R"(::Logging::setLevel(spdlog::level::info);
         REQUIRE()" +
@@ -2864,7 +2864,7 @@ TEST_CASE_METHOD(LoggingFixture, "æµ‹è¯•Loggingï¿½?, "[logging]") {
            R"(::Logging::getLevel() == spdlog::level::info);
     }
 
-    SECTION("æµ‹è¯•æ ¼å¼åŒ–æ—¶é—´æˆ³") {
+    SECTION("²âÊÔ¸ñÊ½»¯Ê±¼ä´Á") {
         auto timestamp = )" +
            options_.projectName + R"(::Logging::getFormattedTimestamp();
         REQUIRE_FALSE(timestamp.empty());
@@ -2880,30 +2880,30 @@ std::string GuiTemplate::getDocTestContent() {
            options_.projectName + R"(/logging.h"
 #include <memory>
 
-// åˆå§‹åŒ–æ—¥å¿—ç³»ï¿½?
+// ³õÊ¼»¯ÈÕÖ¾Ïµ??
 class LoggingFixture {
 public:
     LoggingFixture() {
         )" +
            options_.projectName +
            R"(::Logging::init("logs/test.log", spdlog::level::debug);
-        SPDLOG_INFO("æµ‹è¯•å¼€ï¿½?);
+        SPDLOG_INFO("²âÊÔ¿ª??);
     }
 
     ~LoggingFixture() {
-        SPDLOG_INFO("æµ‹è¯•ç»“æŸ");
+        SPDLOG_INFO("²âÊÔ½áÊø");
         )" +
            options_.projectName + R"(::Logging::shutdown();
     }
 };
 
-TEST_CASE_FIXTURE(LoggingFixture, "æµ‹è¯•Loggingï¿½?) {
-    SUBCASE("æµ‹è¯•æ—¥å¿—çº§åˆ«") {
+TEST_CASE_FIXTURE(LoggingFixture, "²âÊÔLogging??) {
+    SUBCASE("²âÊÔÈÕÖ¾¼¶±ğ") {
         CHECK()" +
            options_.projectName +
            R"(::Logging::getLevel() == spdlog::level::debug);
 
-        // æµ‹è¯•æ—¥å¿—çº§åˆ«è®¾ç½®
+        // ²âÊÔÈÕÖ¾¼¶±ğÉèÖÃ
         )" +
            options_.projectName + R"(::Logging::setLevel(spdlog::level::info);
         CHECK()" +
@@ -2911,7 +2911,7 @@ TEST_CASE_FIXTURE(LoggingFixture, "æµ‹è¯•Loggingï¿½?) {
            R"(::Logging::getLevel() == spdlog::level::info);
     }
 
-    SUBCASE("æµ‹è¯•æ ¼å¼åŒ–æ—¶é—´æˆ³") {
+    SUBCASE("²âÊÔ¸ñÊ½»¯Ê±¼ä´Á") {
         auto timestamp = )" +
            options_.projectName + R"(::Logging::getFormattedTimestamp();
         CHECK(!timestamp.empty());
@@ -2947,7 +2947,7 @@ std::string GuiTemplate::getQtUiContent() {
        </font>
       </property>
       <property name="text">
-       <string>æ¬¢è¿ä½¿ç”¨ )" +
+       <string>»¶Ó­Ê¹ÓÃ )" +
            options_.projectName + R"(</string>
       </property>
       <property name="alignment">
@@ -2968,13 +2968,13 @@ std::string GuiTemplate::getQtUiContent() {
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>æ–‡ä»¶</string>
+     <string>ÎÄ¼ş</string>
     </property>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>å¸®åŠ©</string>
+     <string>°ïÖú</string>
     </property>
     <addaction name="actionAbout"/>
    </widget>
@@ -2984,7 +2984,7 @@ std::string GuiTemplate::getQtUiContent() {
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionExit">
    <property name="text">
-    <string>é€€ï¿½?/string>
+    <string>ÍË??/string>
    </property>
    <property name="shortcut">
     <string>Alt+F4</string>
@@ -2992,7 +2992,7 @@ std::string GuiTemplate::getQtUiContent() {
   </action>
   <action name="actionAbout">
    <property name="text">
-    <string>å…³äº</string>
+    <string>¹ØÓÚ</string>
    </property>
    <property name="shortcut">
     <string>F1</string>
@@ -3045,7 +3045,7 @@ std::string GuiTemplate::getGtkGladeContent() {
               <object class="GtkMenuItem">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes">æ–‡ä»¶</property>
+                <property name="label" translatable="yes">ÎÄ¼ş</property>
                 <child type="submenu">
                   <object class="GtkMenu">
                     <property name="visible">True</property>
@@ -3054,7 +3054,7 @@ std::string GuiTemplate::getGtkGladeContent() {
                       <object class="GtkMenuItem" id="menu_exit">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">é€€ï¿½?/property>
+                        <property name="label" translatable="yes">ÍË??/property>
                       </object>
                     </child>
                   </object>
@@ -3065,7 +3065,7 @@ std::string GuiTemplate::getGtkGladeContent() {
               <object class="GtkMenuItem">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes">å¸®åŠ©</property>
+                <property name="label" translatable="yes">°ïÖú</property>
                 <child type="submenu">
                   <object class="GtkMenu">
                     <property name="visible">True</property>
@@ -3074,7 +3074,7 @@ std::string GuiTemplate::getGtkGladeContent() {
                       <object class="GtkMenuItem" id="menu_about">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">å…³äº</property>
+                        <property name="label" translatable="yes">¹ØÓÚ</property>
                       </object>
                     </child>
                   </object>
@@ -3092,7 +3092,7 @@ std::string GuiTemplate::getGtkGladeContent() {
           <object class="GtkLabel">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="label" translatable="yes">æ¬¢è¿ä½¿ç”¨ )" +
+            <property name="label" translatable="yes">»¶Ó­Ê¹ÓÃ )" +
            options_.projectName + R"(</property>
             <attributes>
               <attribute name="font-desc" value="Sans 14"/>

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "cli/cli_parser.h"
 #include "templates/template_manager.h"
-#include "utils/file_utils.h"
+#include "utils/core/file_utils.h"
 #include <filesystem>
 #include <fstream>
 

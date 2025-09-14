@@ -5,8 +5,8 @@
 
 // Note: These includes would be the actual project includes
 // #include "../../src/templates/archive_template.h"
-// #include "../../src/utils/archive_utils.h"
-// #include "../../src/utils/http_client.h"
+// #include "../../src/utils/archive/archive_utils.h"
+// #include "../../src/utils/external/http_client.h"
 
 // Mock classes for testing
 class MockArchiveUtils {

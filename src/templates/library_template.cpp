@@ -1,12 +1,12 @@
-ï»¿#include "library_template.h"
+#include "library_template.h"
 
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
 #include <iostream>
 
-#include "../utils/file_utils.h"
-#include "../utils/string_utils.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/core/string_utils.h"
 
 using namespace utils;
 using namespace cli_enums;
@@ -16,81 +16,81 @@ LibraryTemplate::LibraryTemplate(const CliOptions& options) : TemplateBase(optio
 bool LibraryTemplate::create() {
     std::string projectPath = options_.projectName;
 
-    // æ£€æŸ¥é¡¹ç›®ç›®å½•æ˜¯å¦å·²å­˜åœ¨
+    // ¼ì²éÏîÄ¿Ä¿Â¼ÊÇ·ñÒÑ´æÔÚ
     if (FileUtils::directoryExists(projectPath)) {
         spdlog::error("Directory '{}' already exists.", projectPath);
         return false;
     }
 
-    spdlog::info("ğŸš€ Creating library project...");
+    spdlog::info("?? Creating library project...");
 
-    // åˆ›å»ºåŸºæœ¬ç»“æ„
+    // ´´½¨»ù±¾½á¹¹
     if (!createProjectStructure()) {
         spdlog::error("Failed to create project structure");
         return false;
     }
-    spdlog::info("âœ… Project structure created");
+    spdlog::info("? Project structure created");
 
-    // åˆ›å»ºæ„å»ºç³»ç»Ÿ
+    // ´´½¨¹¹½¨ÏµÍ³
     if (!createBuildSystem()) {
         spdlog::error("Failed to configure build system");
         return false;
     }
-    spdlog::info("âœ… Build system configured");
+    spdlog::info("? Build system configured");
 
-    // è®¾ç½®åŒ…ç®¡ç†å™¨
+    // ÉèÖÃ°ü¹ÜÀíÆ÷
     if (!setupPackageManager()) {
         spdlog::error("Failed to setup package manager");
         return false;
     }
-    spdlog::info("âœ… Package manager setup");
+    spdlog::info("? Package manager setup");
 
-    // è®¾ç½®æµ‹è¯•æ¡†æ¶
+    // ÉèÖÃ²âÊÔ¿ò¼Ü
     if (options_.includeTests) {
         if (!setupTestFramework()) {
             spdlog::error("Failed to setup test framework");
             return false;
         }
-        spdlog::info("âœ… Test framework configured");
+        spdlog::info("? Test framework configured");
     }
 
-    // è®¾ç½®æ–‡æ¡£
+    // ÉèÖÃÎÄµµ
     if (setupDocumentation()) {
-        spdlog::info("âœ… Documentation setup");
+        spdlog::info("? Documentation setup");
     }
 
-    // è®¾ç½®CI/CD
+    // ÉèÖÃCI/CD
     if (setupContinuousIntegration()) {
-        spdlog::info("âœ… CI/CD configuration setup");
+        spdlog::info("? CI/CD configuration setup");
     }
 
-    // è®¾ç½®ä»£ç æ ¼å¼åŒ–
+    // ÉèÖÃ´úÂë¸ñÊ½»¯
     if (setupCodeFormatting()) {
-        spdlog::info("âœ… Code formatting setup");
+        spdlog::info("? Code formatting setup");
     }
 
-    // è®¾ç½®åŸºå‡†æµ‹è¯•
+    // ÉèÖÃ»ù×¼²âÊÔ
     if (setupBenchmarking()) {
-        spdlog::info("âœ… Benchmarking setup");
+        spdlog::info("? Benchmarking setup");
     }
 
-    // è®¾ç½®ç‰ˆæœ¬æ§åˆ¶
+    // ÉèÖÃ°æ±¾¿ØÖÆ
     if (setupVersionControl()) {
-        spdlog::info("âœ… Version control setup");
+        spdlog::info("? Version control setup");
     }
 
-    // åˆå§‹åŒ–Git
+    // ³õÊ¼»¯Git
     if (options_.initGit) {
         if (!initializeGit(projectPath)) {
             spdlog::error("Failed to initialize Git repository");
             return false;
         }
-        spdlog::info("âœ… Git repository initialized");
+        spdlog::info("? Git repository initialized");
     }
 
     spdlog::info("\nYour library project is ready!\n");
 
-    // æ‰“å°ä½¿ç”¨è¯´æ˜
+    // ´òÓ¡Ê¹ÓÃËµÃ÷
     std::cout << fmt::format("cd {}\n", options_.projectName);
 
     if (to_string(options_.buildSystem) == "cmake") {
@@ -105,7 +105,7 @@ bool LibraryTemplate::create() {
         std::cout << "bazel build //...\n";
     }
 
-    std::cout << "\nHappy coding! ğŸ‰\n";
+    std::cout << "\nHappy coding! ??\n";
 
     return true;
 }
@@ -113,80 +113,80 @@ bool LibraryTemplate::create() {
 bool LibraryTemplate::createProjectStructure() {
     std::string projectPath = options_.projectName;
 
-    // åˆ›å»ºä¸»ç›®å½•
+    // ´´½¨Ö÷Ä¿Â¼
     if (!FileUtils::createDirectory(projectPath)) {
         return false;
     }
 
-    // åˆ›å»ºsrcç›®å½•
+    // ´´½¨srcÄ¿Â¼
     std::string srcPath = FileUtils::combinePath(projectPath, "src");
     if (!FileUtils::createDirectory(srcPath)) {
         return false;
     }
 
-    // åˆ›å»ºincludeç›®å½•
+    // ´´½¨includeÄ¿Â¼
     std::string includePath = FileUtils::combinePath(projectPath, "include");
     if (!FileUtils::createDirectory(includePath)) {
         return false;
     }
 
-    // åˆ›å»ºinclude/projectç›®å½•
+    // ´´½¨include/projectÄ¿Â¼
     std::string includeProjectPath = FileUtils::combinePath(includePath, options_.projectName);
     if (!FileUtils::createDirectory(includeProjectPath)) {
         return false;
     }
 
-    // åˆ›å»ºexampleç›®å½•
+    // ´´½¨exampleÄ¿Â¼
     std::string examplePath = FileUtils::combinePath(projectPath, "example");
     if (!FileUtils::createDirectory(examplePath)) {
         return false;
     }
 
-    // å†™å…¥æºæ–‡ä»¶
+    // Ğ´ÈëÔ´ÎÄ¼ş
     if (!FileUtils::writeToFile(
                 FileUtils::combinePath(srcPath, fmt::format("{}.cpp", options_.projectName)),
                 getLibraryCppContent())) {
         return false;
     }
 
-    // å†™å…¥ç‰ˆæœ¬å¤´æ–‡ä»¶
+    // Ğ´Èë°æ±¾Í·ÎÄ¼ş
     if (!FileUtils::writeToFile(FileUtils::combinePath(includeProjectPath, "version.h"),
                                 getVersionHeaderContent())) {
         return false;
     }
 
-    // å†™å…¥å¤´æ–‡ä»¶
+    // Ğ´ÈëÍ·ÎÄ¼ş
     if (!FileUtils::writeToFile(FileUtils::combinePath(includeProjectPath,
                                                        fmt::format("{}.h", options_.projectName)),
                                 getLibraryHeaderContent())) {
         return false;
     }
 
-    // å†™å…¥ç¤ºä¾‹æ–‡ä»¶
+    // Ğ´ÈëÊ¾ÀıÎÄ¼ş
     if (!FileUtils::writeToFile(FileUtils::combinePath(examplePath, "example.cpp"),
                                 getExampleContent())) {
         return false;
     }
 
-    // åˆ›å»ºREADME.md
+    // ´´½¨README.md
     if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "README.md"),
                                 getReadmeContent())) {
         return false;
     }
 
-    // åˆ›å»ºLICENSE
+    // ´´½¨LICENSE
     if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "LICENSE"),
                                 getLicenseContent("MIT"))) {
         return false;
     }
 
-    // åˆ›å»ºå®‰è£…è„šæœ¬
+    // ´´½¨°²×°½Å±¾
     std::string installScriptPath = FileUtils::combinePath(projectPath, "install.sh");
     if (!FileUtils::writeToFile(installScriptPath, getInstallScriptContent())) {
         return false;
     }
 
-// ä½¿å®‰è£…è„šæœ¬å¯æ‰§è¡Œ
+// Ê¹°²×°½Å±¾¿ÉÖ´ĞĞ
 #ifndef _WIN32
     std::string chmodCmd = fmt::format("chmod +x {}", installScriptPath);
     std::system(chmodCmd.c_str());
@@ -199,19 +199,19 @@ bool LibraryTemplate::createBuildSystem() {
     std::string projectPath = options_.projectName;
 
     if (to_string(options_.buildSystem) == "cmake") {
-        // åˆ›å»ºCMakeLists.txt
+        // ´´½¨CMakeLists.txt
         if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "CMakeLists.txt"),
                                     getCMakeContent())) {
             return false;
         }
 
-        // åˆ›å»ºcmakeç›®å½•ç”¨äºconfigæ–‡ä»¶
+        // ´´½¨cmakeÄ¿Â¼ÓÃÓÚconfigÎÄ¼ş
         std::string cmakePath = FileUtils::combinePath(projectPath, "cmake");
         if (!FileUtils::createDirectory(cmakePath)) {
             return false;
         }
 
-        // åˆ›å»ºconfigæ¨¡æ¿
+        // ´´½¨configÄ£°å
         std::string configTemplate = fmt::format(R"(
 @PACKAGE_INIT@
 
@@ -229,13 +229,13 @@ check_required_components({})
         }
 
     } else if (to_string(options_.buildSystem) == "meson") {
-        // åˆ›å»ºmeson.build
+        // ´´½¨meson.build
         if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "meson.build"),
                                     getMesonContent())) {
             return false;
         }
     } else if (to_string(options_.buildSystem) == "bazel") {
-        // åˆ›å»ºWORKSPACEå’ŒBUILDæ–‡ä»¶
+        // ´´½¨WORKSPACEºÍBUILDÎÄ¼ş
         if (!FileUtils::writeToFile(
                     FileUtils::combinePath(projectPath, "WORKSPACE"),
                     fmt::format("workspace(name = \"{}\")\n", options_.projectName))) {
@@ -247,13 +247,13 @@ check_required_components({})
             return false;
         }
     } else if (to_string(options_.buildSystem) == "xmake") {
-        // åˆ›å»ºxmake.lua
+        // ´´½¨xmake.lua
         if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "xmake.lua"),
                                     getXMakeContent())) {
             return false;
         }
     } else if (to_string(options_.buildSystem) == "premake") {
-        // åˆ›å»ºpremake5.lua
+        // ´´½¨premake5.lua
         if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "premake5.lua"),
                                     getPremakeContent())) {
             return false;
@@ -267,19 +267,19 @@ bool LibraryTemplate::setupPackageManager() {
     std::string projectPath = options_.projectName;
 
     if (to_string(options_.packageManager) == "vcpkg") {
-        // åˆ›å»ºvcpkg.json
+        // ´´½¨vcpkg.json
         if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "vcpkg.json"),
                                     getVcpkgJsonContent())) {
             return false;
         }
     } else if (to_string(options_.packageManager) == "conan") {
-        // åˆ›å»ºconanfile.txt
+        // ´´½¨conanfile.txt
         if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "conanfile.txt"),
                                     getConanfileContent())) {
             return false;
         }
     } else if (to_string(options_.packageManager) == "msys2") {
-        // åˆ›å»ºPKGBUILD
+        // ´´½¨PKGBUILD
         if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "PKGBUILD"),
                                     getMSYS2PKGBUILDContent())) {
             return false;
@@ -315,7 +315,7 @@ bool LibraryTemplate::setupTestFramework() {
         return false;
     }
 
-    // æ›´æ–°æ„å»ºç³»ç»Ÿä»¥åŒ…å«æµ‹è¯•
+    // ¸üĞÂ¹¹½¨ÏµÍ³ÒÔ°üº¬²âÊÔ
     if (to_string(options_.buildSystem) == "cmake") {
         std::string testCmakeContent;
         if (to_string(options_.testFramework) == "gtest") {
@@ -372,14 +372,14 @@ bool LibraryTemplate::setupDocumentation() {
         return false;
     }
 
-    // åˆ›å»ºDoxygené…ç½®æ–‡ä»¶
+    // ´´½¨DoxygenÅäÖÃÎÄ¼ş
     if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "Doxyfile"),
                                 getDoxyfileContent())) {
         spdlog::warn("Failed to create Doxyfile");
         return false;
     }
 
-    // åˆ›å»ºSphinxæ–‡æ¡£
+    // ´´½¨SphinxÎÄµµ
     std::string sphinxPath = FileUtils::combinePath(docsPath, "sphinx");
     if (!FileUtils::createDirectory(sphinxPath)) {
         spdlog::warn("Failed to create Sphinx directory");
@@ -392,7 +392,7 @@ bool LibraryTemplate::setupDocumentation() {
         return false;
     }
 
-    // åˆ›å»ºç´¢å¼•æ–‡ä»¶
+    // ´´½¨Ë÷ÒıÎÄ¼ş
     std::string indexContent =
             fmt::format(R"(
 {0} Documentation
@@ -421,21 +421,21 @@ Indices and tables
         return false;
     }
 
-    // åˆ›å»ºMkDocsé…ç½®
+    // ´´½¨MkDocsÅäÖÃ
     if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "mkdocs.yml"),
                                 getMkDocsContent())) {
         spdlog::warn("Failed to create MkDocs config");
         return false;
     }
 
-    // åˆ›å»ºmarkdownæ–‡æ¡£ç›®å½•
+    // ´´½¨markdownÎÄµµÄ¿Â¼
     std::string mdPath = FileUtils::combinePath(docsPath, "md");
     if (!FileUtils::createDirectory(mdPath)) {
         spdlog::warn("Failed to create Markdown docs directory");
         return false;
     }
 
-    // åˆ›å»ºç´¢å¼•
+    // ´´½¨Ë÷Òı
     std::string mdIndexContent = fmt::format(R"(# {0} Documentation
 
 Welcome to the {0} documentation!
@@ -465,7 +465,7 @@ Check out the [examples](examples/index.md) to see {0} in action.
 bool LibraryTemplate::setupContinuousIntegration() {
     std::string projectPath = options_.projectName;
 
-    // åˆ›å»ºGitHub Actionså·¥ä½œæµç›®å½•
+    // ´´½¨GitHub Actions¹¤×÷Á÷Ä¿Â¼
     std::string githubDir = FileUtils::combinePath(projectPath, ".github");
     if (!FileUtils::createDirectory(githubDir)) {
         spdlog::warn("Failed to create .github directory");
@@ -478,7 +478,7 @@ bool LibraryTemplate::setupContinuousIntegration() {
         return false;
     }
 
-    // åˆ›å»ºGitHub Actionså·¥ä½œæµ
+    // ´´½¨GitHub Actions¹¤×÷Á÷
     if (!FileUtils::writeToFile(
                 FileUtils::combinePath(workflowsDir, "build.yml"),
                 getGitHubWorkflowContent(std::string(to_string(options_.buildSystem))))) {
@@ -486,14 +486,14 @@ bool LibraryTemplate::setupContinuousIntegration() {
         return false;
     }
 
-    // åˆ›å»ºTravis CIé…ç½®
+    // ´´½¨Travis CIÅäÖÃ
     if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, ".travis.yml"),
                                 getTravisCIContent(std::string(to_string(options_.buildSystem))))) {
         spdlog::warn("Failed to create Travis CI config");
         return false;
     }
 
-    // åˆ›å»ºAppVeyoré…ç½®
+    // ´´½¨AppVeyorÅäÖÃ
     if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, "appveyor.yml"),
                                 getAppVeyorContent(std::string(to_string(options_.buildSystem))))) {
         spdlog::warn("Failed to create AppVeyor config");
@@ -506,14 +506,14 @@ bool LibraryTemplate::setupContinuousIntegration() {
 bool LibraryTemplate::setupCodeFormatting() {
     std::string projectPath = options_.projectName;
 
-    // åˆ›å»º.clang-formatæ–‡ä»¶
+    // ´´½¨.clang-formatÎÄ¼ş
     if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, ".clang-format"),
                                 getClangFormatContent())) {
         spdlog::warn("Failed to create .clang-format file");
         return false;
     }
 
-    // åˆ›å»º.clang-tidyæ–‡ä»¶
+    // ´´½¨.clang-tidyÎÄ¼ş
     if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, ".clang-tidy"),
                                 getClangTidyContent())) {
         spdlog::warn("Failed to create .clang-tidy file");
@@ -532,14 +532,14 @@ bool LibraryTemplate::setupBenchmarking() {
         return false;
     }
 
-    // åˆ›å»ºåŸºå‡†æµ‹è¯•æºæ–‡ä»¶
+    // ´´½¨»ù×¼²âÊÔÔ´ÎÄ¼ş
     if (!FileUtils::writeToFile(FileUtils::combinePath(benchmarkPath, "benchmark_main.cpp"),
                                 getBenchmarkContent())) {
         spdlog::warn("Failed to create benchmark source file");
         return false;
     }
 
-    // å¦‚æœä½¿ç”¨CMakeï¼Œåˆ›å»ºç›¸åº”çš„CMakeLists.txt
+    // Èç¹ûÊ¹ÓÃCMake£¬´´½¨ÏàÓ¦µÄCMakeLists.txt
     if (to_string(options_.buildSystem) == "cmake") {
         std::string benchmarkCmakeContent = R"(
 find_package(benchmark REQUIRED)
@@ -557,7 +557,7 @@ target_link_libraries(${PROJECT_NAME}_benchmark PRIVATE
             return false;
         }
 
-        // æ›´æ–°ä¸»CMakeLists.txtæ·»åŠ benchmarkå­ç›®å½•
+        // ¸üĞÂÖ÷CMakeLists.txtÌí¼Óbenchmark×ÓÄ¿Â¼
         std::string cmakePath = FileUtils::combinePath(projectPath, "CMakeLists.txt");
         std::string cmakeContent = FileUtils::readFromFile(cmakePath);
 
@@ -581,14 +581,14 @@ endif()
 bool LibraryTemplate::setupVersionControl() {
     std::string projectPath = options_.projectName;
 
-    // åˆ›å»º.gitignoreæ–‡ä»¶
+    // ´´½¨.gitignoreÎÄ¼ş
     if (!FileUtils::writeToFile(FileUtils::combinePath(projectPath, ".gitignore"),
                                 getGitignoreContent())) {
         spdlog::warn("Failed to create .gitignore file");
         return false;
     }
 
-    // åˆ›å»º.gitattributesæ–‡ä»¶
+    // ´´½¨.gitattributesÎÄ¼ş
     std::string gitattributesContent =
             R"(# Auto detect text files and perform LF normalization
 * text=auto
@@ -1301,7 +1301,7 @@ UseTab: Never
 }
 
 std::string LibraryTemplate::getLibraryCppContent() {
-    // è·å–é¡¹ç›®åç§°çš„å¤§å†™ç‰ˆæœ¬ï¼ˆç”¨äºå¤´æ–‡ä»¶ä¿æŠ¤ï¼‰
+    // »ñÈ¡ÏîÄ¿Ãû³ÆµÄ´óĞ´°æ±¾£¨ÓÃÓÚÍ·ÎÄ¼ş±£»¤£©
     std::string projectNameUpper = StringUtils::toUpper(options_.projectName);
 
     return fmt::format(R"(#include "{0}/{0}.h"
@@ -1309,7 +1309,7 @@ std::string LibraryTemplate::getLibraryCppContent() {
 
 namespace {0} {{
 
-// Exampleç±»å®ç°
+// ExampleÀàÊµÏÖ
 Example::Example(int value) : value_(value) {{}}
 
 int Example::getValue() const {{
@@ -1320,12 +1320,12 @@ void Example::setValue(int value) {{
     value_ = value;
 }}
 
-// ç¤ºä¾‹å‡½æ•°å®ç°
+// Ê¾Àıº¯ÊıÊµÏÖ
 int add(int a, int b) {{
     return a + b;
 }}
 
-// è·å–åº“ç‰ˆæœ¬
+// »ñÈ¡¿â°æ±¾
 std::string getVersion() {{
     return VERSION_STR;
 }}
@@ -1335,7 +1335,7 @@ std::string getVersion() {{
 }
 
 std::string LibraryTemplate::getLibraryHeaderContent() {
-    // è·å–é¡¹ç›®åç§°çš„å¤§å†™ç‰ˆæœ¬ï¼ˆç”¨äºå¤´æ–‡ä»¶ä¿æŠ¤ï¼‰
+    // »ñÈ¡ÏîÄ¿Ãû³ÆµÄ´óĞ´°æ±¾£¨ÓÃÓÚÍ·ÎÄ¼ş±£»¤£©
     std::string projectNameUpper = StringUtils::toUpper(options_.projectName);
 
     return fmt::format(R"(#ifndef {1}_H
@@ -1345,7 +1345,7 @@ std::string LibraryTemplate::getLibraryHeaderContent() {
 
 namespace {0} {{
 
-// ç¤ºä¾‹ç±»
+// Ê¾ÀıÀà
 class Example {{
 public:
     explicit Example(int value = 0);
@@ -1357,10 +1357,10 @@ private:
     int value_;
 }};
 
-// ç¤ºä¾‹å‡½æ•°
+// Ê¾Àıº¯Êı
 int add(int a, int b);
 
-// è·å–åº“ç‰ˆæœ¬
+// »ñÈ¡¿â°æ±¾
 std::string getVersion();
 
 }} // namespace {0}
@@ -2241,16 +2241,16 @@ std::string LibraryTemplate::getBenchmarkContent() {
     return fmt::format(R"(#include <benchmark/benchmark.h>
 #include "{0}/{0}.h"
 
-// ç®€å•çš„addå‡½æ•°åŸºå‡†æµ‹è¯•
+// ¼òµ¥µÄaddº¯Êı»ù×¼²âÊÔ
 static void BM_Add(benchmark::State& state) {{
-  // è¿™æ®µä»£ç ä¼šè¢«è®¡æ—¶
+  // Õâ¶Î´úÂë»á±»¼ÆÊ±
   for (auto _ : state) {{
     benchmark::DoNotOptimize({0}::add(42, 24));
   }}
 }}
 BENCHMARK(BM_Add);
 
-// ä½¿ç”¨ä¸åŒè¾“å…¥å€¼çš„åŸºå‡†æµ‹è¯•
+// Ê¹ÓÃ²»Í¬ÊäÈëÖµµÄ»ù×¼²âÊÔ
 static void BM_Add_WithArgs(benchmark::State& state) {{
   const int a = state.range(0);
   const int b = state.range(1);
@@ -2258,10 +2258,10 @@ static void BM_Add_WithArgs(benchmark::State& state) {{
     benchmark::DoNotOptimize({0}::add(a, b));
   }}
 }}
-// æµ‹è¯•ä¸åŒè¾“å…¥ç»„åˆ
+// ²âÊÔ²»Í¬ÊäÈë×éºÏ
 BENCHMARK(BM_Add_WithArgs)->Args({{1, 1}})->Args({{10, 10}})->Args({{100, 100}});
 
-// æµ‹è¯•Exampleç±»
+// ²âÊÔExampleÀà
 static void BM_ExampleGetValue(benchmark::State& state) {{
   {0}::Example example(state.range(0));
   for (auto _ : state) {{

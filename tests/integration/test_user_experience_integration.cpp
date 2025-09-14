@@ -4,11 +4,11 @@
 #include <fstream>
 #include <sstream>
 
-#include "../../src/utils/enhanced_confirmation_system.h"
-#include "../../src/utils/context_sensitive_error_system.h"
-#include "../../src/utils/operation_rollback_system.h"
-#include "../../src/utils/enhanced_help_system.h"
-#include "../../src/utils/file_utils.h"
+#include "../../src/utils/validation/enhanced_confirmation_system.h"
+#include "../../src/utils/validation/context_sensitive_error_system.h"
+#include "../../src/utils/validation/operation_rollback_system.h"
+#include "../../src/utils/validation/enhanced_help_system.h"
+#include "../../src/utils/core/file_utils.h"
 
 using namespace utils;
 using ::testing::_;

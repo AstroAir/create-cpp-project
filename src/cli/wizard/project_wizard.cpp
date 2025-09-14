@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-#include "../../utils/terminal_utils.h"
+#include "../../utils/ui/terminal_utils.h"
 
 using namespace utils;
 

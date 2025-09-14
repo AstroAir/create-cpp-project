@@ -5,8 +5,8 @@
 
 #include <filesystem>
 
-#include "../utils/file_utils.h"
-#include "../utils/terminal_utils.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/ui/terminal_utils.h"
 
 using utils::FileUtils;
 
@@ -71,7 +71,7 @@ bool GameEngineTemplate::create() {
             spdlog::error("Failed to initialize Git repository");
             return false;
         }
-        spdlog::info("✅ Git repository initialized");
+        spdlog::info("�?Git repository initialized");
     }
 
     utils::TerminalUtils::showNpmStyleSuccess("Game engine project created successfully!",
@@ -2035,14 +2035,14 @@ make -j$(nproc)
 ```
 src/
 ├── engine/           # Core engine systems
-│   ├── core/        # Engine core (Engine, Entity, Component)
-│   ├── graphics/    # Rendering system
-│   ├── audio/       # Audio system
-│   ├── input/       # Input management
-│   ├── physics/     # Physics integration
-│   ├── scripting/   # Scripting engine
-│   ├── resources/   # Resource management
-│   └── scene/       # Scene management
+�?  ├── core/        # Engine core (Engine, Entity, Component)
+�?  ├── graphics/    # Rendering system
+�?  ├── audio/       # Audio system
+�?  ├── input/       # Input management
+�?  ├── physics/     # Physics integration
+�?  ├── scripting/   # Scripting engine
+�?  ├── resources/   # Resource management
+�?  └── scene/       # Scene management
 ├── game/            # Game-specific code
 └── main.cpp         # Application entry point
 

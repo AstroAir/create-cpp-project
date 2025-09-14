@@ -12,9 +12,9 @@
 #include "documentation/doc_generator.h"
 #include "templates/template_manager.h"
 #include "testing/test_framework_manager.h"
-#include "utils/framework_integration.h"
-#include "utils/progress_indicator.h"
-#include "utils/terminal_utils.h"
+#include "utils/external/framework_integration.h"
+#include "utils/ui/progress_indicator.h"
+#include "utils/ui/terminal_utils.h"
 
 // Initialize the logging system
 void initializeLogger(bool verbose) {

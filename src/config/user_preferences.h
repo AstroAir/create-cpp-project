@@ -1,11 +1,14 @@
 #pragma once
 
-#include "config_manager.h"
-#include "../cli/cli_parser.h"
-#include <string>
-#include <vector>
 #include <map>
 #include <optional>
+#include <string>
+#include <vector>
+
+#include "../cli/cli_parser.h"
+
+#include "config_manager.h"
+
 
 namespace config {
 
@@ -32,12 +35,12 @@ struct PreferenceDefinition {
     std::vector<std::string> allowedValues;
     PreferenceCategory category;
     bool requiresRestart = false;
-    std::string environmentVariable; // Optional environment variable override
+    std::string environmentVariable;  // Optional environment variable override
 };
 
 // User preferences manager
 class UserPreferences {
-public:
+   public:
     // Singleton access
     static UserPreferences& getInstance();
 
@@ -47,10 +50,10 @@ public:
     bool resetToDefaults();
 
     // Preference access
-    template<typename T>
+    template <typename T>
     T getPreference(const std::string& key, const T& defaultValue = T{});
 
-    template<typename T>
+    template <typename T>
     bool setPreference(const std::string& key, const T& value);
 
     bool hasPreference(const std::string& key);
@@ -80,7 +83,7 @@ public:
     // Interactive preference editor
     bool runInteractiveEditor();
 
-private:
+   private:
     UserPreferences() = default;
     ~UserPreferences() = default;
     UserPreferences(const UserPreferences&) = delete;
@@ -110,51 +113,52 @@ struct PreferenceCategoryInfo {
 
 // Preference management utilities
 namespace preferences {
-    // Get all preference categories with their information
-    std::vector<PreferenceCategoryInfo> getPreferenceCategories();
+// Get all preference categories with their information
+std::vector<PreferenceCategoryInfo> getPreferenceCategories();
 
-    // Get display-friendly preference information
-    std::string getPreferenceDisplayName(const std::string& key);
-    std::string getPreferenceDescription(const std::string& key);
-    std::vector<std::string> getPreferenceAllowedValues(const std::string& key);
+// Get display-friendly preference information
+std::string getPreferenceDisplayName(const std::string& key);
+std::string getPreferenceDescription(const std::string& key);
+std::vector<std::string> getPreferenceAllowedValues(const std::string& key);
 
-    // Preference validation helpers
-    bool isValidPreferenceKey(const std::string& key);
-    bool isValidPreferenceValue(const std::string& key, const nlohmann::json& value);
+// Preference validation helpers
+bool isValidPreferenceKey(const std::string& key);
+bool isValidPreferenceValue(const std::string& key, const nlohmann::json& value);
 
-    // Default preference values
-    nlohmann::json getDefaultPreferences();
+// Default preference values
+nlohmann::json getDefaultPreferences();
 
-    // Environment variable helpers
-    std::string getEnvironmentVariableForPreference(const std::string& key);
-    bool hasEnvironmentOverride(const std::string& key);
+// Environment variable helpers
+std::string getEnvironmentVariableForPreference(const std::string& key);
+bool hasEnvironmentOverride(const std::string& key);
 
-    // Interactive helpers
-    void showPreferenceHelp(const std::string& key);
-    void showAllPreferences();
-    void showPreferencesByCategory(PreferenceCategory category);
+// Interactive helpers
+void showPreferenceHelp(const std::string& key);
+void showAllPreferences();
+void showPreferencesByCategory(PreferenceCategory category);
 
-    // Preference migration
-    bool migratePreferences(const nlohmann::json& oldPreferences, nlohmann::json& newPreferences);
-}
+// Preference migration
+bool migratePreferences(const nlohmann::json& oldPreferences, nlohmann::json& newPreferences);
+}  // namespace preferences
 
 // Template specializations for common types
-template<>
-std::string UserPreferences::getPreference<std::string>(const std::string& key, const std::string& defaultValue);
+template <>
+std::string UserPreferences::getPreference<std::string>(const std::string& key,
+                                                        const std::string& defaultValue);
 
-template<>
+template <>
 bool UserPreferences::getPreference<bool>(const std::string& key, const bool& defaultValue);
 
-template<>
+template <>
 int UserPreferences::getPreference<int>(const std::string& key, const int& defaultValue);
 
-template<>
+template <>
 bool UserPreferences::setPreference<std::string>(const std::string& key, const std::string& value);
 
-template<>
+template <>
 bool UserPreferences::setPreference<bool>(const std::string& key, const bool& value);
 
-template<>
+template <>
 bool UserPreferences::setPreference<int>(const std::string& key, const int& value);
 
-} // namespace config
+}  // namespace config

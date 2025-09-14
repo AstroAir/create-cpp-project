@@ -58,7 +58,7 @@ CliOptions parseArguments(int argc, char* argv[]) {
       if (args.size() > 1) {
         cli_commands::showProfileInfo(args[1]);
       } else {
-        std::cout << "âŒ Please specify a profile name\n";
+        std::cout << "â?Please specify a profile name\n";
         std::cout << "Usage: cpp-scaffold show-profile <profile-name>\n";
       }
       options.showHelp = true;
@@ -133,7 +133,7 @@ CliOptions parseArguments(int argc, char* argv[]) {
     config::validation_utils::printValidationResult(result);
 
     if (!result.isValid && options.strictValidation) {
-      std::cout << "âŒ Configuration validation failed in strict mode. Aborting.\n";
+      std::cout << "â?Configuration validation failed in strict mode. Aborting.\n";
       exit(1);
     }
   }

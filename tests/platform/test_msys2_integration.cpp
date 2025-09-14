@@ -3,7 +3,7 @@
 #include "../src/templates/library_template.h"
 #include "../src/templates/gui_template.h"
 #include "../src/utils/msys2_validator.h"
-#include "../src/utils/file_utils.h"
+#include "../../src/utils/core/file_utils.h"
 #include "../src/cli/types/cli_enums.h"
 #include <filesystem>
 #include <fstream>

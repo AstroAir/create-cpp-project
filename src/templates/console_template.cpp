@@ -5,8 +5,8 @@
 
 #include <iostream>
 
-#include "../utils/file_utils.h"
-#include "../utils/terminal_utils.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/ui/terminal_utils.h"
 
 using namespace utils;
 using namespace cli_enums;
@@ -58,7 +58,7 @@ bool ConsoleTemplate::create() {
             spdlog::error("Failed to initialize Git repository");
             return false;
         }
-        spdlog::info("ï¿½?Git repository initialized");
+        spdlog::info("ï¿?Git repository initialized");
     }
 
     // Setup code style tools if enabled
@@ -67,7 +67,7 @@ bool ConsoleTemplate::create() {
             spdlog::error("Failed to setup code style tools");
             return false;
         }
-        spdlog::info("ï¿½?Code style tools configured");
+        spdlog::info("ï¿?Code style tools configured");
     }
 
     spdlog::info("\nYour project is ready!\n");

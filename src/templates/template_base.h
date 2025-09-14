@@ -6,9 +6,9 @@
 
 #include "../cli/types/cli_options.h"
 #include "../testing/test_framework_manager.h"
-#include "../utils/edge_case_handler.h"
-#include "../utils/file_utils.h"
-#include "../utils/progress_indicator.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/ui/progress_indicator.h"
+#include "../utils/validation/edge_case_handler.h"
 
 class TemplateBase {
    public:
@@ -79,7 +79,7 @@ class TemplateBase {
     // 设置CI/CD配置
     bool setupCICD(const std::string& projectPath);
 
-    // 设置编辑器配置
+    // Setup editor configuration
     bool setupEditorConfig(const std::string& projectPath);
 
     // 设置代码风格配置
@@ -94,10 +94,10 @@ class TemplateBase {
     // 获取.gitignore内容
     std::string getGitignoreContent();
 
-    // 获取许可证内容
+    // Get license content
     std::string getLicenseContent(const std::string& projectName);
 
-    // 创建许可证文件
+    // Create license file
     bool createLicense(const std::string& projectPath);
 
     // 创建空的.clang-format文件

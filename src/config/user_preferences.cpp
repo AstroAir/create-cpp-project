@@ -1,6 +1,6 @@
-﻿#include "user_preferences.h"
-#include "../utils/file_utils.h"
-#include "../utils/terminal_utils.h"
+#include "user_preferences.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/ui/terminal_utils.h"
 #include <spdlog/spdlog.h>
 #include <iostream>
 

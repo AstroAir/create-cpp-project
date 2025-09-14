@@ -1,4 +1,4 @@
-﻿#include "header_only_lib_template.h"
+#include "header_only_lib_template.h"
 
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
@@ -8,9 +8,9 @@
 #include <iostream>
 #include <sstream>
 
-#include "../utils/file_utils.h"
-#include "../utils/string_utils.h"
-#include "../utils/terminal_utils.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/core/string_utils.h"
+#include "../utils/ui/terminal_utils.h"
 
 using namespace utils;
 using namespace cli_enums;
@@ -82,7 +82,7 @@ bool HeaderOnlyLibTemplate::create() {
             spdlog::error("Failed to initialize Git repository");
             return false;
         }
-        spdlog::info("✅ Git repository initialized");
+        spdlog::info("? Git repository initialized");
     }
 
     spdlog::info("\nYour header-only library project is ready!\n");

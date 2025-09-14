@@ -1,6 +1,6 @@
 #include "test_framework_manager.h"
-#include "../utils/file_utils.h"
-#include "../utils/string_utils.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/core/string_utils.h"
 #include <spdlog/spdlog.h>
 #include <fstream>
 #include <sstream>

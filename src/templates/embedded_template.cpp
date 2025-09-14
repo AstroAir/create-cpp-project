@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-#include "../utils/file_utils.h"
+#include "../utils/core/file_utils.h"
 
 using namespace utils;
 
@@ -14,41 +14,41 @@ bool EmbeddedTemplate::create() {
     std::cout << "ðŸ”§ Creating Embedded project: " << options_.projectName << "\n";
 
     if (!createProjectStructure()) {
-        std::cerr << "âŒ Failed to create project structure\n";
+        std::cerr << "â?Failed to create project structure\n";
         return false;
     }
 
     if (!createBuildSystem()) {
-        std::cerr << "âŒ Failed to create build system\n";
+        std::cerr << "â?Failed to create build system\n";
         return false;
     }
 
     if (!setupPackageManager()) {
-        std::cerr << "âŒ Failed to setup package manager\n";
+        std::cerr << "â?Failed to setup package manager\n";
         return false;
     }
 
     if (!setupHardwareAbstraction()) {
-        std::cerr << "âŒ Failed to setup hardware abstraction layer\n";
+        std::cerr << "â?Failed to setup hardware abstraction layer\n";
         return false;
     }
 
     if (!setupTestFramework()) {
-        std::cerr << "âŒ Failed to setup test framework\n";
+        std::cerr << "â?Failed to setup test framework\n";
         return false;
     }
 
     if (!setupDebugging()) {
-        std::cerr << "âŒ Failed to setup debugging configuration\n";
+        std::cerr << "â?Failed to setup debugging configuration\n";
         return false;
     }
 
     if (!initializeGit(options_.projectName)) {
-        std::cerr << "âŒ Failed to initialize Git repository\n";
+        std::cerr << "â?Failed to initialize Git repository\n";
         return false;
     }
 
-    std::cout << "âœ… Embedded project created successfully!\n";
+    std::cout << "âœ?Embedded project created successfully!\n";
     printUsageGuide();
     return true;
 }
@@ -79,7 +79,7 @@ bool EmbeddedTemplate::createProjectStructure() {
 
     for (const auto& dir : directories) {
         if (!FileUtils::createDirectory(dir)) {
-            std::cerr << "âŒ Failed to create directory: " << dir << "\n";
+            std::cerr << "â?Failed to create directory: " << dir << "\n";
             return false;
         }
     }

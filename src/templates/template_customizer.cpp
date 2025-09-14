@@ -11,9 +11,9 @@
 
 #include "../cli/input/user_input.h"
 #include "../cli/types/cli_enums.h"
-#include "../utils/file_utils.h"
-#include "../utils/string_utils.h"
-#include "../utils/terminal_utils.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/core/string_utils.h"
+#include "../utils/ui/terminal_utils.h"
 
 using namespace utils;
 using json = nlohmann::json;

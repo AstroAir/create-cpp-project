@@ -5,8 +5,8 @@
 #include <chrono>
 #include <fstream>
 
-#include "../utils/file_utils.h"
-#include "../utils/string_utils.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/core/string_utils.h"
 
 #include "console_template.h"
 #include "gui_template.h"

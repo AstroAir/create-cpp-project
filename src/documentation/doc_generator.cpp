@@ -1,6 +1,6 @@
 #include "doc_generator.h"
-#include "../utils/file_utils.h"
-#include "../utils/string_utils.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/core/string_utils.h"
 #include <spdlog/spdlog.h>
 #include <sstream>
 #include <regex>
@@ -348,7 +348,7 @@ std::string DocGenerator::generateREADMEContent() {
 
     // Enhanced Features section
     readme << "## Features\n\n";
-    readme << "✨ **Key Features:**\n\n";
+    readme << "�?**Key Features:**\n\n";
     readme << "- 🚀 High-performance C++ implementation\n";
     readme << "- 🔧 Modern C++17/20 features\n";
     readme << "- 📦 Easy integration with popular package managers\n";
@@ -444,7 +444,7 @@ std::string DocGenerator::generateREADMEContent() {
     readme << "- 👥 [User Guide](docs/user-guide.md) - Step-by-step usage guide\n";
     readme << "- 🔧 [Developer Guide](docs/developer-guide.md) - Contributing and development\n";
     readme << "- 🎯 [Tutorials](docs/tutorials/) - Hands-on learning materials\n";
-    readme << "- ❓ [FAQ](docs/faq.md) - Frequently asked questions\n\n";
+    readme << "- �?[FAQ](docs/faq.md) - Frequently asked questions\n\n";
 
     // Examples section
     readme << "## Examples\n\n";

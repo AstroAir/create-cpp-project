@@ -6,9 +6,9 @@
 #include <iostream>
 
 #include "../cli/types/cli_enums.h"
-#include "../utils/file_utils.h"
-#include "../utils/string_utils.h"
-#include "../utils/terminal_utils.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/core/string_utils.h"
+#include "../utils/ui/terminal_utils.h"
 
 using namespace utils;
 
@@ -62,7 +62,7 @@ bool MultiExecutableTemplate::create() {
             spdlog::error("Failed to initialize Git repository");
             return false;
         }
-        spdlog::info("✅ Git repository initialized");
+        spdlog::info("�?Git repository initialized");
     }
 
     spdlog::info("\nYour multi-executable project is ready!\n");
@@ -1181,19 +1181,19 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
 {}/
 ├── CMakeLists.txt          # Main build configuration
 ├── lib/                    # Shared library
-│   ├── include/           # Public headers
-│   │   ├── {}_lib.h      # Main library header
-│   │   ├── utils.h        # Utility functions
-│   │   ├── version.h      # Version information
-│   │   └── config.h       # Configuration constants
-│   └── src/               # Library implementation
-│       ├── {}_lib.cpp    # Main library source
-│       └── utils.cpp      # Utility implementations
+�?  ├── include/           # Public headers
+�?  �?  ├── {}_lib.h      # Main library header
+�?  �?  ├── utils.h        # Utility functions
+�?  �?  ├── version.h      # Version information
+�?  �?  └── config.h       # Configuration constants
+�?  └── src/               # Library implementation
+�?      ├── {}_lib.cpp    # Main library source
+�?      └── utils.cpp      # Utility implementations
 ├── src/                   # Executable sources
-│   ├── main.cpp          # Main application
-│   ├── client.cpp        # Client application
-│   ├── server.cpp        # Server application
-│   └── tool.cpp          # Command-line tool
+�?  ├── main.cpp          # Main application
+�?  ├── client.cpp        # Client application
+�?  ├── server.cpp        # Server application
+�?  └── tool.cpp          # Command-line tool
 ├── bin/                   # Built executables (after build)
 ├── docs/                  # Documentation
 └── scripts/               # Build and utility scripts

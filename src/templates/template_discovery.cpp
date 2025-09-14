@@ -7,8 +7,9 @@
 #include <iostream>
 #include <set>
 
-#include "../utils/file_utils.h"
-#include "../utils/terminal_utils.h"
+#include "../cli/types/cli_enums.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/ui/terminal_utils.h"
 
 namespace templates {
 
@@ -96,7 +97,7 @@ std::optional<TemplateMetadata> TemplateDiscovery::getTemplateMetadata(
 }
 
 std::optional<TemplateMetadata> TemplateDiscovery::getTemplateMetadata(TemplateType templateType) {
-    std::string templateName = std::string(enums::to_string(templateType));
+    std::string templateName = std::string(cli_enums::to_string(templateType));
     return getTemplateMetadata(templateName);
 }
 
@@ -139,7 +140,7 @@ TemplateValidationResult TemplateDiscovery::validateTemplate(const std::string& 
 }
 
 TemplateValidationResult TemplateDiscovery::validateTemplate(TemplateType templateType) {
-    std::string templateName = std::string(enums::to_string(templateType));
+    std::string templateName = std::string(cli_enums::to_string(templateType));
     return validateTemplate(templateName);
 }
 
@@ -333,14 +334,14 @@ void TemplateDiscovery::loadTemplateUsageStats() {
 
 bool TemplateDiscovery::validateBuildSystemCompatibility(const TemplateMetadata& metadata,
                                                          BuildSystem buildSystem) {
-    std::string buildSystemStr = std::string(enums::to_string(buildSystem));
+    std::string buildSystemStr = std::string(cli_enums::to_string(buildSystem));
     return std::find(metadata.supportedBuildSystems.begin(), metadata.supportedBuildSystems.end(),
                      buildSystemStr) != metadata.supportedBuildSystems.end();
 }
 
 bool TemplateDiscovery::validatePackageManagerCompatibility(const TemplateMetadata& metadata,
                                                             PackageManager packageManager) {
-    std::string packageManagerStr = std::string(enums::to_string(packageManager));
+    std::string packageManagerStr = std::string(cli_enums::to_string(packageManager));
     return std::find(metadata.supportedPackageManagers.begin(),
                      metadata.supportedPackageManagers.end(),
                      packageManagerStr) != metadata.supportedPackageManagers.end();
@@ -510,7 +511,7 @@ void printTemplateInfo(const TemplateMetadata& metadata) {
     }
 
     if (metadata.isDeprecated) {
-        std::cout << "   " << TerminalUtils::colorize("❌ Deprecated", Color::BrightRed) << "\n";
+        std::cout << "   " << TerminalUtils::colorize("�?Deprecated", Color::BrightRed) << "\n";
     }
 
     std::cout << "\n";

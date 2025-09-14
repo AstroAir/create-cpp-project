@@ -1,4 +1,4 @@
-ï»¿#include "interactive_config.h"
+#include "interactive_config.h"
 
 #include <spdlog/spdlog.h>
 
@@ -7,7 +7,7 @@
 #include <limits>
 #include <sstream>
 
-#include "../utils/terminal_utils.h"
+#include "../utils/ui/terminal_utils.h"
 
 using namespace utils;
 using namespace cli_enums;
@@ -575,35 +575,35 @@ std::vector<std::string> InteractiveConfigWizard::promptForMultiChoice(
 void InteractiveConfigWizard::showWelcomeMessage() {
     clearScreen();
     std::cout << TerminalUtils::colorize(
-                         "â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—",
+                         "¨X¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨[",
                          Color::BrightCyan)
               << std::endl;
     std::cout << TerminalUtils::colorize(
-                         "â•‘                                                              â•‘",
+                         "¨U                                                              ¨U",
                          Color::BrightCyan)
               << std::endl;
     std::cout << TerminalUtils::colorize(
-                         "â•‘              CPP-Scaffold Configuration Wizard              â•‘",
+                         "¨U              CPP-Scaffold Configuration Wizard              ¨U",
                          Color::BrightCyan)
               << std::endl;
     std::cout << TerminalUtils::colorize(
-                         "â•‘                                                              â•‘",
+                         "¨U                                                              ¨U",
                          Color::BrightCyan)
               << std::endl;
     std::cout << TerminalUtils::colorize(
-                         "â•‘  Welcome! This wizard will help you configure CPP-Scaffold  â•‘",
+                         "¨U  Welcome! This wizard will help you configure CPP-Scaffold  ¨U",
                          Color::BrightCyan)
               << std::endl;
     std::cout << TerminalUtils::colorize(
-                         "â•‘  to match your preferences and development workflow.        â•‘",
+                         "¨U  to match your preferences and development workflow.        ¨U",
                          Color::BrightCyan)
               << std::endl;
     std::cout << TerminalUtils::colorize(
-                         "â•‘                                                              â•‘",
+                         "¨U                                                              ¨U",
                          Color::BrightCyan)
               << std::endl;
     std::cout << TerminalUtils::colorize(
-                         "â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•",
+                         "¨^¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨T¨a",
                          Color::BrightCyan)
               << std::endl;
     std::cout << std::endl;
@@ -753,19 +753,19 @@ void InteractiveConfigWizard::showSectionFooter() {
 }
 
 void InteractiveConfigWizard::showError(const std::string& message) {
-    std::cout << TerminalUtils::colorize("âŒ Error: " + message, Color::BrightRed) << std::endl;
+    std::cout << TerminalUtils::colorize("? Error: " + message, Color::BrightRed) << std::endl;
 }
 
 void InteractiveConfigWizard::showSuccess(const std::string& message) {
-    std::cout << TerminalUtils::colorize("âœ… " + message, Color::BrightGreen) << std::endl;
+    std::cout << TerminalUtils::colorize("? " + message, Color::BrightGreen) << std::endl;
 }
 
 void InteractiveConfigWizard::showInfo(const std::string& message) {
-    std::cout << TerminalUtils::colorize("â„¹ï¸  " + message, Color::BrightBlue) << std::endl;
+    std::cout << TerminalUtils::colorize("??  " + message, Color::BrightBlue) << std::endl;
 }
 
 void InteractiveConfigWizard::showWarning(const std::string& message) {
-    std::cout << TerminalUtils::colorize("âš ï¸  " + message, Color::BrightYellow) << std::endl;
+    std::cout << TerminalUtils::colorize("??  " + message, Color::BrightYellow) << std::endl;
 }
 
 void InteractiveConfigWizard::waitForEnter() {

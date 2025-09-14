@@ -8,10 +8,10 @@
 #include "../../config/config_validator.h"
 #include "../../config/interactive_config.h"
 #include "../../config/project_profiles.h"
-#include "../../utils/context_sensitive_error_system.h"
-#include "../../utils/file_utils.h"
-#include "../../utils/string_utils.h"
-#include "../../utils/terminal_utils.h"
+#include "../../utils/core/file_utils.h"
+#include "../../utils/core/string_utils.h"
+#include "../../utils/ui/terminal_utils.h"
+#include "../../utils/validation/context_sensitive_error_system.h"
 #include "../localization/localization.h"
 
 using namespace utils;
@@ -28,9 +28,9 @@ void showHelp(Language lang) {
     std::cout << "\n";
     TerminalUtils::showCard("Quick Start",
                             {"🚀 Create a new project:     cpp-scaffold create my-project",
-                             "⚡ Interactive mode:         cpp-scaffold",
+                             "�?Interactive mode:         cpp-scaffold",
                              "📋 List templates:           cpp-scaffold list-templates",
-                             "❓ Get help:                 cpp-scaffold --help"});
+                             "�?Get help:                 cpp-scaffold --help"});
 
     std::cout << "\n";
     std::cout << TerminalUtils::colorAndStyle("Usage:", utils::Color::BrightYellow,
@@ -118,7 +118,8 @@ void showHelp(Language lang) {
     // Examples Section
     TerminalUtils::showCard(
             "Common Examples",
-            {"🏗️  Basic console app:         cpp-scaffold create my-app --template console --build "
+            {"🏗�? Basic console app:         cpp-scaffold create my-app --template console "
+             "--build "
              "cmake",
              "📚 Library with docs:         cpp-scaffold create my-lib -t lib --docs --code-style",
              "🎮 Game project:              cpp-scaffold create my-game --template gui "
@@ -130,15 +131,16 @@ void showHelp(Language lang) {
     std::cout << "\n";
 
     // Advanced Examples Section
-    TerminalUtils::showCard("Advanced Examples",
-                            {"📦 From Git repository:       cpp-scaffold create my-project "
-                             "--from-git https://github.com/user/template.git",
-                             "🏷️  Specific Git tag:          cpp-scaffold create my-lib --from-git "
-                             "repo.git --tag v1.0.0",
-                             "🔧 Multiple CI systems:       cpp-scaffold create my-app --ci github "
-                             "--ci gitlab --editor vscode",
-                             "📖 Full documentation:        cpp-scaffold create my-lib "
-                             "--doc-formats markdown,html --doxygen"});
+    TerminalUtils::showCard(
+            "Advanced Examples",
+            {"📦 From Git repository:       cpp-scaffold create my-project "
+             "--from-git https://github.com/user/template.git",
+             "🏷�? Specific Git tag:          cpp-scaffold create my-lib --from-git "
+             "repo.git --tag v1.0.0",
+             "🔧 Multiple CI systems:       cpp-scaffold create my-app --ci github "
+             "--ci gitlab --editor vscode",
+             "📖 Full documentation:        cpp-scaffold create my-lib "
+             "--doc-formats markdown,html --doxygen"});
 
     std::cout << "\n";
 
@@ -245,7 +247,7 @@ void showProfileInfo(const std::string& profileName) {
 
     auto profile = profileManager.getProfile(profileName);
     if (!profile) {
-        std::cout << TerminalUtils::colorize("❌ Profile '" + profileName + "' not found",
+        std::cout << TerminalUtils::colorize("�?Profile '" + profileName + "' not found",
                                              utils::Color::BrightRed)
                   << "\n";
         std::cout << "Use 'cpp-scaffold list-profiles' to see available profiles.\n";
@@ -286,7 +288,7 @@ void showProfileInfo(const std::string& profileName) {
                                              utils::Color::BrightYellow)
                   << "\n";
         for (const auto& dep : profile->recommendedDependencies) {
-            std::cout << "  • " << dep << "\n";
+            std::cout << "  �?" << dep << "\n";
         }
     }
 
@@ -324,7 +326,7 @@ void validateProject(const std::string& projectPath) {
                 issues.push_back("Missing required file: " + file);
                 isValid = false;
             } else {
-                std::cout << TerminalUtils::colorize("✓", utils::Color::BrightGreen)
+                std::cout << TerminalUtils::colorize("[OK]", utils::Color::BrightGreen)
                           << " Found: " << file << "\n";
             }
         }
@@ -335,7 +337,7 @@ void validateProject(const std::string& projectPath) {
                 issues.push_back("Missing required directory: " + dir);
                 isValid = false;
             } else {
-                std::cout << TerminalUtils::colorize("✓", utils::Color::BrightGreen)
+                std::cout << TerminalUtils::colorize("[OK]", utils::Color::BrightGreen)
                           << " Found: " << dir << "/\n";
             }
         }
@@ -344,15 +346,15 @@ void validateProject(const std::string& projectPath) {
     std::cout << "\n";
 
     if (isValid) {
-        std::cout << TerminalUtils::colorize("✅ Project structure is valid!",
+        std::cout << TerminalUtils::colorize("�?Project structure is valid!",
                                              utils::Color::BrightGreen)
                   << "\n";
     } else {
-        std::cout << TerminalUtils::colorize("❌ Project validation failed:",
+        std::cout << TerminalUtils::colorize("�?Project validation failed:",
                                              utils::Color::BrightRed)
                   << "\n";
         for (const auto& issue : issues) {
-            std::cout << TerminalUtils::colorize("  • " + issue, utils::Color::Red) << "\n";
+            std::cout << TerminalUtils::colorize("  �?" + issue, utils::Color::Red) << "\n";
         }
     }
     std::cout << "\n";
@@ -370,12 +372,11 @@ void validateConfiguration(const CliOptions& options) {
 
     if (result.isValid) {
         std::cout << "\n"
-                  << TerminalUtils::colorize("✅ Configuration is valid!",
-                                             utils::Color::BrightGreen)
+                  << TerminalUtils::colorize("�?Configuration is valid!", utils::Color::BrightGreen)
                   << "\n";
     } else {
         std::cout << "\n"
-                  << TerminalUtils::colorize("❌ Configuration has errors that need to be fixed.",
+                  << TerminalUtils::colorize("�?Configuration has errors that need to be fixed.",
                                              utils::Color::BrightRed)
                   << "\n";
     }

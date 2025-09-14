@@ -5,8 +5,8 @@
 #include <algorithm>
 #include <regex>
 
-#include "../utils/string_utils.h"
-#include "../utils/terminal_utils.h"
+#include "../utils/core/string_utils.h"
+#include "../utils/ui/terminal_utils.h"
 
 #ifdef _WIN32
 #include <windows.h>

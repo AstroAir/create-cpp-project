@@ -1,9 +1,9 @@
 #pragma once
 
 #include "template_base.h"
-#include "../utils/archive_utils.h"
-#include "../utils/http_client.h"
-#include "../utils/progress_indicator.h"
+#include "../utils/archive/archive_utils.h"
+#include "../utils/external/http_client.h"
+#include "../utils/ui/progress_indicator.h"
 
 class ArchiveTemplate : public TemplateBase {
 public:

@@ -7,8 +7,8 @@
 #include <iostream>
 #include <sstream>
 
-#include "../../utils/string_utils.h"
-#include "../../utils/terminal_utils.h"
+#include "../../utils/core/string_utils.h"
+#include "../../utils/ui/terminal_utils.h"
 
 using namespace utils;
 

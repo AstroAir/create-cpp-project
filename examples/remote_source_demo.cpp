@@ -32,11 +32,11 @@ void demonstrateGitRepositoryCreation() {
     std::cout << "3. 📥 Cloning repository (shallow clone for speed)...\n";
     std::cout << "   Progress: [████████████████████] 100% - Repository cloned\n";
     std::cout << "4. 🔄 Checking out branch 'develop'...\n";
-    std::cout << "5. ✅ Validating C++ project structure...\n";
+    std::cout << "5. �?Validating C++ project structure...\n";
     std::cout << "6. 📝 Adapting project name to 'my-project'...\n";
-    std::cout << "7. 🗑️  Removing .git directory (preserving clean state)...\n";
+    std::cout << "7. 🗑�? Removing .git directory (preserving clean state)...\n";
     std::cout << "8. 🎯 Applying CLI options and configurations...\n";
-    std::cout << "9. ✨ Project 'my-project' created successfully!\n";
+    std::cout << "9. �?Project 'my-project' created successfully!\n";
     
     std::cout << "\nAdditional options available:\n";
     std::cout << "  --tag v1.0.0          # Checkout specific tag\n";
@@ -61,11 +61,11 @@ void demonstrateArchiveCreation() {
     std::cout << "5. 📦 Extracting archive contents...\n";
     std::cout << "   Progress: [████████████████████] 100% (45 files extracted)\n";
     std::cout << "6. 🔍 Finding project root directory...\n";
-    std::cout << "7. ✅ Validating C++ project structure...\n";
+    std::cout << "7. �?Validating C++ project structure...\n";
     std::cout << "8. 📝 Adapting project name to 'my-app'...\n";
     std::cout << "9. 🎯 Applying CLI options and configurations...\n";
-    std::cout << "10. 🗑️ Cleaning up temporary files...\n";
-    std::cout << "11. ✨ Project 'my-app' created successfully!\n";
+    std::cout << "10. 🗑�?Cleaning up temporary files...\n";
+    std::cout << "11. �?Project 'my-app' created successfully!\n";
     
     std::cout << "\nSupported archive formats:\n";
     std::cout << "  .zip, .tar.gz, .tar.bz2, .tar.xz, .7z, .tar\n";
@@ -81,17 +81,17 @@ void demonstrateErrorHandling() {
     
     std::cout << "1. Invalid Git URL:\n";
     std::cout << "   Command: cpp-scaffold create test --from-git invalid-url\n";
-    std::cout << "   Error: ❌ Invalid Git repository URL: invalid-url\n";
+    std::cout << "   Error: �?Invalid Git repository URL: invalid-url\n";
     std::cout << "   Suggestion: Use format https://github.com/user/repo.git or git@github.com:user/repo.git\n\n";
     
     std::cout << "2. Network connectivity issues:\n";
     std::cout << "   Command: cpp-scaffold create test --from-git https://github.com/nonexistent/repo.git\n";
-    std::cout << "   Error: ❌ Failed to clone repository: Repository not found (404)\n";
+    std::cout << "   Error: �?Failed to clone repository: Repository not found (404)\n";
     std::cout << "   Suggestion: Check repository URL and access permissions\n\n";
     
     std::cout << "3. Corrupted archive:\n";
     std::cout << "   Command: cpp-scaffold create test --from-archive corrupted.zip\n";
-    std::cout << "   Error: ❌ Archive validation failed: corrupted.zip\n";
+    std::cout << "   Error: �?Archive validation failed: corrupted.zip\n";
     std::cout << "   Suggestion: Re-download the archive or try a different source\n\n";
     
     std::cout << "4. Non-C++ project detection:\n";
@@ -153,10 +153,10 @@ int main() {
     std::cout << "================================================\n";
     
     std::cout << "This demonstration shows the new remote source capabilities:\n";
-    std::cout << "• Create C++ projects from Git repositories\n";
-    std::cout << "• Create C++ projects from archive files (local or remote)\n";
-    std::cout << "• Progress tracking and user-friendly error messages\n";
-    std::cout << "• Integration with existing template options\n";
+    std::cout << "�?Create C++ projects from Git repositories\n";
+    std::cout << "�?Create C++ projects from archive files (local or remote)\n";
+    std::cout << "�?Progress tracking and user-friendly error messages\n";
+    std::cout << "�?Integration with existing template options\n";
     
     demonstrateGitRepositoryCreation();
     demonstrateArchiveCreation();
@@ -166,14 +166,14 @@ int main() {
     
     std::cout << "\n=== Summary ===\n";
     std::cout << "The enhanced cpp-scaffold now supports:\n";
-    std::cout << "✅ Git repository cloning (HTTPS/SSH)\n";
-    std::cout << "✅ Archive extraction (.zip, .tar.gz, .tar.bz2, .7z)\n";
-    std::cout << "✅ Progress tracking and user feedback\n";
-    std::cout << "✅ Authentication handling\n";
-    std::cout << "✅ Error handling and recovery\n";
-    std::cout << "✅ Integration with existing CLI options\n";
-    std::cout << "✅ Support for branches, tags, and commits\n";
-    std::cout << "✅ Automatic project structure validation\n";
+    std::cout << "�?Git repository cloning (HTTPS/SSH)\n";
+    std::cout << "�?Archive extraction (.zip, .tar.gz, .tar.bz2, .7z)\n";
+    std::cout << "�?Progress tracking and user feedback\n";
+    std::cout << "�?Authentication handling\n";
+    std::cout << "�?Error handling and recovery\n";
+    std::cout << "�?Integration with existing CLI options\n";
+    std::cout << "�?Support for branches, tags, and commits\n";
+    std::cout << "�?Automatic project structure validation\n";
     
     std::cout << "\nFor more information, run: cpp-scaffold --help\n";
     

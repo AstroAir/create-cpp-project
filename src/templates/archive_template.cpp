@@ -5,9 +5,9 @@
 #include <filesystem>
 #include <iostream>
 
-#include "../utils/file_utils.h"
-#include "../utils/git_utils.h"
-#include "../utils/terminal_utils.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/external/git_utils.h"
+#include "../utils/ui/terminal_utils.h"
 
 ArchiveTemplate::ArchiveTemplate(const CliOptions& options)
     : TemplateBase(options), archiveDownloaded_(false), archiveExtracted_(false) {
@@ -50,13 +50,13 @@ bool ArchiveTemplate::create() {
                 spdlog::error("Failed to download archive");
                 return false;
             }
-            spdlog::info("âœ… Archive downloaded successfully");
+            spdlog::info("âœ?Archive downloaded successfully");
         } else {
             if (!validateLocalArchive()) {
                 spdlog::error("Local archive validation failed");
                 return false;
             }
-            spdlog::info("âœ… Local archive validated");
+            spdlog::info("âœ?Local archive validated");
         }
 
         // Extract archive
@@ -65,7 +65,7 @@ bool ArchiveTemplate::create() {
             cleanupTemporaryFiles();
             return false;
         }
-        spdlog::info("âœ… Archive extracted successfully");
+        spdlog::info("âœ?Archive extracted successfully");
 
         // Process extracted content
         if (!processExtractedContent()) {
@@ -73,7 +73,7 @@ bool ArchiveTemplate::create() {
             cleanupTemporaryFiles();
             return false;
         }
-        spdlog::info("âœ… Content processed successfully");
+        spdlog::info("âœ?Content processed successfully");
 
         // Setup additional configurations based on CLI options
         if (!setupProjectFromArchive()) {

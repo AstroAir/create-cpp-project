@@ -1,6 +1,6 @@
 #include "git_repository_template.h"
-#include "../utils/file_utils.h"
-#include "../utils/terminal_utils.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/ui/terminal_utils.h"
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <iostream>
@@ -47,7 +47,7 @@ bool GitRepositoryTemplate::create() {
             spdlog::error("Failed to clone repository");
             return false;
         }
-        spdlog::info("âœ… Repository cloned successfully");
+        spdlog::info("âœ?Repository cloned successfully");
 
         // Process cloned repository
         if (!processClonedRepository()) {
@@ -55,12 +55,12 @@ bool GitRepositoryTemplate::create() {
             cleanupRepository();
             return false;
         }
-        spdlog::info("âœ… Repository processed successfully");
+        spdlog::info("âœ?Repository processed successfully");
 
         // Move to final location
         try {
             std::filesystem::rename(tempClonePath_, finalProjectPath_);
-            spdlog::info("âœ… Project moved to final location: {}", finalProjectPath_.string());
+            spdlog::info("âœ?Project moved to final location: {}", finalProjectPath_.string());
         } catch (const std::exception& e) {
             spdlog::error("Failed to move project to final location: {}", e.what());
             cleanupRepository();

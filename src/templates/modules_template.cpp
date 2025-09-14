@@ -6,8 +6,8 @@
 #include <filesystem>
 
 #include "../config/ci_config.h"
-#include "../utils/file_utils.h"
-#include "../utils/terminal_utils.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/ui/terminal_utils.h"
 
 ModulesTemplate::ModulesTemplate(const CliOptions& options) : TemplateBase(options) {
     spdlog::info("Creating C++20/C++23 modules project: {}", options.projectName);

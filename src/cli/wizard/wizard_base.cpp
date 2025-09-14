@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "../../utils/terminal_utils.h"
+#include "../../utils/ui/terminal_utils.h"
 
 using namespace utils;
 
@@ -50,21 +50,21 @@ void showWizardHeader(const std::string& title, int currentStep, int totalSteps)
 }
 
 void showStepComplete(const std::string& stepName) {
-    TerminalUtils::showSuccess("✓ " + stepName + " completed");
+    TerminalUtils::showSuccess("�?" + stepName + " completed");
 }
 
 void showStepError(const std::string& stepName, const std::string& error) {
-    TerminalUtils::showError("✗ " + stepName + " failed: " + error);
+    TerminalUtils::showError("�?" + stepName + " failed: " + error);
 }
 
 void showWelcomeScreen() {
     std::cout << "\n";
     std::cout << "╔══════════════════════════════════════════════════════════════╗\n";
-    std::cout << "║                                                              ║\n";
-    std::cout << "║                 C++ Project Wizard                          ║\n";
-    std::cout << "║                                                              ║\n";
-    std::cout << "║         Create modern C++ projects with ease!               ║\n";
-    std::cout << "║                                                              ║\n";
+    std::cout << "�?                                                             ║\n";
+    std::cout << "�?                C++ Project Wizard                          ║\n";
+    std::cout << "�?                                                             ║\n";
+    std::cout << "�?        Create modern C++ projects with ease!               ║\n";
+    std::cout << "�?                                                             ║\n";
     std::cout << "╚══════════════════════════════════════════════════════════════╝\n";
     std::cout << "\n";
 }
@@ -75,22 +75,22 @@ void showEnhancedWelcomeScreen() {
     std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
     std::cout << "\n";
     std::cout << "This wizard will help you create a modern C++ project with:\n";
-    std::cout << "  ✓ Modern build systems (CMake, Meson, etc.)\n";
-    std::cout << "  ✓ Package management (vcpkg, Conan, etc.)\n";
-    std::cout << "  ✓ Testing frameworks (GTest, Catch2, etc.)\n";
-    std::cout << "  ✓ CI/CD configurations\n";
-    std::cout << "  ✓ Best practices and project structure\n";
+    std::cout << "  �?Modern build systems (CMake, Meson, etc.)\n";
+    std::cout << "  �?Package management (vcpkg, Conan, etc.)\n";
+    std::cout << "  �?Testing frameworks (GTest, Catch2, etc.)\n";
+    std::cout << "  �?CI/CD configurations\n";
+    std::cout << "  �?Best practices and project structure\n";
     std::cout << "\n";
 }
 
 void showNpmStyleWelcomeScreen() {
     std::cout << "\n";
     std::cout << "┌─────────────────────────────────────────────────────────────┐\n";
-    std::cout << "│                                                             │\n";
-    std::cout << "│   🎯 C++ Project Scaffolding Tool                          │\n";
-    std::cout << "│                                                             │\n";
-    std::cout << "│   Create production-ready C++ projects in seconds!         │\n";
-    std::cout << "│                                                             │\n";
+    std::cout << "�?                                                            │\n";
+    std::cout << "�?  🎯 C++ Project Scaffolding Tool                          │\n";
+    std::cout << "�?                                                            │\n";
+    std::cout << "�?  Create production-ready C++ projects in seconds!         │\n";
+    std::cout << "�?                                                            │\n";
     std::cout << "└─────────────────────────────────────────────────────────────┘\n";
     std::cout << "\n";
     std::cout << "Features:\n";

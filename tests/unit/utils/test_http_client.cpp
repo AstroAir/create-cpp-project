@@ -3,7 +3,7 @@
 #include <fstream>
 
 // Note: This would include the actual HTTP client
-// #include "../../src/utils/http_client.h"
+// #include "../../src/utils/external/http_client.h"
 
 class HttpClientTest : public ::testing::Test {
 protected:

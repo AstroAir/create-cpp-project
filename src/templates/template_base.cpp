@@ -1,4 +1,4 @@
-﻿#include "template_base.h"
+#include "template_base.h"
 
 #include <spdlog/spdlog.h>
 
@@ -8,11 +8,11 @@
 #include "../config/code_style_config.h"
 #include "../config/doc_config.h"
 #include "../config/editor_config.h"
-#include "../utils/file_utils.h"
-#include "../utils/git_utils.h"
-#include "../utils/progress_indicator.h"
-#include "../utils/system_utils.h"
-#include "../utils/terminal_utils.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/core/system_utils.h"
+#include "../utils/external/git_utils.h"
+#include "../utils/ui/progress_indicator.h"
+#include "../utils/ui/terminal_utils.h"
 
 using namespace cli_enums;
 using namespace utils;
@@ -379,14 +379,14 @@ bool TemplateBase::initializeGit(const std::string& projectPath) {
         return true;
     }
 
-    std::cout << "📦 初始化Git仓库...\n";
+    std::cout << "?? ��ʼ��Git�ֿ�...\n";
 
     // Use enhanced Git utilities
     std::filesystem::path projectDir(projectPath);
 
     // Initialize Git repository
     if (!utils::GitUtils::initializeRepository(projectDir)) {
-        std::cerr << "❌ Git仓库初始化失败\n";
+        std::cerr << "? Git�ֿ��ʼ��ʧ��\n";
         return false;
     }
 
@@ -396,13 +396,13 @@ bool TemplateBase::initializeGit(const std::string& projectPath) {
     std::string packageManager = std::string(to_string(options_.packageManager));
 
     if (!utils::GitUtils::createGitignore(projectDir, templateType, buildSystem, packageManager)) {
-        std::cerr << "❌ 创建.gitignore文件失败\n";
+        std::cerr << "? ����.gitignore�ļ�ʧ��\n";
         return false;
     }
 
     // Create .gitattributes
     if (!utils::GitUtils::createGitAttributes(projectDir)) {
-        std::cerr << "❌ 创建.gitattributes文件失败\n";
+        std::cerr << "? ����.gitattributes�ļ�ʧ��\n";
         return false;
     }
 
@@ -413,13 +413,13 @@ bool TemplateBase::initializeGit(const std::string& projectPath) {
     if (!utils::GitUtils::configureRepositoryAdvanced(projectDir, options_.gitUserName,
                                                       options_.gitUserEmail, options_.gitRemoteUrl,
                                                       options_.setupGitHooks)) {
-        std::cerr << "❌ Git仓库高级配置失败\n";
+        std::cerr << "? Git�ֿ�߼�����ʧ��\n";
     }
 
     // Setup Git workflow
     if (gitWorkflow != "none") {
         if (!utils::GitUtils::setupGitWorkflow(projectDir, gitWorkflow)) {
-            std::cerr << "❌ Git工作流配置失败\n";
+            std::cerr << "? Git����������ʧ��\n";
         }
     }
 
@@ -427,7 +427,7 @@ bool TemplateBase::initializeGit(const std::string& projectPath) {
     std::string branchStrategy = std::string(to_string(options_.gitBranchStrategy));
     if (!utils::GitUtils::createBranchesFromStrategy(projectDir, branchStrategy,
                                                      options_.gitBranches)) {
-        std::cerr << "❌ Git分支创建失败\n";
+        std::cerr << "? Git��֧����ʧ��\n";
     }
 
     // Create license file
@@ -435,7 +435,7 @@ bool TemplateBase::initializeGit(const std::string& projectPath) {
         if (!utils::GitUtils::createLicenseFile(
                     projectDir, licenseType, options_.projectName,
                     options_.gitUserName.empty() ? "Project Author" : options_.gitUserName)) {
-            std::cerr << "❌ 许可证文件创建失败\n";
+            std::cerr << "? ����֤�ļ�����ʧ��\n";
         }
     }
 
@@ -451,20 +451,20 @@ bool TemplateBase::initializeGit(const std::string& projectPath) {
     if (!utils::FileUtils::fileExists(readmePath)) {
         if (!utils::FileUtils::writeToFile(
                     readmePath,
-                    "# " + options_.projectName + "\n\n初始项目结构由CPP-Scaffold创建。\n")) {
-            std::cerr << "❌ 创建README.md文件失败\n";
+                    "# " + options_.projectName + "\n\n��ʼ��Ŀ�ṹ��CPP-Scaffold������\n")) {
+            std::cerr << "? ����README.md�ļ�ʧ��\n";
         }
     }
 
     // Create initial commit if requested
     if (options_.createInitialCommit) {
         if (!utils::GitUtils::createInitialCommit(projectDir, "Initial commit")) {
-            std::cerr << "❌ 创建初始提交失败\n";
+            std::cerr << "? ������ʼ�ύʧ��\n";
             return false;
         }
     }
 
-    std::cout << "✅ Git仓库初始化完成\n";
+    std::cout << "? Git�ֿ��ʼ�����\n";
     return true;
 }
 
@@ -509,21 +509,21 @@ bazel-*
 # Generated files
 compile_commands.json
 
-# 包管理器相关
+# �����������
 .vcpkg/
 conanbuildinfo.*
 conaninfo.*
 graph_info.json
 
-# 测试相关
+# �������
 Testing/
 CTestTestfile.cmake
 )";
 }
 
-// 添加获取项目许可证内容的辅助方法
+// ���ӻ�ȡ��Ŀ����֤���ݵĸ�������
 std::string TemplateBase::getLicenseContent(const std::string& projectName) {
-    // 返回一个简单的MIT许可证模板
+    // ����һ���򵥵�MIT����֤ģ��
     return R"(MIT License
 
 Copyright (c) )" +
@@ -549,13 +549,13 @@ SOFTWARE.
 )";
 }
 
-// 创建许可证文件
+// ��������֤�ļ�
 bool TemplateBase::createLicense(const std::string& projectPath) {
     return utils::FileUtils::writeToFile(utils::FileUtils::combinePath(projectPath, "LICENSE"),
                                          getLicenseContent(options_.projectName));
 }
 
-// 创建空的.clang-format文件
+// �����յ�.clang-format�ļ�
 bool TemplateBase::createClangFormat(const std::string& projectPath) {
     return utils::FileUtils::writeToFile(
             utils::FileUtils::combinePath(projectPath, ".clang-format"),
@@ -574,14 +574,14 @@ AlwaysBreakTemplateDeclarations: Yes
 )");
 }
 
-// 创建.gitattributes文件
+// ����.gitattributes�ļ�
 bool TemplateBase::createGitAttributes(const std::string& projectPath) {
     return utils::FileUtils::writeToFile(
             utils::FileUtils::combinePath(projectPath, ".gitattributes"),
-            R"(# 设置默认行尾风格
+            R"(# ����Ĭ����β���
 * text=auto
 
-# C/C++ 源文件
+# C/C++ Դ�ļ�
 *.c text
 *.cc text
 *.cxx text
@@ -592,7 +592,7 @@ bool TemplateBase::createGitAttributes(const std::string& projectPath) {
 *.h++ text
 *.hh text
 
-# 声明为二进制文件不做行尾转换
+# ����Ϊ�������ļ�������βת��
 *.png binary
 *.jpg binary
 *.jpeg binary
@@ -621,91 +621,91 @@ bool TemplateBase::createGitAttributes(const std::string& projectPath) {
 )");
 }
 
-// 设置CI/CD配置
+// ����CI/CD����
 bool TemplateBase::setupCICD(const std::string& projectPath) {
     if (options_.ciOptions.empty()) {
-        return true;  // 没有选择CI/CD系统，直接成功返回
+        return true;  // No CI/CD systems selected, return success directly
     }
 
-    std::cout << "📦 设置CI/CD配置...\n";
+    std::cout << "Setting up CI/CD configuration...\n";
 
     bool result = CIConfig::createCIConfigs(projectPath, options_.ciOptions, options_);
 
     if (result) {
-        std::cout << "✅ CI/CD配置创建成功\n";
+        std::cout << "CI/CD configuration created successfully\n";
     } else {
-        std::cerr << "❌ CI/CD配置创建失败\n";
+        std::cerr << "CI/CD configuration setup failed\n";
     }
 
     return result;
 }
 
-// 设置编辑器配置
+// ���ñ༭������
 bool TemplateBase::setupEditorConfig(const std::string& projectPath) {
     if (options_.editorOptions.empty()) {
-        return true;  // 没有选择编辑器配置，直接成功返回
+        return true;  // No editor configuration selected, return success directly
     }
 
-    std::cout << "📦 设置编辑器配置...\n";
+    std::cout << "Setting up editor configuration...\n";
 
     bool result =
             EditorConfigManager::createEditorConfigs(projectPath, options_.editorOptions, options_);
 
     if (result) {
-        std::cout << "✅ 编辑器配置创建成功\n";
+        std::cout << "Editor configuration created successfully\n";
     } else {
-        std::cerr << "❌ 编辑器配置创建失败\n";
+        std::cerr << "Editor configuration setup failed\n";
     }
 
     return result;
 }
 
-// 设置代码风格配置
+// Setup code style configuration
 bool TemplateBase::setupCodeStyleConfig(const std::string& projectPath) {
     if (!options_.includeCodeStyleTools) {
-        return true;  // 没有选择包含代码风格工具，直接成功返回
+        return true;  // No code style tools selected, return success directly
     }
 
-    std::cout << "📦 设置代码风格配置...\n";
+    std::cout << "Setting up code style configuration...\n";
 
     bool result = CodeStyleConfig::createCodeStyleConfig(projectPath, options_);
 
     if (result) {
-        std::cout << "✅ 代码风格配置创建成功\n";
+        std::cout << "Code style configuration created successfully\n";
     } else {
-        std::cerr << "❌ 代码风格配置创建失败\n";
+        std::cerr << "Code style configuration setup failed\n";
     }
 
     return result;
 }
 
-// 设置文档配置
+// Setup documentation configuration
 bool TemplateBase::setupDocConfig(const std::string& projectPath) {
     if (!options_.includeDocumentation) {
-        return true;  // 没有选择包含文档，直接成功返回
+        return true;  // No documentation selected, return success directly
     }
 
-    std::cout << "📦 设置文档配置...\n";
+    std::cout << "Setting up documentation configuration...\n";
 
     bool result = DocConfig::createDocConfig(projectPath, options_);
 
     if (result) {
-        std::cout << "✅ 文档配置创建成功\n";
+        std::cout << "Documentation configuration created successfully\n";
     } else {
-        std::cerr << "❌ 文档配置创建失败\n";
+        std::cerr << "Documentation configuration setup failed\n";
     }
 
     return result;
 }
 
-// 打印项目创建后的使用指南
+// ��ӡ��Ŀ�������ʹ��ָ��
 void TemplateBase::printUsageGuide() {
-    std::cout << "\n📋 项目使用指南:\n\n";
+    std::cout << "\n?? ��Ŀʹ��ָ��:\n\n";
 
-    std::cout << "1. 进入项目目录:\n";
+    std::cout << "1. ������ĿĿ¼:\n";
     std::cout << "   cd " << options_.projectName << "\n\n";
 
-    std::cout << "2. 构建项目:\n";
+    std::cout << "2. ������Ŀ:\n";
     if (to_string(options_.buildSystem) == "cmake") {
         std::cout << "   mkdir build && cd build\n";
         std::cout << "   cmake ..\n";
@@ -725,7 +725,7 @@ void TemplateBase::printUsageGuide() {
     std::cout << "\n";
 
     if (options_.includeTests) {
-        std::cout << "3. 运行测试:\n";
+        std::cout << "3. ���в���:\n";
         if (to_string(options_.buildSystem) == "cmake") {
             std::cout << "   cd build\n";
             std::cout << "   ctest\n";
@@ -743,19 +743,19 @@ void TemplateBase::printUsageGuide() {
     }
 
     if (to_string(options_.packageManager) != "none") {
-        std::cout << "4. 包管理: \n";
+        std::cout << "4. ������: \n";
         if (to_string(options_.packageManager) == "vcpkg") {
-            std::cout << "   vcpkg安装依赖已在vcpkg.json中配置\n";
+            std::cout << "   vcpkg��װ��������vcpkg.json������\n";
         } else if (to_string(options_.packageManager) == "conan") {
-            std::cout << "   在构建项目前运行:\n";
+            std::cout << "   �ڹ�����Ŀǰ����:\n";
             std::cout << "   conan install . --build=missing\n";
         }
         std::cout << "\n";
     }
 
     if (!options_.ciOptions.empty()) {
-        std::cout << "5. CI/CD配置: \n";
-        std::cout << "   已为以下CI/CD系统创建配置:\n";
+        std::cout << "5. CI/CD����: \n";
+        std::cout << "   ��Ϊ����CI/CDϵͳ��������:\n";
         for (const auto& ci : options_.ciOptions) {
             std::cout << "   - " << to_string(ci) << "\n";
         }
@@ -763,14 +763,14 @@ void TemplateBase::printUsageGuide() {
     }
 
     if (options_.includeCodeStyleTools) {
-        std::cout << "6. 代码风格工具: \n";
-        std::cout << "   项目已配置clang-format、clang-tidy和EditorConfig\n";
+        std::cout << "6. �����񹤾�: \n";
+        std::cout << "   ��Ŀ������clang-format��clang-tidy��EditorConfig\n";
         std::cout << "\n";
     }
 
     if (options_.includeDocumentation) {
-        std::cout << "7. 文档生成: \n";
-        std::cout << "   使用以下命令生成文档:\n";
+        std::cout << "7. �ĵ�����: \n";
+        std::cout << "   ʹ���������������ĵ�:\n";
         std::cout << "   cd docs\n";
 #ifdef _WIN32
         std::cout << "   .\\generate_docs.bat\n";
@@ -780,10 +780,10 @@ void TemplateBase::printUsageGuide() {
         std::cout << "\n";
     }
 
-    std::cout << "祝编码愉快! 🎉\n";
+    std::cout << "ף�������! ??\n";
 }
 
-// 执行创建后的操作
+// ִ�д�����Ĳ���
 bool TemplateBase::executePostCreationActions() {
     // Temporarily disabled due to namespace conflicts
     // utils::PostCreationActions& actions = utils::PostCreationActions::getInstance();

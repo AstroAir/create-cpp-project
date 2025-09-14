@@ -3,7 +3,7 @@
 #include <sstream>
 #include <iostream>
 
-#include "../../src/utils/context_sensitive_error_system.h"
+#include "../../src/utils/validation/context_sensitive_error_system.h"
 
 using namespace utils;
 using ::testing::_;

@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "utils/table_formatter.h"
+#include "utils/ui/table_formatter.h"
 
 using namespace utils;
 

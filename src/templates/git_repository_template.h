@@ -1,8 +1,8 @@
 #pragma once
 
 #include "template_base.h"
-#include "../utils/git_utils.h"
-#include "../utils/progress_indicator.h"
+#include "../utils/external/git_utils.h"
+#include "../utils/ui/progress_indicator.h"
 
 class GitRepositoryTemplate : public TemplateBase {
 public:

@@ -1,7 +1,7 @@
 #pragma once
 #include "../cli/types/cli_options.h"
 #include "template_base.h"
-#include "../utils/framework_integration.h"
+#include "../utils/external/framework_integration.h"
 #include <functional>
 #include <map>
 #include <memory>

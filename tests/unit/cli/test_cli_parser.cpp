@@ -1,4 +1,4 @@
-﻿#include <gtest/gtest.h>
+#include <gtest/gtest.h>
 #include "../src/cli/cli_parser.h"
 #include <vector>
 #include <string>

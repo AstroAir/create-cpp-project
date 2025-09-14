@@ -1,20 +1,17 @@
 #pragma once
 
-#include "../cli/cli_parser.h"
+#include <functional>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-#include <functional>
+
+#include "../cli/cli_parser.h"
+
 
 namespace config {
 
 // Validation severity levels
-enum class ValidationSeverity {
-    Info,
-    Warning,
-    Error,
-    Critical
-};
+enum class ValidationSeverity { Info, Warning, Error, Critical };
 
 // Validation message
 struct ValidationMessage {
@@ -22,7 +19,7 @@ struct ValidationMessage {
     std::string category;
     std::string message;
     std::string suggestion;
-    std::string component; // Which component this relates to
+    std::string component;  // Which component this relates to
 };
 
 // Validation result
@@ -36,8 +33,8 @@ struct ValidationResult {
     std::vector<ValidationMessage> getErrors() const;
     std::vector<ValidationMessage> getWarnings() const;
     void addMessage(ValidationSeverity severity, const std::string& category,
-                   const std::string& message, const std::string& suggestion = "",
-                   const std::string& component = "");
+                    const std::string& message, const std::string& suggestion = "",
+                    const std::string& component = "");
 };
 
 // Configuration compatibility matrix
@@ -49,7 +46,7 @@ struct CompatibilityInfo {
 };
 
 class ConfigValidator {
-public:
+   public:
     static ConfigValidator& getInstance();
 
     // Main validation methods
@@ -63,10 +60,14 @@ public:
     ValidationResult validateCICompatibility(const CliOptions& options) const;
 
     // Compatibility checks
-    CompatibilityInfo checkTemplateWithBuildSystem(TemplateType template_type, BuildSystem build_system) const;
-    CompatibilityInfo checkBuildSystemWithPackageManager(BuildSystem build_system, PackageManager package_manager) const;
-    CompatibilityInfo checkTemplateWithPackageManager(TemplateType template_type, PackageManager package_manager) const;
-    CompatibilityInfo checkTestFrameworkWithBuildSystem(TestFramework test_framework, BuildSystem build_system) const;
+    CompatibilityInfo checkTemplateWithBuildSystem(TemplateType template_type,
+                                                   BuildSystem build_system) const;
+    CompatibilityInfo checkBuildSystemWithPackageManager(BuildSystem build_system,
+                                                         PackageManager package_manager) const;
+    CompatibilityInfo checkTemplateWithPackageManager(TemplateType template_type,
+                                                      PackageManager package_manager) const;
+    CompatibilityInfo checkTestFrameworkWithBuildSystem(TestFramework test_framework,
+                                                        BuildSystem build_system) const;
 
     // Platform-specific validation
     ValidationResult validatePlatformCompatibility(const CliOptions& options) const;
@@ -98,7 +99,7 @@ public:
     void setValidationLevel(ValidationSeverity minLevel);
     void enablePlatformSpecificValidation(bool enabled);
 
-private:
+   private:
     ConfigValidator() = default;
 
     std::map<std::string, ValidationRule> customRules_;
@@ -120,13 +121,14 @@ private:
     void initializeCompatibilityMatrices();
     std::map<std::pair<TemplateType, BuildSystem>, CompatibilityInfo> templateBuildCompatibility_;
     std::map<std::pair<BuildSystem, PackageManager>, CompatibilityInfo> buildPackageCompatibility_;
-    std::map<std::pair<TemplateType, PackageManager>, CompatibilityInfo> templatePackageCompatibility_;
+    std::map<std::pair<TemplateType, PackageManager>, CompatibilityInfo>
+            templatePackageCompatibility_;
     std::map<std::pair<TestFramework, BuildSystem>, CompatibilityInfo> testBuildCompatibility_;
 
     // Validation message helpers
     ValidationMessage createMessage(ValidationSeverity severity, const std::string& category,
-                                  const std::string& message, const std::string& suggestion = "",
-                                  const std::string& component = "") const;
+                                    const std::string& message, const std::string& suggestion = "",
+                                    const std::string& component = "") const;
 
     // System requirement checks
     bool checkCompilerAvailability(BuildSystem buildSystem) const;
@@ -141,18 +143,18 @@ private:
 
 // Validation utilities
 namespace validation_utils {
-    std::string severityToString(ValidationSeverity severity);
-    std::string formatValidationMessage(const ValidationMessage& message);
-    void printValidationResult(const ValidationResult& result);
-    bool isConfigurationRecommended(const CliOptions& options);
-    std::vector<std::string> getCommonIssues(const CliOptions& options);
-}
+std::string severityToString(ValidationSeverity severity);
+std::string formatValidationMessage(const ValidationMessage& message);
+void printValidationResult(const ValidationResult& result);
+bool isConfigurationRecommended(const CliOptions& options);
+std::vector<std::string> getCommonIssues(const CliOptions& options);
+}  // namespace validation_utils
 
 // Pre-defined validation rule sets
 namespace validation_rules {
-    extern const std::map<std::string, ConfigValidator::ValidationRule> BASIC_RULES;
-    extern const std::map<std::string, ConfigValidator::ValidationRule> ADVANCED_RULES;
-    extern const std::map<std::string, ConfigValidator::ValidationRule> ENTERPRISE_RULES;
-}
+extern const std::map<std::string, ConfigValidator::ValidationRule> BASIC_RULES;
+extern const std::map<std::string, ConfigValidator::ValidationRule> ADVANCED_RULES;
+extern const std::map<std::string, ConfigValidator::ValidationRule> ENTERPRISE_RULES;
+}  // namespace validation_rules
 
-} // namespace config
+}  // namespace config

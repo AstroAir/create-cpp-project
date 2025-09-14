@@ -1,6 +1,6 @@
 #pragma once
 #include "template_base.h"
-#include "../utils/security_config.h"
+#include "../utils/security/security_config.h"
 
 class SecurityTemplate : public TemplateBase {
 public:

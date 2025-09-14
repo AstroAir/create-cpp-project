@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "templates/template_manager.h"
 #include "cli/types/cli_options.h"
-#include "utils/file_utils.h"
+#include "utils/core/file_utils.h"
 #include <filesystem>
 
 using namespace templates;

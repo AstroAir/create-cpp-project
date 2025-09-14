@@ -6,7 +6,7 @@
 // Note: These includes would be the actual project includes
 // #include "../../src/templates/git_repository_template.h"
 // #include "../../src/cli/types/cli_options.h"
-// #include "../../src/utils/git_utils.h"
+// #include "../../src/utils/external/git_utils.h"
 
 // Mock classes for testing
 class MockGitUtils {

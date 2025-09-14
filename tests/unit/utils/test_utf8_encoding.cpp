@@ -4,7 +4,7 @@
 #include <sstream>
 #include <string>
 
-#include "utils/terminal_utils.h"
+#include "utils/ui/terminal_utils.h"
 
 #ifdef _WIN32
 #include <fcntl.h>
@@ -47,7 +47,7 @@ TEST_F(UTF8EncodingTest, TestUtf8Encoding) {
 
 TEST_F(UTF8EncodingTest, ChineseCharacterSupport) {
     // Test Chinese characters
-    std::string chinese = "你好世界！欢迎使用 C++ 项目脚手架";
+    std::string chinese = "你好世界！欢迎使�?C++ 项目脚手�?;
 
     // These should not throw exceptions or cause crashes
     EXPECT_NO_THROW({ std::cout << chinese << std::endl; });
@@ -59,7 +59,7 @@ TEST_F(UTF8EncodingTest, ChineseCharacterSupport) {
 
 TEST_F(UTF8EncodingTest, EmojiSupport) {
     // Test various emojis
-    std::string emojis = "🚀 🌟 💻 🔧 ⚡ 🎯 📦 🛠️ 🌈 🎉";
+    std::string emojis = "🚀 🌟 💻 🔧 �?🎯 📦 🛠�?🌈 🎉";
 
     EXPECT_NO_THROW({ std::cout << emojis << std::endl; });
 
@@ -71,7 +71,7 @@ TEST_F(UTF8EncodingTest, InternationalCharacters) {
     // Test various international characters
     std::vector<std::string> international_texts = {
             "こんにちは世界！",   // Japanese
-            "안녕하세요 세계!",   // Korean
+            "안녕하세�?세계!",   // Korean
             "مرحبا بالعالم!",     // Arabic
             "שלום עולם!",         // Hebrew
             "Привет мир!",        // Russian
@@ -86,7 +86,7 @@ TEST_F(UTF8EncodingTest, InternationalCharacters) {
 }
 
 TEST_F(UTF8EncodingTest, MathematicalSymbols) {
-    std::string math_symbols = "∑ ∏ ∫ √ ∞ ≤ ≥ ≠ ± ÷ × π α β γ δ ε";
+    std::string math_symbols = "�?�?�?�?�?�?�?�?± ÷ × π α β γ δ ε";
 
     EXPECT_NO_THROW({ std::cout << math_symbols << std::endl; });
 
@@ -94,7 +94,7 @@ TEST_F(UTF8EncodingTest, MathematicalSymbols) {
 }
 
 TEST_F(UTF8EncodingTest, BoxDrawingCharacters) {
-    std::string box_chars = "┌─┬─┐ │ │ │ ├─┼─┤ │ │ │ └─┴─┘";
+    std::string box_chars = "┌─┬─�?�?�?�?├─┼─�?�?�?�?└─┴─�?;
 
     EXPECT_NO_THROW({ std::cout << box_chars << std::endl; });
 
@@ -102,7 +102,7 @@ TEST_F(UTF8EncodingTest, BoxDrawingCharacters) {
 }
 
 TEST_F(UTF8EncodingTest, CurrencySymbols) {
-    std::string currency = "$ € £ ¥ ₹ ₽ ₩ ₪ ₦ ₡ ₨ ₫ ₱ ₵";
+    std::string currency = "$ �?£ ¥ �?�?�?�?�?�?�?�?�?�?;
 
     EXPECT_NO_THROW({ std::cout << currency << std::endl; });
 
@@ -125,7 +125,7 @@ TEST_F(UTF8EncodingTest, ColorizedUnicodeOutput) {
 }
 
 TEST_F(UTF8EncodingTest, ComplexUnicodeCombinations) {
-    std::string complex = "🚀 C++ 项目脚手架 🛠️ Project Scaffolding Tool 🎯";
+    std::string complex = "🚀 C++ 项目脚手�?🛠�?Project Scaffolding Tool 🎯";
 
     EXPECT_NO_THROW({ std::cout << complex << std::endl; });
 
@@ -135,7 +135,7 @@ TEST_F(UTF8EncodingTest, ComplexUnicodeCombinations) {
 
 TEST_F(UTF8EncodingTest, TerminalUtilsWithUnicode) {
     // Test terminal utilities with Unicode content
-    std::vector<std::string> unicode_lines = {"🚀 第一行：项目创建", "📦 第二行：包管理",
+    std::vector<std::string> unicode_lines = {"🚀 第一行：项目创建", "📦 第二行：包管�?,
                                               "🔧 第三行：构建配置"};
 
     EXPECT_NO_THROW({ TerminalUtils::showBox(unicode_lines, BorderStyle::Single); });
@@ -161,8 +161,8 @@ TEST_F(UTF8EncodingTest, ProgressIndicatorWithUnicode) {
     std::string unicode_task = "正在创建项目结构...";
 
     EXPECT_NO_THROW({
-        std::cout << "✓ " << unicode_task << std::endl;
-        std::cout << "⚡ 高性能处理中..." << std::endl;
-        std::cout << "🎉 完成！" << std::endl;
+        std::cout << "�?" << unicode_task << std::endl;
+        std::cout << "�?高性能处理�?.." << std::endl;
+        std::cout << "🎉 完成�? << std::endl;
     });
 }

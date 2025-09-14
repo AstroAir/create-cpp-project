@@ -1,11 +1,11 @@
-﻿#include "webservice_template.h"
+#include "webservice_template.h"
 
 #include <spdlog/fmt/fmt.h>
 
 #include <iostream>
 
-#include "../utils/file_utils.h"
-#include "../utils/string_utils.h"
+#include "../utils/core/file_utils.h"
+#include "../utils/core/string_utils.h"
 
 using namespace utils;
 using namespace cli_enums;
@@ -13,44 +13,44 @@ using namespace cli_enums;
 WebServiceTemplate::WebServiceTemplate(const CliOptions& options) : TemplateBase(options) {}
 
 bool WebServiceTemplate::create() {
-    std::cout << "🚀 Creating Web Service project: " << options_.projectName << "\n";
+    std::cout << "?? Creating Web Service project: " << options_.projectName << "\n";
 
     if (!createProjectStructure()) {
-        std::cerr << "❌ Failed to create project structure\n";
+        std::cerr << "? Failed to create project structure\n";
         return false;
     }
 
     if (!createBuildSystem()) {
-        std::cerr << "❌ Failed to create build system\n";
+        std::cerr << "? Failed to create build system\n";
         return false;
     }
 
     if (!setupPackageManager()) {
-        std::cerr << "❌ Failed to setup package manager\n";
+        std::cerr << "? Failed to setup package manager\n";
         return false;
     }
 
     if (!setupTestFramework()) {
-        std::cerr << "❌ Failed to setup test framework\n";
+        std::cerr << "? Failed to setup test framework\n";
         return false;
     }
 
     if (!setupDockerConfiguration()) {
-        std::cerr << "❌ Failed to setup Docker configuration\n";
+        std::cerr << "? Failed to setup Docker configuration\n";
         return false;
     }
 
     if (!setupAPIDocumentation()) {
-        std::cerr << "❌ Failed to setup API documentation\n";
+        std::cerr << "? Failed to setup API documentation\n";
         return false;
     }
 
     if (!initializeGit(options_.projectName)) {
-        std::cerr << "❌ Failed to initialize Git repository\n";
+        std::cerr << "? Failed to initialize Git repository\n";
         return false;
     }
 
-    std::cout << "✅ Web Service project created successfully!\n";
+    std::cout << "? Web Service project created successfully!\n";
     printUsageGuide();
     return true;
 }
@@ -85,7 +85,7 @@ bool WebServiceTemplate::createProjectStructure() {
 
     for (const auto& dir : directories) {
         if (!FileUtils::createDirectory(dir)) {
-            std::cerr << "❌ Failed to create directory: " << dir << "\n";
+            std::cerr << "? Failed to create directory: " << dir << "\n";
             return false;
         }
     }
@@ -111,7 +111,7 @@ bool WebServiceTemplate::createProjectStructure() {
         return false;
     }
 
-    std::cout << "📁 Project structure created\n";
+    std::cout << "?? Project structure created\n";
     return true;
 }
 
@@ -164,7 +164,7 @@ bool WebServiceTemplate::createBuildSystem() {
             break;
     }
 
-    std::cout << "🔧 Build system configured\n";
+    std::cout << "?? Build system configured\n";
     return true;
 }
 
@@ -185,7 +185,7 @@ bool WebServiceTemplate::setupPackageManager() {
         }
     }
 
-    std::cout << "📦 Package manager configured\n";
+    std::cout << "?? Package manager configured\n";
     return true;
 }
 
@@ -216,7 +216,7 @@ bool WebServiceTemplate::setupTestFramework() {
         return false;
     }
 
-    std::cout << "🧪 Test framework configured\n";
+    std::cout << "?? Test framework configured\n";
     return true;
 }
 
@@ -244,7 +244,7 @@ bool WebServiceTemplate::setupDockerConfiguration() {
         return false;
     }
 
-    std::cout << "🐳 Docker configuration created\n";
+    std::cout << "?? Docker configuration created\n";
     return true;
 }
 
@@ -265,7 +265,7 @@ bool WebServiceTemplate::setupAPIDocumentation() {
         return false;
     }
 
-    std::cout << "📚 API documentation created\n";
+    std::cout << "?? API documentation created\n";
     return true;
 }
 
