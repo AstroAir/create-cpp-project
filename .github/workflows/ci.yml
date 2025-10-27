@@ -358,7 +358,7 @@ jobs:
         shell: bash
 
       - name: Upload build metrics
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: build-metrics-${{ matrix.os }}-${{ matrix.compiler }}
           path: build-metrics/
@@ -366,7 +366,7 @@ jobs:
 
       - name: Upload build artifacts
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: build-artifacts-${{ matrix.os }}-${{ matrix.compiler }}
           path: |
@@ -534,7 +534,7 @@ jobs:
           fi
 
       - name: Upload code quality artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: code-quality-results

@@ -155,7 +155,7 @@ jobs:
 
     # Upload security artifacts
     - name: Upload security scan artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: security-scan-results
@@ -227,7 +227,7 @@ jobs:
         fi
 
     - name: Upload license compliance report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: license-compliance-report
         path: license-report.md
