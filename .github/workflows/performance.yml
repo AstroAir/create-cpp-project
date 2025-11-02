@@ -196,7 +196,7 @@ jobs:
 
     # Upload current results as artifacts
     - name: Upload benchmark results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: benchmark-results
         path: |
@@ -253,7 +253,7 @@ jobs:
         echo "::endgroup::"
 
     - name: Upload performance charts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: performance-charts
         path: build/benchmarks/performance_chart.png

@@ -296,7 +296,7 @@ jobs:
         echo "- Build Type: ${{ env.BUILD_TYPE }}" >> integration_report.md
 
     - name: Upload integration test artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: integration-test-results-${{ matrix.os }}-${{ matrix.scenario }}
         path: |
@@ -332,7 +332,7 @@ jobs:
         done
 
     - name: Upload integration summary
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: integration-tests-summary
         path: integration_summary.md

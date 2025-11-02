@@ -261,7 +261,7 @@ jobs:
         category: 'docker-security'
 
     - name: Upload security artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: docker-security-scan

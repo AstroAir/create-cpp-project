@@ -228,7 +228,7 @@ jobs:
       shell: bash
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: cpp-scaffold-${{ matrix.target }}
         path: |
@@ -272,7 +272,7 @@ jobs:
         echo "::endgroup::"
 
     - name: Upload universal binary
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: cpp-scaffold-universal-apple-darwin
         path: cpp-scaffold-universal-apple-darwin.tar.gz
@@ -302,7 +302,7 @@ jobs:
         echo "All multi-architecture builds completed successfully" >> multi-arch-summary.md
 
     - name: Upload summary
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: multi-arch-summary
         path: multi-arch-summary.md
