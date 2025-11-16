@@ -207,7 +207,7 @@ jobs:
     # Create pull request if updates are available
     - name: Create pull request for updates
       if: env.VCPKG_UPDATE_AVAILABLE == 'true' || env.CMAKE_UPDATE_AVAILABLE == 'true' || env.SUBMODULES_UPDATED == 'true'
-      uses: peter-evans/create-pull-request@v5
+      uses: peter-evans/create-pull-request@v7
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         commit-message: |
