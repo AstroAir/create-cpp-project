@@ -1,7 +1,7 @@
 # Alpine minimal development environment for C++ builds
 # This container provides a lightweight C++ development environment
 
-FROM alpine:3.18
+FROM alpine:3.22
 
 # Set environment variables
 ENV CC=clang
