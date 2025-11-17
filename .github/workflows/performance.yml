@@ -89,7 +89,7 @@ jobs:
 
     # Download previous benchmark results for comparison
     - name: Download previous benchmark results
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v6
       with:
         name: benchmark-results
         path: previous_benchmarks/
