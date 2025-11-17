@@ -133,21 +133,21 @@ jobs:
 
     # Upload SARIF results to GitHub Security tab
     - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@v4
       if: always()
       with:
         sarif_file: 'trivy-fs-results.sarif'
         category: 'trivy-filesystem'
 
     - name: Upload Conan scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@v4
       if: always() && hashFiles('trivy-conan-results.sarif') != ''
       with:
         sarif_file: 'trivy-conan-results.sarif'
         category: 'trivy-conan'
 
     - name: Upload vcpkg scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@v4
       if: always() && hashFiles('trivy-vcpkg-results.sarif') != ''
       with:
         sarif_file: 'trivy-vcpkg-results.sarif'
